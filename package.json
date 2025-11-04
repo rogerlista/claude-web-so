@@ -3,12 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Sistema POS com emissão de NFC-e - Monorepo",
-  "keywords": [
-    "pos",
-    "nfce",
-    "pdv",
-    "point-of-sale"
-  ],
+  "keywords": ["pos", "nfce", "pdv", "point-of-sale"],
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20.0.0",

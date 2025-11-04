@@ -75,18 +75,8 @@
     "experimentalDecorators": false,
     "emitDecoratorMetadata": false
   },
-  "include": [
-    "src/**/*",
-    "src/**/*.vue",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ],
+  "include": ["src/**/*", "src/**/*.vue", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "coverage", "**/*.spec.ts", "**/*.test.ts"],
   "references": [
     {
       "path": "./tsconfig.node.json"

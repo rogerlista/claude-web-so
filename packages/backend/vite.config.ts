@@ -1,28 +1,25 @@
-import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
-      fileName: 'index'
+      fileName: 'index',
     },
     rollupOptions: {
-      external: [
-        'hono',
-        /^node:.*/
-      ],
+      external: ['hono', /^node:.*/],
       output: {
         preserveModules: false,
-        exports: 'named'
-      }
+        exports: 'named',
+      },
     },
     target: 'node20',
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
-    minify: false
+    minify: false,
   },
   resolve: {
     alias: {
@@ -31,7 +28,7 @@ export default defineConfig({
       '@application': resolve(__dirname, './src/application'),
       '@infrastructure': resolve(__dirname, './src/infrastructure'),
       '@presentation': resolve(__dirname, './src/presentation'),
-      '@shared': resolve(__dirname, './src/shared')
-    }
-  }
+      '@shared': resolve(__dirname, './src/shared'),
+    },
+  },
 })

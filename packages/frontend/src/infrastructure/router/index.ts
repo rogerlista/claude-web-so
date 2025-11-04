@@ -7,22 +7,22 @@ const routes: RouteRecordRaw[] = [
     name: 'home',
     component: () => import('@views/HomeView.vue'),
     meta: {
-      title: 'Início'
-    }
+      title: 'Início',
+    },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@views/NotFoundView.vue'),
     meta: {
-      title: 'Página não encontrada'
-    }
-  }
+      title: 'Página não encontrada',
+    },
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
 })
 
 // Navigation guards

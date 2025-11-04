@@ -12,7 +12,7 @@ const goHome = (): void => {
   <div class="not-found">
     <h1>404</h1>
     <p>Página não encontrada</p>
-    <button @click="goHome">
+    <button type="button" @click="goHome">
       Voltar para o início
     </button>
   </div>

@@ -1,0 +1,24 @@
+{
+  "recommendations": [
+    // Essenciais
+    "biomejs.biome",
+    "vue.volar",
+    "vue.vscode-typescript-vue-plugin",
+
+    // TypeScript e Testing
+    "vitest.explorer",
+
+    // Git
+    "eamodio.gitlens",
+
+    // Utilities
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-portuguese-brazilian",
+
+    // Tauri (quando implementar desktop)
+    "tauri-apps.tauri-vscode",
+    "rust-lang.rust-analyzer"
+  ],
+  "unwantedRecommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+}

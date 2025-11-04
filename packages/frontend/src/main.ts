@@ -1,7 +1,7 @@
-import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import router from './infrastructure/router'
+import { createApp } from 'vue'
 import App from './App.vue'
+import router from './infrastructure/router'
 
 // Importar estilos globais quando criados
 // import './presentation/styles/main.css'
@@ -17,15 +17,5 @@ app.use(router)
 app.mount('#app')
 
 // Service Worker Registration (PWA)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered:', registration)
-      })
-      .catch((error) => {
-        console.log('SW registration failed:', error)
-      })
-  })
-}
+// O plugin vite-plugin-pwa gerencia automaticamente o service worker
+// Não é necessário registro manual adicional aqui

@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-
-onMounted(() => {
-  console.log('🚀 POS NFC-e Frontend Started')
-})
+// App raiz do sistema POS NFC-e
 </script>
 
 <template>
