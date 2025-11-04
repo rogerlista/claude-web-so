@@ -1,0 +1,37 @@
+{
+  "name": "@pos-nfce/frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Frontend PWA - Sistema POS com NFC-e",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "vue-tsc --noEmit",
+    "clean": "rm -rf dist coverage .tsbuildinfo node_modules/.vite"
+  },
+  "dependencies": {
+    "pinia": "latest",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@vitejs/plugin-vue": "latest",
+    "@vitest/coverage-v8": "latest",
+    "@vitest/ui": "latest",
+    "@vue/test-utils": "latest",
+    "happy-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vite-plugin-pwa": "latest",
+    "vitest": "latest",
+    "vue-tsc": "latest",
+    "workbox-window": "latest"
+  }
+}
