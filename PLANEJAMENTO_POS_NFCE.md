@@ -40,10 +40,10 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
 
 **Qualidade & DevOps:**
 - **Git Hooks:** Lefthook (latest)
+- **Commit Validation:** commitlint (latest) + Conventional Commits 1.0.0
 - **Linter/Formatter:** Biome.js (latest) - substitui ESLint + Prettier
 - **Testing:** Vitest (latest) com coverage 100% obrigatório
 - **TypeScript:** Modo strict com zero `any`
-- **Commits:** Conventional Commits
 - **CI/CD:** GitHub Actions (latest)
 - **Architecture:** Clean Architecture + DDD + TDD First
 
@@ -184,33 +184,96 @@ infrastructure ←←←←←←←←←←←←←←←
 - **I** - Interface Segregation: Interfaces específicas, não genéricas
 - **D** - Dependency Inversion: Dependa de abstrações, não de implementações
 
-#### 7. Git e Commits
+#### 7. Git e Commits - Conventional Commits Rigoroso
 
-**Conventional Commits Obrigatório:**
+**Formato Obrigatório (Conventional Commits 1.0.0):**
 ```
-<type>(<scope>): <subject>
+<type>[optional scope]: <description>
 
-<body>
+[optional body]
 
-<footer>
+[optional footer(s)]
 ```
 
-**Types permitidos:**
-- `feat`: Nova funcionalidade
+**Types Permitidos (validado por commitlint):**
+- `feat`: Nova funcionalidade (user-facing)
 - `fix`: Correção de bug
-- `test`: Adicionar/modificar testes
-- `refactor`: Refatoração sem mudança de comportamento
-- `docs`: Documentação
-- `chore`: Tarefas de manutenção
-- `ci`: Configuração de CI/CD
+- `test`: Adicionar/modificar testes (TDD RED phase)
+- `refactor`: Refatoração sem mudança de comportamento (TDD REFACTOR phase)
+- `docs`: Documentação apenas
+- `style`: Formatação, missing semi colons, etc (não afeta código)
 - `perf`: Melhoria de performance
+- `build`: Mudanças no sistema de build ou dependências externas
+- `ci`: Mudanças em arquivos e scripts de CI
+- `chore`: Outras mudanças que não modificam src ou test
+- `revert`: Reverte um commit anterior
 
-**Regras:**
-- ✅ Commits atômicos (uma mudança lógica)
-- ✅ Subject em imperativo ("add" não "added")
-- ✅ Máximo 72 caracteres no subject
+**Scopes Sugeridos por Módulo:**
+- `backend`: Mudanças no backend
+- `frontend`: Mudanças no frontend
+- `desktop`: Mudanças no Tauri desktop
+- `db`: Mudanças no schema do banco de dados
+- `api`: Mudanças em endpoints/routers
+- `domain`: Mudanças na camada de domínio
+- `infra`: Mudanças na infraestrutura
+- `produto`: Funcionalidade relacionada a produtos
+- `venda`: Funcionalidade relacionada a vendas
+- `caixa`: Funcionalidade relacionada ao caixa
+- `nfce`: Funcionalidade relacionada a NFC-e
+
+**Exemplos Válidos:**
+```bash
+# Feature nova
+feat(produto): add product search by GTIN
+
+# Bug fix
+fix(venda): correct discount calculation
+
+# TDD - RED phase
+test(caixa): add failing test for cash opening
+
+# TDD - GREEN phase
+feat(caixa): implement cash opening to pass test
+
+# TDD - REFACTOR phase
+refactor(caixa): improve cash opening logic
+
+# Breaking change
+feat(api)!: change product endpoint response format
+
+BREAKING CHANGE: The product API now returns snake_case instead of camelCase
+
+# Multiple scopes
+feat(frontend,backend): add authentication system
+```
+
+**Regras Rigorosas:**
+- ✅ Type obrigatório (lowercase)
+- ✅ Scope opcional mas recomendado (lowercase)
+- ✅ Description obrigatória (lowercase, imperativo)
+- ✅ Máximo 72 caracteres no header
+- ✅ Subject em imperativo ("add" não "added" ou "adds")
+- ✅ Sem ponto final no subject
+- ✅ Body separado por linha em branco
+- ✅ Footer para breaking changes e issues
 - ❌ Não commitar código comentado
 - ❌ Não commitar console.log/debugger
+- ❌ Não commitar arquivos de configuração local
+
+**Validação Automática:**
+- **commitlint** valida formato no commit-msg hook
+- **Lefthook** bloqueia commits inválidos
+- **CI/CD** valida histórico de commits no PR
+
+**Breaking Changes:**
+Adicionar `!` após o type/scope ou adicionar `BREAKING CHANGE:` no footer:
+```bash
+feat(api)!: remove deprecated endpoint
+# ou
+feat(api): update authentication
+
+BREAKING CHANGE: JWT tokens now expire in 1 hour instead of 24 hours
+```
 
 #### 8. Code Review Checklist
 
@@ -317,27 +380,51 @@ Antes de aprovar um PR, validar:
   - Adicionar scripts: `test`, `test:watch`, `test:ui`, `test:coverage`
   - Configurar para falhar se coverage < 100%
 
-- [ ] **T006D** - Configurar Lefthook para Git Hooks
+- [ ] **T006D** - Configurar commitlint para Conventional Commits
+  - Instalar commitlint (`@commitlint/cli@latest`)
+  - Instalar config conventional (`@commitlint/config-conventional@latest`)
+  - Criar `commitlint.config.js` na raiz do monorepo
+  - Configurar regras rigorosas:
+    - `type-enum`: apenas types permitidos
+    - `type-case`: lowercase obrigatório
+    - `type-empty`: type obrigatório
+    - `scope-case`: lowercase
+    - `subject-case`: lowercase, imperativo
+    - `subject-empty`: subject obrigatório
+    - `subject-full-stop`: sem ponto final
+    - `header-max-length`: 72 caracteres
+    - `body-leading-blank`: linha em branco antes do body
+    - `footer-leading-blank`: linha em branco antes do footer
+  - Configurar scopes sugeridos (backend, frontend, desktop, api, etc)
+  - Adicionar script `npm run commit` com commitizen (opcional)
+  - Testar validação: `echo "invalid message" | npx commitlint`
+
+- [ ] **T006E** - Configurar Lefthook para Git Hooks
   - Instalar Lefthook (`lefthook@latest`)
   - Criar `lefthook.yml` na raiz do monorepo
   - **Pre-commit hooks:**
-    - Executar Biome lint (staged files)
-    - Executar Biome format check (staged files)
+    - Executar Biome lint nos staged files
+    - Executar Biome format check nos staged files
     - Executar typecheck em todos os projetos
-    - Executar testes relacionados (staged files)
+    - Executar testes relacionados aos staged files
     - Bloquear commit se houver erros
+  - **Commit-msg hook:**
+    - Executar commitlint para validar formato
+    - Validar Conventional Commits 1.0.0
+    - Bloquear se mensagem inválida
+    - Mostrar exemplos de mensagens válidas em caso de erro
   - **Pre-push hooks:**
     - Executar todos os testes
     - Executar coverage check (100% obrigatório)
-    - Executar typecheck completo
+    - Executar typecheck completo em todos os projetos
     - Executar Biome check completo
-    - Bloquear push se houver falhas
-  - **Commit-msg hook:**
-    - Validar conventional commits
-    - Bloquear se mensagem inválida
+    - Validar que todos os commits seguem Conventional Commits
+    - Bloquear push se houver qualquer falha
   - Instalar hooks: `lefthook install`
+  - Adicionar script no package.json: `"prepare": "lefthook install"`
+  - Testar todos os hooks manualmente
 
-- [ ] **T006E** - Criar workflow de TDD e validação de ciclo RED-GREEN-REFACTOR
+- [ ] **T006F** - Criar workflow de TDD e validação de ciclo RED-GREEN-REFACTOR
   - Criar script `scripts/tdd-validator.ts` para validar ciclo TDD
   - Validações do ciclo:
     1. RED: Deve existir teste falhando antes de implementar
@@ -352,7 +439,7 @@ Antes de aprovar um PR, validar:
   - Documentar processo TDD no README
   - Criar checklist de TDD para cada feature
 
-- [ ] **T006F** - Configurar Clean Architecture e estrutura de pastas
+- [ ] **T006G** - Configurar Clean Architecture e estrutura de pastas
   - Definir estrutura de camadas (Backend):
     - `/src/domain` - Entities, Value Objects, Domain Events
     - `/src/application` - Use Cases, DTOs, Interfaces
@@ -370,24 +457,27 @@ Antes de aprovar um PR, validar:
   - Configurar path aliases no tsconfig
   - Validar dependências entre camadas (domain não depende de infra)
 
-- [ ] **T006G** - Configurar CI/CD com gates de qualidade
+- [ ] **T006H** - Configurar CI/CD com gates de qualidade
   - Criar workflow GitHub Actions `.github/workflows/ci.yml`
   - Jobs paralelos:
     1. **Lint & Format:** Biome check em todos os projetos
     2. **TypeCheck:** TypeScript check em todos os projetos
     3. **Tests:** Rodar todos os testes com coverage
     4. **Build:** Build de todos os projetos
+    5. **Commits:** Validar Conventional Commits no histórico
   - Gates obrigatórios (blocking):
     - Biome check deve passar (zero erros)
     - TypeCheck deve passar (zero erros)
     - Coverage deve ser 100% (sem exceções)
     - Todos os testes devem passar
     - Build deve ser bem-sucedido
+    - Todos os commits devem seguir Conventional Commits
   - Executar em: pull requests, pushes para main/develop
   - Status checks obrigatórios no GitHub
   - Bloquear merge se algum gate falhar
+  - Adicionar badge de status no README
 
-- [ ] **T006H** - Criar documentação de padrões e boas práticas
+- [ ] **T006I** - Criar documentação de padrões e boas práticas
   - Criar `CONTRIBUTING.md` com:
     - Guia de TDD First (ciclo RED-GREEN-REFACTOR)
     - Padrões de código (Clean Code)
@@ -1448,6 +1538,95 @@ Cycle: VALID ✅
 - Tempo médio por ciclo
 - Complexidade ciclomática por arquivo
 
+### Exemplo de Configuração commitlint
+
+**Arquivo: `commitlint.config.js`**
+```javascript
+module.exports = {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    // Type
+    'type-enum': [
+      2,
+      'always',
+      [
+        'feat',     // Nova funcionalidade
+        'fix',      // Correção de bug
+        'test',     // Adicionar/modificar testes
+        'refactor', // Refatoração
+        'docs',     // Documentação
+        'style',    // Formatação
+        'perf',     // Performance
+        'build',    // Build/dependências
+        'ci',       // CI/CD
+        'chore',    // Manutenção
+        'revert',   // Revert de commit
+      ],
+    ],
+    'type-case': [2, 'always', 'lower-case'],
+    'type-empty': [2, 'never'],
+
+    // Scope
+    'scope-case': [2, 'always', 'lower-case'],
+    'scope-enum': [
+      2,
+      'always',
+      [
+        'backend',
+        'frontend',
+        'desktop',
+        'db',
+        'api',
+        'domain',
+        'infra',
+        'produto',
+        'venda',
+        'caixa',
+        'nfce',
+        'estoque',
+      ],
+    ],
+
+    // Subject
+    'subject-case': [2, 'always', 'lower-case'],
+    'subject-empty': [2, 'never'],
+    'subject-full-stop': [2, 'never', '.'],
+
+    // Header
+    'header-max-length': [2, 'always', 72],
+
+    // Body
+    'body-leading-blank': [2, 'always'],
+    'body-max-line-length': [2, 'always', 100],
+
+    // Footer
+    'footer-leading-blank': [2, 'always'],
+  },
+};
+```
+
+**Teste de validação:**
+```bash
+# Válido
+echo "feat(produto): add product search by GTIN" | npx commitlint
+
+# Inválido - Type em maiúscula
+echo "Feat(produto): add product search" | npx commitlint
+# ❌ type must be lower-case
+
+# Inválido - Sem type
+echo "add product search" | npx commitlint
+# ❌ type may not be empty
+
+# Inválido - Subject em maiúscula
+echo "feat(produto): Add product search" | npx commitlint
+# ❌ subject must be lower-case
+
+# Inválido - Header muito longo
+echo "feat(produto): add product search by GTIN with advanced filters and pagination" | npx commitlint
+# ❌ header must not be longer than 72 characters
+```
+
 ### Riscos
 
 **Técnicos:**
@@ -1482,6 +1661,7 @@ Cycle: VALID ✅
 **Changelog:**
 - v2.0 (2025-11-04): **MAJOR UPDATE - Qualidade e TDD**
   - Todas as bibliotecas/frameworks atualizados para `@latest`
+  - Adicionado **commitlint** com Conventional Commits 1.0.0 rigoroso
   - Adicionado Biome.js para Lint/Format (substitui ESLint + Prettier)
   - Adicionado Lefthook para Git Hooks rigorosos
   - Configuração TypeScript Strict (zero `any`)
@@ -1490,10 +1670,12 @@ Cycle: VALID ✅
   - Clean Architecture com estrutura de camadas definida
   - Script de validação automática do ciclo TDD
   - Princípios SOLID e Clean Code obrigatórios
-  - CI/CD com gates de qualidade rigorosos
+  - CI/CD com gates de qualidade rigorosos incluindo validação de commits
   - Documentação completa de padrões e boas práticas
   - Estimativas ajustadas (+30% devido à qualidade)
-  - Nova Fase 1.2: Qualidade de Código e TDD First (8 novas tarefas)
+  - Nova Fase 1.2: Qualidade de Código e TDD First (9 novas tarefas)
+  - Seção detalhada de Conventional Commits com exemplos e scopes
+  - Validação automática de commits em 3 níveis: commit-msg, pre-push, CI/CD
 - v1.1 (2025-11-04): Adicionado Drizzle ORM como stack de banco de dados
 - v1.0 (2025-11-04): Versão inicial
 
