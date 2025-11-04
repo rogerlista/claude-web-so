@@ -10,27 +10,222 @@
 
 Este documento contém todas as tarefas necessárias para implementar o sistema POS completo conforme especificado no PRD.
 
-### Stack Tecnológica
+### Stack Tecnológica (Latest Versions)
 
 **Backend:**
-- Framework: Hono.js
-- Runtime: Node.js
-- Linguagem: TypeScript
-- Build Tool: Vite
-- ORM: **Drizzle ORM**
-- Banco de Dados: SQLite
-- Migrations: Drizzle Kit
+- Framework: Hono.js (latest)
+- Runtime: Node.js (latest LTS)
+- Linguagem: TypeScript (latest)
+- Build Tool: Vite (latest)
+- ORM: **Drizzle ORM** (latest)
+- Banco de Dados: SQLite (latest)
+- Migrations: Drizzle Kit (latest)
+- Testing: Vitest (latest)
+- Lint/Format: **Biome.js** (latest)
 
 **Frontend:**
-- Framework: Vue.js 3
-- Build Tool: Vite
-- State Management: Pinia
-- Linguagem: TypeScript
-- PWA: Workbox
+- Framework: Vue.js 3 (latest)
+- Build Tool: Vite (latest)
+- State Management: Pinia (latest)
+- Linguagem: TypeScript (latest)
+- PWA: Workbox (latest)
+- Testing: Vitest (latest) + Vue Test Utils (latest)
+- E2E: Playwright (latest)
+- Lint/Format: **Biome.js** (latest)
 
 **Desktop:**
-- Framework: Tauri
-- Linguagem: Rust + TypeScript
+- Framework: Tauri (latest v2)
+- Linguagem: Rust (latest stable) + TypeScript (latest)
+- Lint: Clippy + **Biome.js** (para TS)
+
+**Qualidade & DevOps:**
+- **Git Hooks:** Lefthook (latest)
+- **Linter/Formatter:** Biome.js (latest) - substitui ESLint + Prettier
+- **Testing:** Vitest (latest) com coverage 100% obrigatório
+- **TypeScript:** Modo strict com zero `any`
+- **Commits:** Conventional Commits
+- **CI/CD:** GitHub Actions (latest)
+- **Architecture:** Clean Architecture + DDD + TDD First
+
+---
+
+## 🎯 Princípios de Qualidade e Desenvolvimento
+
+### Regras Não Negociáveis
+
+#### 1. TDD First - Ciclo RED-GREEN-REFACTOR Obrigatório
+
+**Para TODA funcionalidade implementada:**
+
+1. **RED (Teste Falhando)**
+   - ❌ Escrever teste que falha ANTES de qualquer código
+   - Definir comportamento esperado
+   - Validar que o teste realmente falha
+   - Commit: `test: add failing test for [feature]`
+
+2. **GREEN (Implementação Mínima)**
+   - ✅ Escrever código MÍNIMO para passar o teste
+   - Não adicionar funcionalidades extras
+   - Validar que o teste passa
+   - Commit: `feat: implement [feature] to pass test`
+
+3. **REFACTOR (Melhorar Código)**
+   - ♻️ Refatorar código mantendo testes verdes
+   - Aplicar Clean Code e SOLID
+   - Eliminar duplicação
+   - Melhorar legibilidade
+   - Commit: `refactor: improve [feature] implementation`
+
+**Validação Automática:**
+- Script `npm run tdd:validate` verifica se o ciclo foi seguido
+- Lefthook bloqueia commits que não seguem o padrão
+- CI/CD valida histórico de commits
+
+#### 2. Coverage 100% - Sem Exceções
+
+- ✅ **100% de coverage** em branches, functions, lines, statements
+- ❌ **Zero arquivos sem testes**
+- ❌ **Zero linhas não cobertas**
+- ❌ **Sem comentários de ignore coverage** (/* istanbul ignore */)
+- Pre-push hook bloqueia se coverage < 100%
+- CI/CD falha se coverage < 100%
+
+**Estratégia de Testes:**
+- **Unitários:** 70% - Lógica de negócio, utils, helpers
+- **Integração:** 20% - APIs, banco de dados, serviços
+- **E2E:** 10% - Fluxos críticos do usuário
+
+#### 3. TypeScript Strict - Zero `any`
+
+**Configuração Obrigatória:**
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true
+  }
+}
+```
+
+**Regras:**
+- ❌ Proibido usar `any` (usar `unknown` quando necessário)
+- ❌ Proibido `@ts-ignore` ou `@ts-expect-error`
+- ✅ Todos os tipos devem ser explícitos
+- ✅ Inferência de tipos quando óbvia
+- Typecheck executado em pre-commit e CI/CD
+
+#### 4. Clean Architecture - Camadas Bem Definidas
+
+**Backend (Camadas de fora para dentro):**
+```
+presentation → application → domain
+      ↓             ↓           ↑
+infrastructure ←←←←←←←←←←←←←←←
+```
+
+**Regras de Dependência:**
+- Domain: **zero dependências externas**
+- Application: depende apenas de domain
+- Infrastructure: implementa interfaces de application
+- Presentation: orquestra application
+
+**Padrões Obrigatórios:**
+- Entities (domain)
+- Value Objects (domain)
+- Use Cases (application)
+- Repositories (interfaces em application, implementação em infrastructure)
+- DTOs para transferência de dados
+- Dependency Injection
+
+#### 5. Clean Code - Padrões de Código
+
+**Nomenclatura:**
+- Classes: `PascalCase`
+- Funções/métodos: `camelCase`
+- Constantes: `SCREAMING_SNAKE_CASE`
+- Interfaces: `PascalCase` (sem prefixo I)
+- Types: `PascalCase`
+- Arquivos: `kebab-case.ts`
+
+**Funções:**
+- ✅ Máximo 20 linhas
+- ✅ Único propósito (Single Responsibility)
+- ✅ Máximo 3 parâmetros
+- ✅ Sem efeitos colaterais ocultos
+- ✅ Nome descritivo e claro
+
+**Arquivos:**
+- ✅ Máximo 250 linhas
+- ✅ Uma responsabilidade por arquivo
+- ✅ Imports organizados (Biome sort)
+
+**Comentários:**
+- ❌ Evitar comentários óbvios
+- ✅ Comentar apenas "porquê", não "o quê"
+- ✅ JSDoc para APIs públicas
+
+#### 6. SOLID Principles
+
+- **S** - Single Responsibility: Uma classe, uma responsabilidade
+- **O** - Open/Closed: Aberto para extensão, fechado para modificação
+- **L** - Liskov Substitution: Subtipos devem ser substituíveis
+- **I** - Interface Segregation: Interfaces específicas, não genéricas
+- **D** - Dependency Inversion: Dependa de abstrações, não de implementações
+
+#### 7. Git e Commits
+
+**Conventional Commits Obrigatório:**
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types permitidos:**
+- `feat`: Nova funcionalidade
+- `fix`: Correção de bug
+- `test`: Adicionar/modificar testes
+- `refactor`: Refatoração sem mudança de comportamento
+- `docs`: Documentação
+- `chore`: Tarefas de manutenção
+- `ci`: Configuração de CI/CD
+- `perf`: Melhoria de performance
+
+**Regras:**
+- ✅ Commits atômicos (uma mudança lógica)
+- ✅ Subject em imperativo ("add" não "added")
+- ✅ Máximo 72 caracteres no subject
+- ❌ Não commitar código comentado
+- ❌ Não commitar console.log/debugger
+
+#### 8. Code Review Checklist
+
+Antes de aprovar um PR, validar:
+- [ ] Todos os testes passando
+- [ ] Coverage 100%
+- [ ] Biome check passando
+- [ ] TypeCheck sem erros
+- [ ] Seguiu TDD (histórico de commits RED-GREEN-REFACTOR)
+- [ ] Clean Architecture respeitada
+- [ ] SOLID aplicado
+- [ ] Código limpo e legível
+- [ ] Sem `any`, `@ts-ignore`, ou console.log
+- [ ] Documentação atualizada (se necessário)
+- [ ] Sem quebra de funcionalidades existentes
 
 ---
 
@@ -43,53 +238,199 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
   - Definir estrutura de diretórios: `/packages/backend`, `/packages/frontend`, `/packages/desktop`
 
 - [ ] **T002** - Configurar Backend (Hono + Node.js + TypeScript)
-  - Inicializar projeto Node.js com TypeScript
-  - Configurar Hono framework
-  - Configurar Vite como build tool
-  - Configurar ESLint + Prettier
-  - Configurar arquivo tsconfig.json
+  - Inicializar projeto Node.js com TypeScript (latest)
+  - Configurar Hono framework (latest)
+  - Configurar Vite como build tool (latest)
+  - Configurar arquivo tsconfig.json com modo STRICT (sem any)
 
-- [ ] **T002A** - Configurar Drizzle ORM no Backend
-  - Instalar Drizzle ORM (`drizzle-orm`)
-  - Instalar driver SQLite (`better-sqlite3` ou `@libsql/client`)
-  - Instalar Drizzle Kit para migrations (`drizzle-kit`)
+- [ ] **T002A** - Configurar Drizzle ORM no Backend (latest)
+  - Instalar Drizzle ORM (`drizzle-orm@latest`)
+  - Instalar driver SQLite (`better-sqlite3@latest` ou `@libsql/client@latest`)
+  - Instalar Drizzle Kit (`drizzle-kit@latest`)
   - Criar arquivo de configuração `drizzle.config.ts`
   - Configurar conexão com SQLite
   - Configurar estrutura de diretórios: `/src/db/schema`, `/src/db/migrations`
   - Configurar scripts no package.json (generate, migrate, studio)
 
 - [ ] **T003** - Configurar Frontend (Vue.js + PWA)
-  - Inicializar projeto Vue.js 3 com Vite
-  - Configurar TypeScript
-  - Configurar Vue Router
-  - Configurar Pinia (state management)
-  - Configurar ESLint + Prettier
-  - Configurar arquivo tsconfig.json
+  - Inicializar projeto Vue.js 3 (latest) com Vite (latest)
+  - Configurar TypeScript (latest) em modo STRICT
+  - Configurar Vue Router (latest)
+  - Configurar Pinia (latest)
+  - Configurar arquivo tsconfig.json com modo STRICT (sem any)
 
 - [ ] **T004** - Configurar Desktop (Tauri)
-  - Inicializar projeto Tauri
+  - Inicializar projeto Tauri v2 (latest)
   - Configurar integração com Frontend Vue.js
   - Configurar sistema de atualização automática
   - Configurar build e empacotamento
+  - Configurar Clippy para Rust
 
 - [ ] **T005** - Configurar versionamento e CI/CD
   - Configurar conventional commits
-  - Configurar semantic-release ou similar
-  - Configurar GitHub Actions ou GitLab CI
+  - Configurar semantic-release ou similar (latest)
+  - Configurar GitHub Actions (latest)
   - Configurar builds automáticos
+  - Configurar gates de qualidade (testes, lint, typecheck)
+
+---
+
+### 1.2 Qualidade de Código e TDD First
+
+- [ ] **T006A** - Configurar Biome.js em todos os projetos
+  - Instalar Biome.js (`@biomejs/biome@latest`) no monorepo
+  - Criar `biome.json` na raiz do monorepo
+  - Configurar regras de linting rigorosas
+  - Configurar formatação (substituindo Prettier)
+  - Configurar import sorting
+  - Adicionar scripts: `lint`, `format`, `check`
+  - Integrar com VSCode (extensão Biome)
+  - Validar que ESLint e Prettier não estejam instalados
+
+- [ ] **T006B** - Configurar TypeScript Strict em todos os projetos
+  - Backend: tsconfig.json com `strict: true`
+  - Frontend: tsconfig.json com `strict: true`
+  - Desktop: tsconfig.json com `strict: true`
+  - Configurar regras adicionais:
+    - `noImplicitAny: true`
+    - `strictNullChecks: true`
+    - `strictFunctionTypes: true`
+    - `strictBindCallApply: true`
+    - `strictPropertyInitialization: true`
+    - `noImplicitThis: true`
+    - `alwaysStrict: true`
+    - `noUnusedLocals: true`
+    - `noUnusedParameters: true`
+    - `noImplicitReturns: true`
+    - `noFallthroughCasesInSwitch: true`
+    - `noUncheckedIndexedAccess: true`
+  - Adicionar script `typecheck` em todos os projetos
+  - Validar que não existam erros de tipo
+
+- [ ] **T006C** - Configurar Vitest para TDD com coverage 100%
+  - Instalar Vitest (`vitest@latest`) em backend e frontend
+  - Criar `vitest.config.ts` em cada projeto
+  - Configurar coverage com c8/istanbul
+  - Definir thresholds de coverage: 100% (branches, functions, lines, statements)
+  - Configurar watch mode para TDD
+  - Configurar UI mode do Vitest
+  - Adicionar scripts: `test`, `test:watch`, `test:ui`, `test:coverage`
+  - Configurar para falhar se coverage < 100%
+
+- [ ] **T006D** - Configurar Lefthook para Git Hooks
+  - Instalar Lefthook (`lefthook@latest`)
+  - Criar `lefthook.yml` na raiz do monorepo
+  - **Pre-commit hooks:**
+    - Executar Biome lint (staged files)
+    - Executar Biome format check (staged files)
+    - Executar typecheck em todos os projetos
+    - Executar testes relacionados (staged files)
+    - Bloquear commit se houver erros
+  - **Pre-push hooks:**
+    - Executar todos os testes
+    - Executar coverage check (100% obrigatório)
+    - Executar typecheck completo
+    - Executar Biome check completo
+    - Bloquear push se houver falhas
+  - **Commit-msg hook:**
+    - Validar conventional commits
+    - Bloquear se mensagem inválida
+  - Instalar hooks: `lefthook install`
+
+- [ ] **T006E** - Criar workflow de TDD e validação de ciclo RED-GREEN-REFACTOR
+  - Criar script `scripts/tdd-validator.ts` para validar ciclo TDD
+  - Validações do ciclo:
+    1. RED: Deve existir teste falhando antes de implementar
+    2. GREEN: Implementação mínima para passar o teste
+    3. REFACTOR: Código refatorado mantendo testes verdes
+  - Criar template de teste comentado com instruções TDD
+  - Criar comando `npm run tdd:start <feature>` que:
+    - Cria arquivo de teste a partir do template
+    - Inicia Vitest em watch mode
+    - Monitora ciclo TDD
+    - Gera relatório de conformidade
+  - Documentar processo TDD no README
+  - Criar checklist de TDD para cada feature
+
+- [ ] **T006F** - Configurar Clean Architecture e estrutura de pastas
+  - Definir estrutura de camadas (Backend):
+    - `/src/domain` - Entities, Value Objects, Domain Events
+    - `/src/application` - Use Cases, DTOs, Interfaces
+    - `/src/infrastructure` - Repositories, External Services, DB
+    - `/src/presentation` - Controllers, Routes, Middleware
+    - `/src/shared` - Utilities, Common Types
+  - Definir estrutura de camadas (Frontend):
+    - `/src/domain` - Models, Business Logic
+    - `/src/application` - Use Cases, Services
+    - `/src/infrastructure` - API Clients, Storage
+    - `/src/presentation` - Components, Views, Composables
+    - `/src/shared` - Utils, Types, Constants
+  - Criar templates para cada camada
+  - Documentar responsabilidades de cada camada
+  - Configurar path aliases no tsconfig
+  - Validar dependências entre camadas (domain não depende de infra)
+
+- [ ] **T006G** - Configurar CI/CD com gates de qualidade
+  - Criar workflow GitHub Actions `.github/workflows/ci.yml`
+  - Jobs paralelos:
+    1. **Lint & Format:** Biome check em todos os projetos
+    2. **TypeCheck:** TypeScript check em todos os projetos
+    3. **Tests:** Rodar todos os testes com coverage
+    4. **Build:** Build de todos os projetos
+  - Gates obrigatórios (blocking):
+    - Biome check deve passar (zero erros)
+    - TypeCheck deve passar (zero erros)
+    - Coverage deve ser 100% (sem exceções)
+    - Todos os testes devem passar
+    - Build deve ser bem-sucedido
+  - Executar em: pull requests, pushes para main/develop
+  - Status checks obrigatórios no GitHub
+  - Bloquear merge se algum gate falhar
+
+- [ ] **T006H** - Criar documentação de padrões e boas práticas
+  - Criar `CONTRIBUTING.md` com:
+    - Guia de TDD First (ciclo RED-GREEN-REFACTOR)
+    - Padrões de código (Clean Code)
+    - Clean Architecture explicada
+    - Como rodar testes
+    - Como usar Biome
+    - Como usar Lefthook
+    - Conventional Commits
+  - Criar `ARCHITECTURE.md` com:
+    - Diagrama de camadas
+    - Fluxo de dados
+    - Padrões de design utilizados
+    - Exemplos práticos
+  - Criar `TESTING.md` com:
+    - Estratégia de testes
+    - Pirâmide de testes
+    - Exemplos de testes unitários
+    - Exemplos de testes de integração
+    - Como alcançar 100% coverage
 
 ---
 
 ## 🗄️ Fase 2: Banco de Dados e Persistência
 
+> **⚠️ IMPORTANTE - TDD FIRST:**
+> Antes de implementar qualquer schema ou funcionalidade nesta fase:
+> 1. Escrever testes que falham (RED)
+> 2. Implementar código mínimo para passar (GREEN)
+> 3. Refatorar mantendo testes verdes (REFACTOR)
+>
+> Coverage obrigatório: 100% - sem exceções
+
 ### 2.1 Estrutura do Banco de Dados SQLite com Drizzle ORM
 
-- [ ] **T006** - Criar schema base do banco de dados com Drizzle
-  - Definir estrutura de schemas no Drizzle
-  - Configurar tipos TypeScript
+- [ ] **T007** - [TDD] Criar schema base do banco de dados com Drizzle
+  - **RED:** Escrever testes para validação de schemas
+  - **GREEN:** Definir estrutura de schemas no Drizzle
+  - Configurar tipos TypeScript strict
   - Gerar migration inicial
+  - **REFACTOR:** Otimizar estrutura se necessário
+  - Validar coverage 100%
 
-- [ ] **T007** - Implementar schema `produtos` com Drizzle
+- [ ] **T008** - [TDD] Implementar schema `produtos` com Drizzle
   - Campos: id (uuid/text primary key), codigo, sku, gtin, dun14, codigo_balanca, status, descricao, unidade_medida
   - Campos de preço: preco_unitario, preco_promocional, preco_promocional_inicio, preco_promocional_fim
   - Campos fiscais: origem_tributaria, ncm, cest, tributacao, aliquota_icms
@@ -978,15 +1319,32 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
 
 As tarefas estão organizadas em fases, mas algumas podem ser executadas em paralelo:
 
-- **Crítico (MVP):** Fases 1, 2, 4, 6, 7, 8, 9
+- **Crítico (MVP):** Fases 1 (completa), 2, 4, 6, 7, 8, 9
 - **Importante:** Fases 3, 5, 10, 13
 - **Desejável:** Fases 11, 12, 14, 15, 16
 
-### Estimativas
+### Estimativas Ajustadas com TDD First e Coverage 100%
 
-- **MVP funcional:** ~8-12 semanas (1 desenvolvedor full-time)
-- **Sistema completo:** ~16-20 semanas
-- **Homologação e produção:** +2-4 semanas
+**Considerando:**
+- TDD First obrigatório (RED-GREEN-REFACTOR)
+- Coverage 100% sem exceções
+- TypeScript strict (zero `any`)
+- Clean Architecture
+- Code reviews rigorosos
+- Validações automáticas (Lefthook + CI/CD)
+
+**Tempos estimados:**
+- **Fase 1 (Setup + Qualidade):** 2-3 semanas
+- **MVP funcional:** ~12-16 semanas (1 desenvolvedor full-time)
+- **Sistema completo:** ~20-26 semanas
+- **Homologação e produção:** +3-4 semanas
+
+**Nota:** As estimativas são ~30% maiores devido à rigidez de qualidade, mas resultam em:
+- ✅ Código mais confiável e manutenível
+- ✅ Menos bugs em produção
+- ✅ Facilidade de refatoração
+- ✅ Documentação viva (testes)
+- ✅ Onboarding mais rápido de novos devs
 
 ### Dependências Críticas
 
@@ -1028,12 +1386,83 @@ packages/backend/
 - `npm run db:push` - Push direto do schema (dev apenas)
 - `npm run db:seed` - Popula banco com dados iniciais
 
+### Processo de Validação do Ciclo TDD
+
+**Script de Validação:** `scripts/tdd-validator.ts`
+
+O script valida automaticamente se o ciclo RED-GREEN-REFACTOR foi seguido através da análise do histórico de commits:
+
+**Validações Automáticas:**
+
+1. **Validação RED (Teste Falhando)**
+   - ✅ Commit com type `test:` existe antes de `feat:`
+   - ✅ Teste falhava antes da implementação
+   - ✅ Arquivo de teste criado/modificado antes do código
+   - ❌ Bloqueia se código foi escrito antes do teste
+
+2. **Validação GREEN (Implementação Mínima)**
+   - ✅ Commit com type `feat:` após `test:`
+   - ✅ Testes passam após implementação
+   - ✅ Coverage aumentou
+   - ❌ Bloqueia se testes continuam falhando
+
+3. **Validação REFACTOR (Melhoria)**
+   - ✅ Commit com type `refactor:` (opcional)
+   - ✅ Testes continuam passando
+   - ✅ Coverage mantido ou aumentado
+   - ✅ Métricas de qualidade melhoradas (complexidade ciclomática)
+
+**Execução:**
+```bash
+# Durante desenvolvimento
+npm run tdd:start feature-name
+
+# Validação manual
+npm run tdd:validate
+
+# Automático no pre-push (Lefthook)
+lefthook run pre-push
+```
+
+**Relatório Gerado:**
+```
+TDD Cycle Validation Report
+============================
+
+Feature: user-authentication
+✅ RED phase: test written first (commit abc123)
+✅ GREEN phase: implementation passes (commit def456)
+✅ REFACTOR phase: code improved (commit ghi789)
+
+Coverage: 100% ✅
+TypeCheck: Pass ✅
+Biome Check: Pass ✅
+
+Cycle: VALID ✅
+```
+
+**Métricas Acompanhadas:**
+- Número de ciclos TDD completos
+- Média de commits por feature
+- Taxa de conformidade TDD (meta: 100%)
+- Tempo médio por ciclo
+- Complexidade ciclomática por arquivo
+
 ### Riscos
 
+**Técnicos:**
 - **Integração com SEFAZ:** complexidade técnica alta
 - **Modo offline:** sincronização de dados pode ter conflitos
 - **Performance:** grandes volumes de dados podem impactar
 - **Certificação fiscal:** pode exigir ajustes após homologação
+
+**Qualidade:**
+- **Coverage 100%:** pode ser desafiador em algumas situações edge
+  - *Mitigação:* Refatorar código para ser testável, usar injeção de dependências
+- **TDD First:** requer disciplina da equipe
+  - *Mitigação:* Validação automática via Lefthook e CI/CD
+- **Clean Architecture:** curva de aprendizado inicial
+  - *Mitigação:* Documentação clara, templates, code reviews
 
 ---
 
@@ -1049,9 +1478,26 @@ packages/backend/
 
 **Documento criado em:** 2025-11-04
 **Última atualização:** 2025-11-04
-**Versão:** 1.1
+**Versão:** 2.0
 **Changelog:**
+- v2.0 (2025-11-04): **MAJOR UPDATE - Qualidade e TDD**
+  - Todas as bibliotecas/frameworks atualizados para `@latest`
+  - Adicionado Biome.js para Lint/Format (substitui ESLint + Prettier)
+  - Adicionado Lefthook para Git Hooks rigorosos
+  - Configuração TypeScript Strict (zero `any`)
+  - Coverage 100% obrigatório (sem exceções)
+  - TDD First com ciclo RED-GREEN-REFACTOR obrigatório
+  - Clean Architecture com estrutura de camadas definida
+  - Script de validação automática do ciclo TDD
+  - Princípios SOLID e Clean Code obrigatórios
+  - CI/CD com gates de qualidade rigorosos
+  - Documentação completa de padrões e boas práticas
+  - Estimativas ajustadas (+30% devido à qualidade)
+  - Nova Fase 1.2: Qualidade de Código e TDD First (8 novas tarefas)
 - v1.1 (2025-11-04): Adicionado Drizzle ORM como stack de banco de dados
 - v1.0 (2025-11-04): Versão inicial
 
 **Status:** Aguardando aprovação
+
+**Nota Importante:**
+Este planejamento estabelece um padrão de qualidade excepcional. A rigidez nas práticas de TDD, coverage 100% e Clean Architecture garantirá um código robusto, manutenível e livre de bugs. O investimento inicial em qualidade resultará em economia significativa de tempo e recursos no longo prazo.
