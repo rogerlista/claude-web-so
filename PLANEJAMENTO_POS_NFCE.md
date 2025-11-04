@@ -10,6 +10,28 @@
 
 Este documento contém todas as tarefas necessárias para implementar o sistema POS completo conforme especificado no PRD.
 
+### Stack Tecnológica
+
+**Backend:**
+- Framework: Hono.js
+- Runtime: Node.js
+- Linguagem: TypeScript
+- Build Tool: Vite
+- ORM: **Drizzle ORM**
+- Banco de Dados: SQLite
+- Migrations: Drizzle Kit
+
+**Frontend:**
+- Framework: Vue.js 3
+- Build Tool: Vite
+- State Management: Pinia
+- Linguagem: TypeScript
+- PWA: Workbox
+
+**Desktop:**
+- Framework: Tauri
+- Linguagem: Rust + TypeScript
+
 ---
 
 ## 🏗️ Fase 1: Setup e Infraestrutura Base
@@ -26,6 +48,15 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
   - Configurar Vite como build tool
   - Configurar ESLint + Prettier
   - Configurar arquivo tsconfig.json
+
+- [ ] **T002A** - Configurar Drizzle ORM no Backend
+  - Instalar Drizzle ORM (`drizzle-orm`)
+  - Instalar driver SQLite (`better-sqlite3` ou `@libsql/client`)
+  - Instalar Drizzle Kit para migrations (`drizzle-kit`)
+  - Criar arquivo de configuração `drizzle.config.ts`
+  - Configurar conexão com SQLite
+  - Configurar estrutura de diretórios: `/src/db/schema`, `/src/db/migrations`
+  - Configurar scripts no package.json (generate, migrate, studio)
 
 - [ ] **T003** - Configurar Frontend (Vue.js + PWA)
   - Inicializar projeto Vue.js 3 com Vite
@@ -51,61 +82,90 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
 
 ## 🗄️ Fase 2: Banco de Dados e Persistência
 
-### 2.1 Estrutura do Banco de Dados SQLite
+### 2.1 Estrutura do Banco de Dados SQLite com Drizzle ORM
 
-- [ ] **T006** - Criar schema do banco de dados SQLite
-  - Definir tabelas principais
-  - Definir relacionamentos
-  - Criar migrations
+- [ ] **T006** - Criar schema base do banco de dados com Drizzle
+  - Definir estrutura de schemas no Drizzle
+  - Configurar tipos TypeScript
+  - Gerar migration inicial
 
-- [ ] **T007** - Implementar tabela `produtos`
-  - Campos: id, codigo, sku, gtin, dun14, codigo_balanca, status, descricao, unidade_medida
+- [ ] **T007** - Implementar schema `produtos` com Drizzle
+  - Campos: id (uuid/text primary key), codigo, sku, gtin, dun14, codigo_balanca, status, descricao, unidade_medida
   - Campos de preço: preco_unitario, preco_promocional, preco_promocional_inicio, preco_promocional_fim
   - Campos fiscais: origem_tributaria, ncm, cest, tributacao, aliquota_icms
-  - Timestamps: created_at, updated_at, deleted_at
+  - Timestamps: created_at, updated_at, deleted_at (soft delete)
+  - Índices únicos: sku, gtin
+  - Gerar migration com `drizzle-kit generate`
 
-- [ ] **T008** - Implementar tabela `estoque`
-  - Campos: id, produto_id, quantidade, data_movimento, tipo_movimento, observacao
+- [ ] **T008** - Implementar schema `estoque` com Drizzle
+  - Campos: id, produto_id (foreign key), quantidade, data_movimento, tipo_movimento, observacao
+  - Relacionamento com produtos
   - Índices apropriados
+  - Gerar migration
 
-- [ ] **T009** - Implementar tabela `vendas`
+- [ ] **T009** - Implementar schema `vendas` com Drizzle
   - Campos: id, numero_venda, data_hora, usuario_id, status, total_bruto, desconto, acrescimo, total_liquido
   - Campos do cliente: cpf_cliente, email_cliente
   - Campos NFC-e: chave_nfce, numero_nfce, serie_nfce, status_nfce
   - Timestamps
+  - Relacionamento com usuários
+  - Gerar migration
 
-- [ ] **T010** - Implementar tabela `venda_itens`
+- [ ] **T010** - Implementar schema `venda_itens` com Drizzle
   - Campos: id, venda_id, produto_id, numero_item, codigo, descricao, quantidade, valor_unitario, total_item
-  - Índices e foreign keys
+  - Relacionamentos (foreign keys): venda_id → vendas, produto_id → produtos
+  - Índices compostos
+  - Gerar migration
 
-- [ ] **T011** - Implementar tabela `venda_pagamentos`
-  - Campos: id, venda_id, meio_pagamento, codigo_meio_pagamento, valor
-  - Validação dos códigos conforme SEFAZ
+- [ ] **T011** - Implementar schema `venda_pagamentos` com Drizzle
+  - Campos: id, venda_id (foreign key), meio_pagamento, codigo_meio_pagamento, valor
+  - Relacionamento com vendas
+  - Enum para código_meio_pagamento (01-99 conforme SEFAZ)
+  - Gerar migration
 
-- [ ] **T012** - Implementar tabela `movimentos_caixa`
+- [ ] **T012** - Implementar schema `movimentos_caixa` com Drizzle
   - Campos: id, usuario_id, data_abertura, data_fechamento, suprimento_inicial, status
   - Campos de totais: venda_bruta, cancelamentos, descontos, acrescimos, venda_liquida
   - Campos de movimentação: sangria, despesas, suprimento_adicional, resultado
+  - Relacionamento com usuários
+  - Enum para status (aberto, fechado)
+  - Gerar migration
 
-- [ ] **T013** - Implementar tabela `movimentacoes_caixa`
+- [ ] **T013** - Implementar schema `movimentacoes_caixa` com Drizzle
   - Campos: id, movimento_caixa_id, tipo, descricao, valor, data_hora, usuario_id
-  - Tipos: suprimento, despesa, sangria
-  - Relacionamento com meio de pagamento (para sangria)
+  - Enum para tipo: suprimento, despesa, sangria
+  - Relacionamentos: movimento_caixa_id → movimentos_caixa, usuario_id → usuarios
+  - Campo opcional: meio_pagamento_id (para sangria)
+  - Gerar migration
 
-- [ ] **T014** - Implementar tabela `usuarios`
-  - Campos: id, nome, login, senha_hash, perfil, ativo
+- [ ] **T014** - Implementar schema `usuarios` com Drizzle
+  - Campos: id, nome, login (unique), senha_hash, perfil, ativo
+  - Enum para perfil (admin, gerente, operador)
   - Campos de auditoria: created_at, updated_at
+  - Índice único: login
+  - Gerar migration
 
-- [ ] **T015** - Implementar tabela `auditoria`
-  - Campos: id, usuario_id, tabela, operacao, registro_id, dados_anteriores, dados_novos, data_hora
-  - Índices para consultas
+- [ ] **T015** - Implementar schema `auditoria` com Drizzle
+  - Campos: id, usuario_id, tabela, operacao, registro_id, dados_anteriores (json), dados_novos (json), data_hora
+  - Relacionamento com usuários
+  - Índices: usuario_id, tabela, data_hora
+  - Gerar migration
+
+- [ ] **T015A** - Executar migrations e validar banco de dados
+  - Executar `drizzle-kit migrate` para aplicar todas as migrations
+  - Validar estrutura do banco criado
+  - Testar conexões e queries básicas
+  - Configurar seed inicial (usuário admin)
 
 ### 2.2 Configuração de Persistência Offline
 
-- [ ] **T016** - Configurar SQLite no Frontend (SQL.js ou Better-SQLite3)
-  - Escolher biblioteca apropriada
-  - Configurar integração com Vue.js
-  - Implementar migrations locais
+- [ ] **T016** - Configurar SQLite + Drizzle no Frontend (PWA)
+  - Instalar Drizzle ORM para frontend
+  - Configurar driver SQLite web-friendly (SQL.js ou @op-engineering/op-sqlite)
+  - Reutilizar schemas do backend
+  - Configurar Drizzle Client para frontend
+  - Implementar migrations locais com Drizzle Kit
+  - Sincronizar schema entre backend e frontend
 
 - [ ] **T017** - Implementar Service Worker para PWA
   - Configurar Workbox
@@ -668,8 +728,10 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
 
 - [ ] **T083** - Configurar comunicação Frontend-Backend via Tauri
   - Implementar Tauri commands
-  - Integrar com SQLite nativo
-  - Integrar com sistema de arquivos
+  - Integrar com SQLite nativo usando Drizzle ORM
+  - Configurar better-sqlite3 ou rusqlite
+  - Reutilizar schemas do backend
+  - Integrar com sistema de arquivos para armazenamento local
 
 - [ ] **T084** - Implementar funcionalidades nativas
   - Integração com impressora (via Rust)
@@ -934,6 +996,38 @@ As tarefas estão organizadas em fases, mas algumas podem ser executadas em para
 4. Impressora térmica compatível (ESC/POS)
 5. Leitor de código de barras (recomendado)
 
+### Decisões Técnicas - Drizzle ORM
+
+**Por que Drizzle ORM?**
+- **Type-safe:** Tipos TypeScript inferidos automaticamente dos schemas
+- **Performance:** Queries SQL otimizadas, sem overhead de runtime
+- **Developer Experience:** Syntax intuitiva e familiar para quem conhece SQL
+- **Migrations:** Drizzle Kit gera migrations automaticamente a partir dos schemas
+- **SQLite Support:** Suporte nativo e otimizado para SQLite
+- **Zero Dependencies:** Leve e sem dependências pesadas
+- **Drizzle Studio:** Ferramenta visual para explorar e gerenciar o banco
+
+**Estrutura de Arquivos:**
+```
+packages/backend/
+├── src/
+│   ├── db/
+│   │   ├── schema/           # Schemas Drizzle (produtos.ts, vendas.ts, etc)
+│   │   ├── migrations/       # SQL migrations geradas
+│   │   ├── index.ts          # Configuração da conexão
+│   │   └── seed.ts           # Dados iniciais
+│   └── ...
+├── drizzle.config.ts         # Configuração Drizzle Kit
+└── package.json
+```
+
+**Scripts NPM importantes:**
+- `npm run db:generate` - Gera migrations a partir dos schemas
+- `npm run db:migrate` - Aplica migrations no banco
+- `npm run db:studio` - Abre Drizzle Studio (GUI web)
+- `npm run db:push` - Push direto do schema (dev apenas)
+- `npm run db:seed` - Popula banco com dados iniciais
+
 ### Riscos
 
 - **Integração com SEFAZ:** complexidade técnica alta
@@ -954,5 +1048,10 @@ As tarefas estão organizadas em fases, mas algumas podem ser executadas em para
 ---
 
 **Documento criado em:** 2025-11-04
-**Versão:** 1.0
+**Última atualização:** 2025-11-04
+**Versão:** 1.1
+**Changelog:**
+- v1.1 (2025-11-04): Adicionado Drizzle ORM como stack de banco de dados
+- v1.0 (2025-11-04): Versão inicial
+
 **Status:** Aguardando aprovação
