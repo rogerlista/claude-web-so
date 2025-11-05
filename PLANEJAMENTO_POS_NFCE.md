@@ -126,7 +126,82 @@ Este documento contém todas as tarefas necessárias para implementar o sistema 
 - ✅ Inferência de tipos quando óbvia
 - Typecheck executado em pre-commit e CI/CD
 
-#### 4. Clean Architecture - Camadas Bem Definidas
+#### 4. Programação Funcional - ZERO Classes
+
+**REGRA ABSOLUTA: SEM CLASSES - APENAS FUNÇÕES**
+
+**Proibições:**
+- ❌ **ZERO uso de `class` keyword**
+- ❌ **ZERO uso de `this` keyword**
+- ❌ **ZERO Orientação a Objetos**
+- ❌ **ZERO `let` ou `var` (apenas `const`)**
+- ❌ **ZERO mutação de objetos/arrays**
+- ❌ **ZERO loops imperativos (`for`, `while`) - usar `map`, `filter`, `reduce`**
+- ❌ **ZERO funções `void` - sempre retornar algo**
+
+**Obrigatório:**
+- ✅ **Apenas funções puras no domínio**
+- ✅ **Imutabilidade total**
+- ✅ **Result/Option types para erros**
+- ✅ **Branded types para type safety**
+- ✅ **Currying para Dependency Injection**
+- ✅ **Composição de funções (pipe/compose)**
+- ✅ **Higher-Order Functions**
+- ✅ **Pattern Matching com Discriminated Unions**
+
+**Padrões Funcionais Obrigatórios:**
+
+1. **Result Type (Railway-Oriented Programming)**
+```typescript
+type Result<T, E> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly error: E }
+```
+
+2. **Option Type (Maybe Pattern)**
+```typescript
+type Option<T> =
+  | { readonly some: true; readonly value: T }
+  | { readonly some: false }
+```
+
+3. **Branded Types**
+```typescript
+type Brand<K, T> = K & { readonly __brand: T }
+type ProductId = Brand<string, 'ProductId'>
+type Price = Brand<number, 'Price'>
+```
+
+4. **Dependency Injection via Currying**
+```typescript
+type CreateProduct = (
+  deps: { readonly repository: ProductRepository }
+) => (input: CreateProductInput) => Promise<Result<Product, Error>>
+
+const createProduct: CreateProduct = ({ repository }) => async (input) => {
+  // Implementation
+}
+```
+
+5. **Composição de Funções**
+```typescript
+const processPrice = pipe(
+  applyDiscount(10),
+  applyTax(0.15),
+  roundToTwoDecimals
+)
+```
+
+**Documentação:**
+- Ver: `docs/FUNCTIONAL_PROGRAMMING.md`
+- Ver: `docs/CLEAN_ARCHITECTURE_FUNCTIONAL.md`
+
+**Validação:**
+- Biome bloqueia uso de `class`
+- Code review rejeita qualquer OOP
+- Todos os exemplos devem ser funcionais
+
+#### 5. Clean Architecture Funcional + Hexagonal - Camadas Bem Definidas
 
 **Backend (Camadas de fora para dentro):**
 ```
@@ -141,50 +216,89 @@ infrastructure ←←←←←←←←←←←←←←←
 - Infrastructure: implementa interfaces de application
 - Presentation: orquestra application
 
-**Padrões Obrigatórios:**
-- Entities (domain)
-- Value Objects (domain)
-- Use Cases (application)
-- Repositories (interfaces em application, implementação em infrastructure)
-- DTOs para transferência de dados
-- Dependency Injection
+**Padrões Obrigatórios (Funcionais):**
+- **Types e Branded Types** (domain)
+- **Funções Puras** (domain - business rules)
+- **Smart Constructors** (domain - validação)
+- **Use Cases** (application - funções com currying para DI)
+- **Portas** (domain - interfaces como types)
+- **Adapters** (infrastructure - factory functions)
+- **DTOs** para transferência de dados
+- **Dependency Injection via Currying**
 
-#### 5. Clean Code - Padrões de Código
+**Estrutura de Camadas:**
+```typescript
+// DOMAIN - Tipos, constructors, regras puras
+export type Product = { readonly id: ProductId; readonly price: Price }
+export const Price = {
+  create: (value: number): Result<Price, string> => { /* validação */ }
+}
+export const calculateDiscount = (pct: number) => (price: Price): Result<Price, string>
+
+// APPLICATION - Use cases com DI
+export type CreateProduct = (deps: Dependencies) => (input: Input) => Promise<Result<Product, Error>>
+
+// INFRASTRUCTURE - Adapters (factory functions)
+export const createProductRepository = (db: Database): ProductRepository => ({ /* impl */ })
+
+// PRESENTATION - Controllers (factory functions)
+export const createProductController = (useCase: UseCase): Hono => { /* impl */ }
+```
+
+#### 6. Clean Code Funcional - Padrões de Código
 
 **Nomenclatura:**
-- Classes: `PascalCase`
-- Funções/métodos: `camelCase`
+- ❌ ~~Classes~~ (NÃO EXISTEM)
+- Funções: `camelCase`
+- Tipos/Branded Types: `PascalCase`
 - Constantes: `SCREAMING_SNAKE_CASE`
-- Interfaces: `PascalCase` (sem prefixo I)
-- Types: `PascalCase`
+- Type aliases: `PascalCase`
 - Arquivos: `kebab-case.ts`
 
 **Funções:**
-- ✅ Máximo 20 linhas
-- ✅ Único propósito (Single Responsibility)
-- ✅ Máximo 3 parâmetros
-- ✅ Sem efeitos colaterais ocultos
-- ✅ Nome descritivo e claro
+- ✅ Máximo 15 linhas (funções puras devem ser pequenas)
+- ✅ **Único propósito** (Single Responsibility)
+- ✅ **Máximo 2 parâmetros** (use currying ou object params)
+- ✅ **ZERO efeitos colaterais** em funções puras
+- ✅ **Sempre retornar algo** (nunca `void`)
+- ✅ Nome descritivo e verbo no infinitivo
+- ✅ **Funções puras no domínio**
 
 **Arquivos:**
-- ✅ Máximo 250 linhas
+- ✅ Máximo 200 linhas
 - ✅ Uma responsabilidade por arquivo
 - ✅ Imports organizados (Biome sort)
+- ✅ Separar types, constructors, rules
 
 **Comentários:**
 - ❌ Evitar comentários óbvios
 - ✅ Comentar apenas "porquê", não "o quê"
-- ✅ JSDoc para APIs públicas
+- ✅ JSDoc para funções públicas (especialmente types complexos)
 
-#### 6. SOLID Principles
+**Exemplo de Estrutura:**
+```
+domain/product/
+  ├── product.types.ts      # Branded types e entidades
+  ├── product.constructors.ts # Smart constructors com validação
+  ├── product.rules.ts      # Regras de negócio puras
+  └── product.ports.ts      # Interfaces (Repository, Services)
+```
 
-- **S** - Single Responsibility: Uma classe, uma responsabilidade
-- **O** - Open/Closed: Aberto para extensão, fechado para modificação
-- **L** - Liskov Substitution: Subtipos devem ser substituíveis
-- **I** - Interface Segregation: Interfaces específicas, não genéricas
-- **D** - Dependency Inversion: Dependa de abstrações, não de implementações
+#### 7. Princípios Funcionais (Adaptação de SOLID)
 
-#### 7. Git e Commits - Conventional Commits Rigoroso
+- **S** - Single Responsibility: Uma função, uma responsabilidade
+- **O** - Open/Closed: Extensão via composição, não modificação
+- **L** - Liskov Substitution: Funções substituíveis com mesma assinatura
+- **I** - Interface Segregation: Types específicos, não genéricos
+- **D** - Dependency Inversion: Dependa de types/interfaces, não de implementações
+
+**Princípios Funcionais Adicionais:**
+- **Pure Functions**: Sem efeitos colaterais
+- **Immutability**: Dados imutáveis sempre
+- **Composition**: Combine funções simples
+- **Type Safety**: Use branded types e Result/Option
+
+#### 8. Git e Commits - Conventional Commits Rigoroso
 
 **Formato Obrigatório (Conventional Commits 1.0.0):**
 ```
