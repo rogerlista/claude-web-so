@@ -31,14 +31,12 @@ export const OptionUtils = {
   /**
    * Check if option has a value
    */
-  isSome: <T>(option: Option<T>): option is { some: true; value: T } =>
-    option.some === true,
+  isSome: <T>(option: Option<T>): option is { some: true; value: T } => option.some === true,
 
   /**
    * Check if option is empty
    */
-  isNone: <T>(option: Option<T>): option is { some: false } =>
-    option.some === false,
+  isNone: <T>(option: Option<T>): option is { some: false } => option.some === false,
 
   /**
    * Map the value if Some

@@ -16,6 +16,7 @@
     "clean": "rm -rf dist coverage .tsbuildinfo node_modules/.vite"
   },
   "dependencies": {
+    "@pos-nfce/shared": "workspace:*",
     "pinia": "latest",
     "vue": "latest",
     "vue-router": "latest"

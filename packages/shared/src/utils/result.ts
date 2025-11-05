@@ -20,14 +20,12 @@ export const ResultUtils = {
   /**
    * Check if result is Ok
    */
-  isOk: <T, E>(result: Result<T, E>): result is { ok: true; value: T} =>
-    result.ok === true,
+  isOk: <T, E>(result: Result<T, E>): result is { ok: true; value: T } => result.ok === true,
 
   /**
    * Check if result is Err
    */
-  isErr: <T, E>(result: Result<T, E>): result is { ok: false; error: E } =>
-    result.ok === false,
+  isErr: <T, E>(result: Result<T, E>): result is { ok: false; error: E } => result.ok === false,
 
   /**
    * Map the value if Ok
@@ -52,10 +50,7 @@ export const ResultUtils = {
   /**
    * FlatMap (chain) - apply function that returns Result
    */
-  flatMap: <T, U, E>(
-    result: Result<T, E>,
-    fn: (value: T) => Result<U, E>
-  ): Result<U, E> => {
+  flatMap: <T, U, E>(result: Result<T, E>, fn: (value: T) => Result<U, E>): Result<U, E> => {
     if (result.ok) {
       return fn(result.value)
     }

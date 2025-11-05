@@ -30,6 +30,7 @@
     "db:check": "drizzle-kit check"
   },
   "dependencies": {
+    "@pos-nfce/shared": "workspace:*",
     "better-sqlite3": "latest",
     "drizzle-orm": "latest",
     "hono": "latest"

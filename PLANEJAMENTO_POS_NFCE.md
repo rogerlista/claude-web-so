@@ -298,7 +298,70 @@ domain/product/
 - **Composition**: Combine funções simples
 - **Type Safety**: Use branded types e Result/Option
 
-#### 8. Git e Commits - Conventional Commits Rigoroso
+#### 8. DRY - Don't Repeat Yourself (ZERO Duplicação)
+
+**REGRA ABSOLUTA: SINGLE SOURCE OF TRUTH**
+
+**Proibições:**
+- ❌ **ZERO código duplicado** entre packages
+- ❌ **ZERO copiar e colar** de código
+- ❌ **ZERO reimplementação** de lógica existente
+- ❌ **ZERO funções similares** em lugares diferentes
+- ❌ **ZERO imports cruzados** (backend ↔ frontend)
+
+**Obrigatório:**
+- ✅ **TODO código compartilhado** em `@pos-nfce/shared`
+- ✅ **Funções puras compartilhadas** em shared
+- ✅ **Types/interfaces compartilhados** em shared
+- ✅ **Constantes compartilhadas** em shared
+- ✅ **Validações compartilhadas** em shared
+- ✅ **100% coverage** no pacote shared
+
+**Estrutura de Pacotes:**
+```
+packages/
+├── shared/          # ✅ ÚNICA FONTE DE CÓDIGO COMUM
+│   ├── types/       # Result, Option, Branded Types, Domain Types
+│   └── utils/       # Pure functions, validators, formatters
+│
+├── backend/         # Apenas código backend-específico
+│   ├── domain/      # Backend business logic
+│   ├── application/ # Backend use cases
+│   └── infrastructure/ # DB, APIs, Node.js specific
+│
+└── frontend/        # Apenas código frontend-específico
+    ├── domain/      # Frontend business logic
+    ├── application/ # Frontend stores (Pinia)
+    └── presentation/ # Vue components, composables
+```
+
+**Checklist Antes de Criar Código:**
+- [ ] Este código já existe em outro pacote?
+- [ ] Este código será usado por backend E frontend?
+- [ ] Este código é uma função pura?
+- [ ] Este código depende de frameworks?
+- [ ] Busquei no shared antes de criar?
+
+**Ferramentas de Validação:**
+```bash
+# Detectar duplicação
+pnpm jscpd packages/ --threshold 0
+
+# Verificar imports incorretos
+grep -r "@pos-nfce/backend" packages/frontend/
+grep -r "@pos-nfce/frontend" packages/backend/
+```
+
+**Documentação:**
+- Ver: `docs/DRY_PRINCIPLES.md`
+- Ver: `packages/shared/README.md`
+
+**Validação:**
+- CI/CD falha se detectar duplicação > 0%
+- Code review obrigatório verifica DRY
+- Pre-commit verifica imports corretos
+
+#### 9. Git e Commits - Conventional Commits Rigoroso
 
 **Formato Obrigatório (Conventional Commits 1.0.0):**
 ```
