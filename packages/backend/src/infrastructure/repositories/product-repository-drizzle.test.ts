@@ -31,16 +31,30 @@ describe('ProductRepository Drizzle Adapter', () => {
     // Initialize Drizzle
     db = drizzle(sqlite)
 
-    // Create products table
+    // Create products table (matching expanded NFC-e schema)
     sqlite.exec(`
       CREATE TABLE products (
         id TEXT PRIMARY KEY NOT NULL,
-        description TEXT NOT NULL,
-        price_in_cents INTEGER NOT NULL,
+        codigo TEXT,
         sku TEXT,
         gtin TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+        dun14 TEXT,
+        codigo_balanca TEXT,
+        status TEXT DEFAULT 'ACTIVE',
+        description TEXT NOT NULL,
+        unidade_medida TEXT DEFAULT 'UN',
+        price_in_cents INTEGER NOT NULL,
+        preco_promocional_in_cents INTEGER,
+        preco_promocional_inicio INTEGER,
+        preco_promocional_fim INTEGER,
+        origem_tributaria TEXT,
+        ncm TEXT,
+        cest TEXT,
+        tributacao TEXT,
+        aliquota_icms INTEGER,
+        created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        updated_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        deleted_at INTEGER
       )
     `)
 

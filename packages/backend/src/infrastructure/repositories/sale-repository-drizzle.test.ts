@@ -23,7 +23,7 @@ describe('SaleRepository Drizzle Adapter', () => {
     sqlite = new Database(':memory:')
     db = drizzle(sqlite)
 
-    // Create required tables
+    // Create required tables (matching expanded NFC-e schema)
     sqlite.exec(`
       CREATE TABLE customers (
         id TEXT PRIMARY KEY NOT NULL,
@@ -31,37 +31,80 @@ describe('SaleRepository Drizzle Adapter', () => {
         cpf TEXT NOT NULL UNIQUE,
         email TEXT UNIQUE,
         phone TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+        created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
       );
 
       CREATE TABLE products (
         id TEXT PRIMARY KEY NOT NULL,
-        description TEXT NOT NULL,
-        price_in_cents INTEGER NOT NULL,
+        codigo TEXT,
         sku TEXT,
         gtin TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+        dun14 TEXT,
+        codigo_balanca TEXT,
+        status TEXT DEFAULT 'ACTIVE',
+        description TEXT NOT NULL,
+        unidade_medida TEXT DEFAULT 'UN',
+        price_in_cents INTEGER NOT NULL,
+        preco_promocional_in_cents INTEGER,
+        preco_promocional_inicio INTEGER,
+        preco_promocional_fim INTEGER,
+        origem_tributaria TEXT,
+        ncm TEXT,
+        cest TEXT,
+        tributacao TEXT,
+        aliquota_icms INTEGER,
+        created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        updated_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        deleted_at INTEGER
+      );
+
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        login TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL,
+        active INTEGER DEFAULT 1 NOT NULL,
+        created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
       );
 
       CREATE TABLE sales (
         id TEXT PRIMARY KEY NOT NULL,
-        customer_id TEXT NOT NULL REFERENCES customers(id),
-        total_in_cents INTEGER NOT NULL,
-        status TEXT NOT NULL,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+        numero_venda INTEGER,
+        data_hora INTEGER DEFAULT (unixepoch()),
+        user_id TEXT REFERENCES users(id),
+        customer_id TEXT REFERENCES customers(id),
+        cpf_cliente TEXT,
+        email_cliente TEXT,
+        status TEXT DEFAULT 'PENDING' NOT NULL,
+        total_in_cents INTEGER,
+        total_bruto_in_cents INTEGER,
+        desconto_in_cents INTEGER DEFAULT 0,
+        acrescimo_in_cents INTEGER DEFAULT 0,
+        total_liquido_in_cents INTEGER,
+        chave_nfce TEXT,
+        numero_nfce INTEGER,
+        serie_nfce TEXT,
+        status_nfce TEXT,
+        created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+        updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
       );
 
       CREATE TABLE sale_items (
         id TEXT PRIMARY KEY NOT NULL,
         sale_id TEXT NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
         product_id TEXT NOT NULL REFERENCES products(id),
+        numero_item INTEGER,
+        codigo TEXT,
+        descricao TEXT,
         quantity INTEGER NOT NULL,
-        unit_price_in_cents INTEGER NOT NULL,
-        total_in_cents INTEGER NOT NULL,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+        unit_price_in_cents INTEGER,
+        total_in_cents INTEGER,
+        valor_unitario_in_cents INTEGER,
+        total_item_in_cents INTEGER,
+        created_at INTEGER DEFAULT (unixepoch()) NOT NULL
       );
     `)
 

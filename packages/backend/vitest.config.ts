@@ -21,6 +21,7 @@ export default defineConfig({
         'src/**/ports/**',
         'src/infrastructure/db/migrations/**',
         'src/infrastructure/database/schema.ts', // Drizzle schema is not executable code
+        'src/infrastructure/database/seed.ts', // Seed script is not application code
       ],
       // 100% coverage requirement - NO EXCEPTIONS
       // Ports and schema excluded as they are type definitions only
