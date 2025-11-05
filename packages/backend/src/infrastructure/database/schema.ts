@@ -1,5 +1,5 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 /**
  * Products Table Schema
@@ -48,16 +48,12 @@ export const products = sqliteTable('products', {
   /**
    * Timestamp when record was created
    */
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 
   /**
    * Timestamp when record was last updated
    */
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
 /**
@@ -119,16 +115,12 @@ export const customers = sqliteTable('customers', {
   /**
    * Timestamp when record was created
    */
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 
   /**
    * Timestamp when record was last updated
    */
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
 /**
@@ -140,3 +132,137 @@ export type CustomerRow = typeof customers.$inferSelect
  * TypeScript type for inserting new customers
  */
 export type CustomerInsert = typeof customers.$inferInsert
+
+/**
+ * Sales Table Schema
+ *
+ * Database schema for sales using Drizzle ORM with SQLite.
+ *
+ * Design decisions:
+ * - id: Text primary key (allows flexible ID strategies)
+ * - customer_id: Foreign key to customers table
+ * - total: Stored as integer (cents) to avoid floating-point issues
+ * - status: Text field for sale status (PENDING, COMPLETED, CANCELLED)
+ * - Timestamps for audit trail
+ */
+export const sales = sqliteTable('sales', {
+  /**
+   * Sale ID (primary key)
+   * Stored as text to support various ID formats (UUID, nanoid, etc.)
+   */
+  id: text('id').primaryKey().notNull(),
+
+  /**
+   * Customer ID (foreign key)
+   * References customers table
+   */
+  customerId: text('customer_id')
+    .notNull()
+    .references(() => customers.id),
+
+  /**
+   * Sale total in cents
+   * Stored as integer to avoid floating-point precision issues
+   * Example: $26.50 = 2650 cents
+   */
+  totalInCents: integer('total_in_cents').notNull(),
+
+  /**
+   * Sale status
+   * Valid values: PENDING, COMPLETED, CANCELLED
+   */
+  status: text('status').notNull(),
+
+  /**
+   * Timestamp when record was created
+   */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+
+  /**
+   * Timestamp when record was last updated
+   */
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+/**
+ * TypeScript type inferred from the sales schema
+ */
+export type SaleRow = typeof sales.$inferSelect
+
+/**
+ * TypeScript type for inserting new sales
+ */
+export type SaleInsert = typeof sales.$inferInsert
+
+/**
+ * Sale Items Table Schema
+ *
+ * Database schema for sale items using Drizzle ORM with SQLite.
+ *
+ * Design decisions:
+ * - id: Text primary key (auto-generated for each item)
+ * - sale_id: Foreign key to sales table
+ * - product_id: Foreign key to products table
+ * - quantity: Integer for item quantity
+ * - unit_price_in_cents: Integer to store price per unit
+ * - total_in_cents: Integer to store item total (quantity * unit_price)
+ * - Timestamp for audit trail
+ */
+export const saleItems = sqliteTable('sale_items', {
+  /**
+   * Sale Item ID (primary key)
+   * Auto-generated unique identifier
+   */
+  id: text('id').primaryKey().notNull(),
+
+  /**
+   * Sale ID (foreign key)
+   * References sales table
+   */
+  saleId: text('sale_id')
+    .notNull()
+    .references(() => sales.id, { onDelete: 'cascade' }),
+
+  /**
+   * Product ID (foreign key)
+   * References products table
+   */
+  productId: text('product_id')
+    .notNull()
+    .references(() => products.id),
+
+  /**
+   * Item quantity
+   * Must be a positive integer
+   */
+  quantity: integer('quantity').notNull(),
+
+  /**
+   * Unit price in cents
+   * Price per unit at the time of sale
+   * Stored as integer to avoid floating-point precision issues
+   */
+  unitPriceInCents: integer('unit_price_in_cents').notNull(),
+
+  /**
+   * Total in cents
+   * Calculated as quantity * unit_price_in_cents
+   * Stored as integer to avoid floating-point precision issues
+   */
+  totalInCents: integer('total_in_cents').notNull(),
+
+  /**
+   * Timestamp when record was created
+   */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+/**
+ * TypeScript type inferred from the sale_items schema
+ */
+export type SaleItemRow = typeof saleItems.$inferSelect
+
+/**
+ * TypeScript type for inserting new sale items
+ */
+export type SaleItemInsert = typeof saleItems.$inferInsert
