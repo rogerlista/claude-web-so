@@ -80,11 +80,6 @@ export const createCPF = (value: string): Result<CPF, string> => {
     return ResultUtils.err('CPF must have 11 digits')
   }
 
-  // Validate contains only digits
-  if (!/^\d+$/.test(digitsOnly)) {
-    return ResultUtils.err('CPF must contain only digits')
-  }
-
   // Validate not all same digits
   const allSame = digitsOnly.split('').every((digit) => digit === digitsOnly[0])
   if (allSame) {

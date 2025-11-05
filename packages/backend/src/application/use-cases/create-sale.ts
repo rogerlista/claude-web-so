@@ -88,22 +88,11 @@ export const createSaleUseCase =
       })
     }
 
-    // Step 3: Validate items array is not empty
-    if (input.items.length === 0) {
-      return ResultUtils.err({
-        type: 'VALIDATION_ERROR',
-        message: 'Sale must have at least one item',
-      })
-    }
-
-    // Step 4: Validate and create SaleItems
+    // Step 3: Validate and create SaleItems
     const saleItems: SaleItem[] = []
 
     for (let i = 0; i < input.items.length; i++) {
-      const itemInput = input.items[i]
-      if (!itemInput) {
-        continue
-      }
+      const itemInput = input.items[i]!
 
       // Validate ProductId
       const productIdResult = createProductId(itemInput.productId)
@@ -140,7 +129,7 @@ export const createSaleUseCase =
       saleItems.push(saleItemResult.value)
     }
 
-    // Step 5: Validate and create SaleStatus (if provided)
+    // Step 4: Validate and create SaleStatus (if provided)
     let status: SaleStatus | undefined
     if (input.status !== undefined) {
       const statusResult = createSaleStatus(input.status)
@@ -153,7 +142,7 @@ export const createSaleUseCase =
       status = statusResult.value
     }
 
-    // Step 6: Create Sale entity
+    // Step 5: Create Sale entity
     const saleResult = createSale({
       id: saleIdResult.value,
       customerId: customerIdResult.value,
@@ -169,7 +158,7 @@ export const createSaleUseCase =
       })
     }
 
-    // Step 7: Save sale using repository
+    // Step 6: Save sale using repository
     const saveResult = await repository.save(saleResult.value)
 
     if (!saveResult.ok) {
@@ -179,6 +168,6 @@ export const createSaleUseCase =
       })
     }
 
-    // Step 8: Return saved sale
+    // Step 7: Return saved sale
     return ResultUtils.ok(saveResult.value)
   }

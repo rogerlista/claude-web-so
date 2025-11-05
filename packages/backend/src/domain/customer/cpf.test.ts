@@ -74,6 +74,26 @@ describe('CPF', () => {
       }
     })
 
+    it('should reject CPF with invalid first check digit', () => {
+      // First digit is wrong (should be 0, not 1): 123.456.789-19
+      const result = createCPF('123.456.789-19')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('CPF has invalid check digits')
+      }
+    })
+
+    it('should reject CPF with invalid second check digit', () => {
+      // Second digit is wrong (should be 9, not 8): 123.456.789-08
+      const result = createCPF('123.456.789-08')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('CPF has invalid check digits')
+      }
+    })
+
     it('should reject CPF with all same digits', () => {
       const cpfs = [
         '000.000.000-00',
