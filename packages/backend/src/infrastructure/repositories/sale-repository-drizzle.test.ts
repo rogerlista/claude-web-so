@@ -208,6 +208,46 @@ describe('SaleRepository Drizzle Adapter', () => {
         expect(result.value.items).toHaveLength(2)
       }
     })
+
+    it('should handle database error', async () => {
+      const saleIdResult = createSaleId('sale-123')
+      const customerIdResult = createCustomerId('customer-456')
+      const productIdResult = createProductId('product-789')
+      const priceResult = createPrice(10.5)
+
+      if (!saleIdResult.ok || !customerIdResult.ok || !productIdResult.ok || !priceResult.ok) {
+        throw new Error('Setup failed')
+      }
+
+      const itemResult = createSaleItem({
+        productId: productIdResult.value,
+        quantity: 2,
+        unitPrice: priceResult.value,
+      })
+
+      if (!itemResult.ok) {
+        throw new Error('Setup failed')
+      }
+
+      const sale: Sale = {
+        id: saleIdResult.value,
+        customerId: customerIdResult.value,
+        items: [itemResult.value],
+        total: 21.0,
+        status: 'PENDING',
+        createdAt: new Date(),
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.save(sale)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
   })
 
   describe('findById', () => {
@@ -263,6 +303,23 @@ describe('SaleRepository Drizzle Adapter', () => {
       expect(result.ok).toBe(false)
       if (!result.ok && result.error.type === 'NOT_FOUND') {
         expect(result.error.type).toBe('NOT_FOUND')
+      }
+    })
+
+    it('should handle database error', async () => {
+      const idResult = createSaleId('sale-123')
+      if (!idResult.ok) {
+        throw new Error('Setup failed')
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findById(idResult.value)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
       }
     })
   })
@@ -321,6 +378,23 @@ describe('SaleRepository Drizzle Adapter', () => {
       expect(result.ok).toBe(true)
       if (result.ok) {
         expect(result.value).toHaveLength(2)
+      }
+    })
+
+    it('should handle database error', async () => {
+      const customerIdResult = createCustomerId('customer-456')
+      if (!customerIdResult.ok) {
+        throw new Error('Setup failed')
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findByCustomerId(customerIdResult.value)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
       }
     })
   })
@@ -382,6 +456,18 @@ describe('SaleRepository Drizzle Adapter', () => {
         expect(result.value[0]?.status).toBe('PENDING')
       }
     })
+
+    it('should handle database error', async () => {
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findByStatus('PENDING')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
   })
 
   describe('findAll', () => {
@@ -438,6 +524,18 @@ describe('SaleRepository Drizzle Adapter', () => {
       expect(result.ok).toBe(true)
       if (result.ok) {
         expect(result.value).toHaveLength(2)
+      }
+    })
+
+    it('should handle database error', async () => {
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findAll()
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
       }
     })
   })
