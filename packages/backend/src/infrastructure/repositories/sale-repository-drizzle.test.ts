@@ -495,5 +495,22 @@ describe('SaleRepository Drizzle Adapter', () => {
         expect(result.error.type).toBe('NOT_FOUND')
       }
     })
+
+    it('should handle database error', async () => {
+      const idResult = createSaleId('sale-123')
+      if (!idResult.ok) {
+        throw new Error('Setup failed')
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.delete(idResult.value)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
   })
 })
