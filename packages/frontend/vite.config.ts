@@ -39,7 +39,16 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Offline fallback for navigation requests
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/],
+        // Clean old caches automatically
+        cleanupOutdatedCaches: true,
+        // Skip waiting and claim clients immediately
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
+          // Static assets - Cache First
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
@@ -68,21 +77,53 @@ export default defineConfig({
               },
             },
           },
+          // API GET requests - Network First with cache fallback
           {
-            urlPattern: /^https:\/\/api\..*/i,
+            urlPattern: ({ request, url }) =>
+              url.pathname.startsWith('/api') && request.method === 'GET',
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-cache',
+              cacheName: 'api-get-cache',
               expiration: {
-                maxEntries: 50,
+                maxEntries: 100,
                 maxAgeSeconds: 60 * 5, // 5 minutes
               },
               cacheableResponse: {
                 statuses: [0, 200],
               },
+              networkTimeoutSeconds: 10,
+            },
+          },
+          // Static resources - Stale While Revalidate
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          // JS and CSS - Stale While Revalidate
+          {
+            urlPattern: /\.(?:js|css)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
             },
           },
         ],
+      },
+      // Development options
+      devOptions: {
+        enabled: false, // Disable in dev to avoid complications
+        type: 'module',
       },
     }),
   ],
