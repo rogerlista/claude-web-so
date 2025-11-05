@@ -13,20 +13,27 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "typecheck": "vue-tsc --noEmit",
-    "clean": "rm -rf dist coverage .tsbuildinfo node_modules/.vite"
+    "clean": "rm -rf dist coverage .tsbuildinfo node_modules/.vite",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@pos-nfce/shared": "workspace:*",
+    "drizzle-orm": "latest",
     "pinia": "latest",
+    "sql.js": "latest",
     "vue": "latest",
     "vue-router": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
+    "@types/sql.js": "latest",
     "@vitejs/plugin-vue": "latest",
     "@vitest/coverage-v8": "latest",
     "@vitest/ui": "latest",
     "@vue/test-utils": "latest",
+    "drizzle-kit": "latest",
     "happy-dom": "latest",
     "typescript": "latest",
     "vite": "latest",
