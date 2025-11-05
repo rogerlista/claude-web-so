@@ -266,3 +266,136 @@ export type SaleItemRow = typeof saleItems.$inferSelect
  * TypeScript type for inserting new sale items
  */
 export type SaleItemInsert = typeof saleItems.$inferInsert
+
+/**
+ * Inventory Table Schema
+ *
+ * Tracks product stock movements and current quantities.
+ */
+export const inventory = sqliteTable('inventory', {
+  id: text('id').primaryKey().notNull(),
+  productId: text('product_id')
+    .notNull()
+    .references(() => products.id),
+  quantity: integer('quantity').notNull(),
+  movementType: text('movement_type').notNull(), // 'IN', 'OUT', 'ADJUSTMENT'
+  observation: text('observation'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export type InventoryRow = typeof inventory.$inferSelect
+export type InventoryInsert = typeof inventory.$inferInsert
+
+/**
+ * Sale Payments Table Schema
+ *
+ * Stores payment information for each sale.
+ */
+export const salePayments = sqliteTable('sale_payments', {
+  id: text('id').primaryKey().notNull(),
+  saleId: text('sale_id')
+    .notNull()
+    .references(() => sales.id, { onDelete: 'cascade' }),
+  paymentMethod: text('payment_method').notNull(), // 'CASH', 'CREDIT', 'DEBIT', 'PIX', etc.
+  paymentMethodCode: text('payment_method_code').notNull(), // SEFAZ codes: 01-99
+  amountInCents: integer('amount_in_cents').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export type SalePaymentRow = typeof salePayments.$inferSelect
+export type SalePaymentInsert = typeof salePayments.$inferInsert
+
+/**
+ * Users Table Schema
+ *
+ * Stores user authentication and authorization data.
+ */
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey().notNull(),
+  name: text('name').notNull(),
+  login: text('login').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  role: text('role').notNull(), // 'ADMIN', 'MANAGER', 'OPERATOR'
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export type UserRow = typeof users.$inferSelect
+export type UserInsert = typeof users.$inferInsert
+
+/**
+ * Cash Movements Table Schema
+ *
+ * Tracks cash register opening and closing.
+ */
+export const cashMovements = sqliteTable('cash_movements', {
+  id: text('id').primaryKey().notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  openingDate: integer('opening_date', { mode: 'timestamp' }).notNull(),
+  closingDate: integer('closing_date', { mode: 'timestamp' }),
+  initialAmountInCents: integer('initial_amount_in_cents').notNull(),
+  status: text('status').notNull(), // 'OPEN', 'CLOSED'
+  // Totals
+  grossSalesInCents: integer('gross_sales_in_cents').notNull().default(0),
+  cancellationsInCents: integer('cancellations_in_cents').notNull().default(0),
+  discountsInCents: integer('discounts_in_cents').notNull().default(0),
+  additionsInCents: integer('additions_in_cents').notNull().default(0),
+  netSalesInCents: integer('net_sales_in_cents').notNull().default(0),
+  // Movements
+  withdrawalsInCents: integer('withdrawals_in_cents').notNull().default(0),
+  expensesInCents: integer('expenses_in_cents').notNull().default(0),
+  additionalSupplyInCents: integer('additional_supply_in_cents').notNull().default(0),
+  finalBalanceInCents: integer('final_balance_in_cents').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export type CashMovementRow = typeof cashMovements.$inferSelect
+export type CashMovementInsert = typeof cashMovements.$inferInsert
+
+/**
+ * Cash Transactions Table Schema
+ *
+ * Records individual cash transactions (withdrawals, expenses, supplies).
+ */
+export const cashTransactions = sqliteTable('cash_transactions', {
+  id: text('id').primaryKey().notNull(),
+  cashMovementId: text('cash_movement_id')
+    .notNull()
+    .references(() => cashMovements.id),
+  type: text('type').notNull(), // 'SUPPLY', 'EXPENSE', 'WITHDRAWAL'
+  description: text('description').notNull(),
+  amountInCents: integer('amount_in_cents').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  paymentMethodId: text('payment_method_id'), // Optional, for withdrawals
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export type CashTransactionRow = typeof cashTransactions.$inferSelect
+export type CashTransactionInsert = typeof cashTransactions.$inferInsert
+
+/**
+ * Audit Table Schema
+ *
+ * Tracks all changes to critical data for compliance and debugging.
+ */
+export const audit = sqliteTable('audit', {
+  id: text('id').primaryKey().notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  tableName: text('table_name').notNull(),
+  operation: text('operation').notNull(), // 'INSERT', 'UPDATE', 'DELETE'
+  recordId: text('record_id').notNull(),
+  previousData: text('previous_data'), // JSON string
+  newData: text('new_data'), // JSON string
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export type AuditRow = typeof audit.$inferSelect
+export type AuditInsert = typeof audit.$inferInsert

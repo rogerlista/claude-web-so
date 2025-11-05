@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { customers, products, saleItems, sales } from './schema'
+import {
+  audit,
+  cashMovements,
+  cashTransactions,
+  customers,
+  inventory,
+  products,
+  saleItems,
+  salePayments,
+  sales,
+  users,
+} from './schema'
 import type { CustomerInsert, ProductInsert, SaleInsert, SaleItemInsert } from './schema'
 
 /**
@@ -157,6 +168,66 @@ describe('Database Schema', () => {
 
       // SaleItems references Products
       expect(saleItems.productId).toBeDefined()
+    })
+  })
+
+  describe('inventory schema', () => {
+    it('should have correct table structure', () => {
+      expect(inventory).toBeDefined()
+      expect(inventory.id).toBeDefined()
+      expect(inventory.productId).toBeDefined()
+      expect(inventory.quantity).toBeDefined()
+      expect(inventory.movementType).toBeDefined()
+    })
+  })
+
+  describe('salePayments schema', () => {
+    it('should have correct table structure', () => {
+      expect(salePayments).toBeDefined()
+      expect(salePayments.id).toBeDefined()
+      expect(salePayments.saleId).toBeDefined()
+      expect(salePayments.paymentMethod).toBeDefined()
+      expect(salePayments.amountInCents).toBeDefined()
+    })
+  })
+
+  describe('users schema', () => {
+    it('should have correct table structure', () => {
+      expect(users).toBeDefined()
+      expect(users.id).toBeDefined()
+      expect(users.login).toBeDefined()
+      expect(users.passwordHash).toBeDefined()
+      expect(users.role).toBeDefined()
+    })
+  })
+
+  describe('cashMovements schema', () => {
+    it('should have correct table structure', () => {
+      expect(cashMovements).toBeDefined()
+      expect(cashMovements.id).toBeDefined()
+      expect(cashMovements.userId).toBeDefined()
+      expect(cashMovements.status).toBeDefined()
+      expect(cashMovements.initialAmountInCents).toBeDefined()
+    })
+  })
+
+  describe('cashTransactions schema', () => {
+    it('should have correct table structure', () => {
+      expect(cashTransactions).toBeDefined()
+      expect(cashTransactions.id).toBeDefined()
+      expect(cashTransactions.cashMovementId).toBeDefined()
+      expect(cashTransactions.type).toBeDefined()
+      expect(cashTransactions.amountInCents).toBeDefined()
+    })
+  })
+
+  describe('audit schema', () => {
+    it('should have correct table structure', () => {
+      expect(audit).toBeDefined()
+      expect(audit.id).toBeDefined()
+      expect(audit.userId).toBeDefined()
+      expect(audit.tableName).toBeDefined()
+      expect(audit.operation).toBeDefined()
     })
   })
 })
