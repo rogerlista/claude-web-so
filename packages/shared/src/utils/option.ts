@@ -133,4 +133,44 @@ export const OptionUtils = {
     }
     return OptionUtils.none()
   },
+
+  /**
+   * Return first option if some, otherwise second option
+   */
+  or: <T>(option1: Option<T>, option2: Option<T>): Option<T> => {
+    if (option1.some) {
+      return option1
+    }
+    return option2
+  },
+
+  /**
+   * Return second option if first is some, otherwise none
+   */
+  and: <T, U>(option1: Option<T>, option2: Option<U>): Option<U> => {
+    if (option1.some) {
+      return option2
+    }
+    return OptionUtils.none()
+  },
+
+  /**
+   * Convert Option to nullable value
+   */
+  toNullable: <T>(option: Option<T>): T | null => {
+    if (option.some) {
+      return option.value
+    }
+    return null
+  },
+
+  /**
+   * Convert Option to value or undefined
+   */
+  toUndefined: <T>(option: Option<T>): T | undefined => {
+    if (option.some) {
+      return option.value
+    }
+    return undefined
+  },
 }

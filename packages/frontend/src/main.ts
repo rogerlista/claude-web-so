@@ -1,21 +1,12 @@
-import { createPinia } from 'pinia'
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './infrastructure/router'
+/**
+ * @pos-nfce/frontend - Entry Point
+ *
+ * Phase 1: Infrastructure Complete
+ * Phase 2: Vue app with TDD will start here
+ *
+ * This file is a placeholder for Phase 2.
+ * All features will be implemented using TDD (RED-GREEN-REFACTOR).
+ */
 
-// Importar estilos globais quando criados
-// import './presentation/styles/main.css'
-
-// Criar instância do app
-const app = createApp(App)
-
-// Plugins
-app.use(createPinia())
-app.use(router)
-
-// Montar app
-app.mount('#app')
-
-// Service Worker Registration (PWA)
-// O plugin vite-plugin-pwa gerencia automaticamente o service worker
-// Não é necessário registro manual adicional aqui
+export const version = '0.0.0'
+export const status = 'Phase 1 Complete - Ready for Phase 2 TDD'

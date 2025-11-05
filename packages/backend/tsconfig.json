@@ -67,7 +67,7 @@
     "emitDecoratorMetadata": false
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "coverage", "**/*.spec.ts", "**/*.test.ts"],
+  "exclude": ["node_modules", "dist", "coverage"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

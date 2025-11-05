@@ -1,0 +1,262 @@
+name: CI/CD Quality Gates
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'claude/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+# Cancel in-progress runs when a new workflow with the same group is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: Lint & Format with Biome
+  lint-and-format:
+    name: Lint & Format (Biome)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Biome check (lint + format)
+        run: pnpm biome check .
+
+  # Job 2: TypeScript Type Check
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript type check on all packages
+        run: pnpm -r typecheck
+
+  # Job 3: Tests with 100% Coverage
+  tests:
+    name: Tests (100% Coverage Required)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm -r test:coverage
+
+      - name: Upload coverage reports to Codecov (optional)
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./packages/shared/coverage/coverage-final.json,./packages/backend/coverage/coverage-final.json,./packages/frontend/coverage/coverage-final.json
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Job 4: Build All Packages
+  build:
+    name: Build All Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm -r build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            packages/*/dist
+          retention-days: 7
+
+  # Job 5: Validate Conventional Commits
+  validate-commits:
+    name: Validate Conventional Commits
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate PR commits
+        run: |
+          # Get base and head commits
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+
+          echo "Validating commits from $BASE_SHA to $HEAD_SHA"
+
+          # Validate each commit in the PR
+          pnpm commitlint --from $BASE_SHA --to $HEAD_SHA --verbose
+
+  # Job 6: Quality Gate Summary
+  quality-gate:
+    name: Quality Gate Summary
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, typecheck, tests, build]
+    if: always()
+    steps:
+      - name: Check all required jobs passed
+        run: |
+          if [[ "${{ needs.lint-and-format.result }}" != "success" ]]; then
+            echo "❌ Lint & Format failed"
+            exit 1
+          fi
+          if [[ "${{ needs.typecheck.result }}" != "success" ]]; then
+            echo "❌ TypeCheck failed"
+            exit 1
+          fi
+          if [[ "${{ needs.tests.result }}" != "success" ]]; then
+            echo "❌ Tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.build.result }}" != "success" ]]; then
+            echo "❌ Build failed"
+            exit 1
+          fi
+
+          echo "✅ All quality gates passed!"
+          echo "✅ Biome check: PASSED"
+          echo "✅ TypeScript check: PASSED"
+          echo "✅ Tests (100% coverage): PASSED"
+          echo "✅ Build: PASSED"

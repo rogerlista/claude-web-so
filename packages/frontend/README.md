@@ -1,16 +1,72 @@
-# Frontend - PWA Vue.js 3
+# @pos-nfce/frontend
 
-Interface frontend PWA do sistema POS.
-
-## Stack
-
-- Vue.js 3 (latest)
-- Pinia (latest)
-- Vue Router (latest)
-- Vite (latest)
-- Workbox (latest)
-- Vitest (latest)
+Frontend PWA - Sistema POS com NFC-e
 
 ## Status
 
-🚧 Em construção
+✅ **Phase 1 Complete**: Infrastructure and quality tools configured
+⏳ **Phase 2 Pending**: Domain implementation with TDD
+
+## Phase 1 Completed
+
+- [x] Package structure configured
+- [x] TypeScript strict mode enabled
+- [x] Vitest configured with 100% coverage requirement
+- [x] PWA configured (Workbox)
+- [x] Dependencies installed (Vue 3, Pinia, Vue Router)
+- [x] Quality tools integrated (Biome, commitlint, lefthook)
+
+## Phase 2: TDD Implementation
+
+Following **RED-GREEN-REFACTOR** cycle:
+
+1. Write failing test first (RED)
+2. Implement minimum code to pass (GREEN)
+3. Refactor while keeping tests green (REFACTOR)
+
+### Features to Implement
+
+- Product catalog (search, filters, cart)
+- Customer registration (CPF/CNPJ validation)
+- Sales flow (cart, payment, receipt)
+- Offline-first (PWA with sync)
+
+### Architecture
+
+Clean Architecture + Hexagonal Pattern with Functional Programming:
+
+```
+src/
+├── domain/           # Pure business logic (functions only)
+├── application/      # Stores/use cases (Pinia with FP)
+├── infrastructure/   # Adapters (API, storage, etc)
+└── presentation/     # Vue components
+```
+
+## Commands
+
+```bash
+# Development
+pnpm dev
+
+# Tests (TDD)
+pnpm test
+pnpm test:watch
+pnpm test:coverage
+
+# Build
+pnpm build
+
+# Type check
+pnpm typecheck
+```
+
+## Next Steps
+
+Start Phase 2 with first domain entity following TDD:
+
+1. `pnpm test:watch`
+2. Create `src/domain/product/product.test.ts`
+3. Write first failing test
+4. Implement to pass
+5. Refactor

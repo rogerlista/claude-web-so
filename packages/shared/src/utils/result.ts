@@ -118,4 +118,24 @@ export const ResultUtils = {
 
     return ResultUtils.ok(values)
   },
+
+  /**
+   * Try to execute a function, catching any errors
+   */
+  tryCatch: <T>(fn: () => T | Promise<T>): Result<T, unknown> | Promise<Result<T, unknown>> => {
+    try {
+      const result = fn()
+
+      // Check if result is a Promise
+      if (result instanceof Promise) {
+        return result
+          .then((value) => ResultUtils.ok(value))
+          .catch((error) => ResultUtils.err(error))
+      }
+
+      return ResultUtils.ok(result)
+    } catch (error) {
+      return ResultUtils.err(error)
+    }
+  },
 }
