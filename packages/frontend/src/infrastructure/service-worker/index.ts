@@ -38,3 +38,17 @@ export {
   type ConnectionStatus,
   type ConnectionChangeCallback,
 } from './online-status'
+
+export {
+  initDataSync,
+  stopDataSync,
+  trackChange,
+  syncPendingOperations,
+  clearSyncOperations,
+  getPendingOperationsCount,
+  getAllSyncOperations,
+  type SyncOperation,
+  type SyncConflict,
+  type ConflictResolutionStrategy,
+  type SyncConfig,
+} from './data-sync-manager'
