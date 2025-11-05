@@ -43,7 +43,7 @@ importers:
         version: 12.4.1
       drizzle-orm:
         specifier: latest
-        version: 0.44.7(@types/better-sqlite3@7.6.13)(better-sqlite3@12.4.1)
+        version: 0.44.7(@types/better-sqlite3@7.6.13)(@types/sql.js@1.4.9)(better-sqlite3@12.4.1)(sql.js@1.13.0)
       hono:
         specifier: latest
         version: 4.10.4
@@ -81,9 +81,15 @@ importers:
       '@pos-nfce/shared':
         specifier: workspace:*
         version: link:../shared
+      drizzle-orm:
+        specifier: latest
+        version: 0.44.7(@types/better-sqlite3@7.6.13)(@types/sql.js@1.4.9)(better-sqlite3@12.4.1)(sql.js@1.13.0)
       pinia:
         specifier: latest
         version: 3.0.3(typescript@5.9.3)(vue@3.5.22(typescript@5.9.3))
+      sql.js:
+        specifier: latest
+        version: 1.13.0
       vue:
         specifier: latest
         version: 3.5.22(typescript@5.9.3)
@@ -94,6 +100,9 @@ importers:
       '@types/node':
         specifier: latest
         version: 24.10.0
+      '@types/sql.js':
+        specifier: latest
+        version: 1.4.9
       '@vitejs/plugin-vue':
         specifier: latest
         version: 6.0.1(vite@7.1.12(@types/node@24.10.0)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))(vue@3.5.22(typescript@5.9.3))
@@ -106,6 +115,9 @@ importers:
       '@vue/test-utils':
         specifier: latest
         version: 2.4.6
+      drizzle-kit:
+        specifier: latest
+        version: 0.31.6
       happy-dom:
         specifier: latest
         version: 20.0.10
@@ -1301,6 +1313,9 @@ packages:
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
+  '@types/emscripten@1.41.5':
+    resolution: {integrity: sha512-cMQm7pxu6BxtHyqJ7mQZ2kXWV5SLmugybFdHCBbJ5eHzOo6VhBckEgAT3//rP5FwPHNPeEiq4SmQ5ucBwsOo4Q==}
+
   '@types/estree@0.0.39':
     resolution: {integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==}
 
@@ -1315,6 +1330,9 @@ packages:
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
+
+  '@types/sql.js@1.4.9':
+    resolution: {integrity: sha512-ep8b36RKHlgWPqjNG9ToUrPiwkhwh0AEzy883mO5Xnd+cL6VBH1EvSjBAAuxLUFF2Vn/moE3Me6v9E1Lo+48GQ==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -3049,6 +3067,9 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
+  sql.js@1.13.0:
+    resolution: {integrity: sha512-RJbVP1HRDlUUXahJ7VMTcu9Rm1Nzw+EBpoPr94vnbD4LwR715F3CcxE2G2k45PewcaZ57pjetYa+LoSJLAASgA==}
+
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
@@ -4751,6 +4772,8 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
+  '@types/emscripten@1.41.5': {}
+
   '@types/estree@0.0.39': {}
 
   '@types/estree@1.0.8': {}
@@ -4764,6 +4787,11 @@ snapshots:
       undici-types: 7.16.0
 
   '@types/resolve@1.20.2': {}
+
+  '@types/sql.js@1.4.9':
+    dependencies:
+      '@types/emscripten': 1.41.5
+      '@types/node': 24.10.0
 
   '@types/trusted-types@2.0.7': {}
 
@@ -5339,10 +5367,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.7(@types/better-sqlite3@7.6.13)(better-sqlite3@12.4.1):
+  drizzle-orm@0.44.7(@types/better-sqlite3@7.6.13)(@types/sql.js@1.4.9)(better-sqlite3@12.4.1)(sql.js@1.13.0):
     optionalDependencies:
       '@types/better-sqlite3': 7.6.13
+      '@types/sql.js': 1.4.9
       better-sqlite3: 12.4.1
+      sql.js: 1.13.0
 
   dunder-proto@1.0.1:
     dependencies:
@@ -6580,6 +6610,8 @@ snapshots:
   speakingurl@14.0.1: {}
 
   split2@4.2.0: {}
+
+  sql.js@1.13.0: {}
 
   stackback@0.0.2: {}
 
