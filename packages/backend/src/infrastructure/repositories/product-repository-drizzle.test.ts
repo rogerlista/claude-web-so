@@ -87,6 +87,31 @@ describe('ProductRepository Drizzle Adapter', () => {
       }
     })
 
+    it('should handle database error', async () => {
+      const idResult = createProductId('prod-123')
+      const priceResult = createPrice(10.5)
+
+      if (!idResult.ok || !priceResult.ok) {
+        throw new Error('Test setup failed')
+      }
+
+      const product: Product = {
+        id: idResult.value,
+        description: 'Test Product',
+        price: priceResult.value,
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.save(product)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
+
     it('should save a product with SKU and GTIN', async () => {
       const idResult = createProductId('prod-123')
       const priceResult = createPrice(10.5)
@@ -190,6 +215,45 @@ describe('ProductRepository Drizzle Adapter', () => {
         expect(result.error.id).toBe('non-existent')
       }
     })
+
+    it('should handle database error', async () => {
+      const idResult = createProductId('prod-123')
+
+      if (!idResult.ok) {
+        throw new Error('Test setup failed')
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findById(idResult.value)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
+
+    it('should handle invalid product data in database', async () => {
+      // Insert product with invalid price (negative cents)
+      sqlite.exec(`
+        INSERT INTO products (id, description, price_in_cents)
+        VALUES ('invalid-prod', 'Invalid Product', -100)
+      `)
+
+      const idResult = createProductId('invalid-prod')
+
+      if (!idResult.ok) {
+        throw new Error('Test setup failed')
+      }
+
+      const result = await repository.findById(idResult.value)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
   })
 
   describe('findAll', () => {
@@ -231,6 +295,33 @@ describe('ProductRepository Drizzle Adapter', () => {
         expect(result.value).toHaveLength(2)
         expect(result.value[0]?.id).toBe('prod-1')
         expect(result.value[1]?.id).toBe('prod-2')
+      }
+    })
+
+    it('should handle database error', async () => {
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findAll()
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
+
+    it('should handle invalid product data in database', async () => {
+      // Insert product with invalid price (negative)
+      sqlite.exec(`
+        INSERT INTO products (id, description, price_in_cents)
+        VALUES ('invalid-prod', 'Invalid', -100)
+      `)
+
+      const result = await repository.findAll()
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
       }
     })
   })
@@ -277,6 +368,24 @@ describe('ProductRepository Drizzle Adapter', () => {
         expect(result.error.type).toBe('NOT_FOUND')
       }
     })
+
+    it('should handle database error', async () => {
+      const idResult = createProductId('prod-123')
+
+      if (!idResult.ok) {
+        throw new Error('Test setup failed')
+      }
+
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.delete(idResult.value)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
   })
 
   describe('findBySKU', () => {
@@ -315,6 +424,33 @@ describe('ProductRepository Drizzle Adapter', () => {
         expect(result.value).toEqual([])
       }
     })
+
+    it('should handle database error', async () => {
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findBySKU('PROD-SKU')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
+
+    it('should handle invalid product data in database', async () => {
+      // Insert product with invalid price (negative)
+      sqlite.exec(`
+        INSERT INTO products (id, description, price_in_cents, sku)
+        VALUES ('invalid-sku-prod', 'Invalid', -100, 'INVALID-SKU')
+      `)
+
+      const result = await repository.findBySKU('INVALID-SKU')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
   })
 
   describe('findByGTIN', () => {
@@ -350,6 +486,33 @@ describe('ProductRepository Drizzle Adapter', () => {
       expect(result.ok).toBe(false)
       if (!result.ok) {
         expect(result.error.type).toBe('NOT_FOUND')
+      }
+    })
+
+    it('should handle database error', async () => {
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.findByGTIN('7898357417892')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
+
+    it('should handle invalid product data in database', async () => {
+      // Insert product with invalid price (negative)
+      sqlite.exec(`
+        INSERT INTO products (id, description, price_in_cents, gtin)
+        VALUES ('invalid-gtin-prod', 'Invalid', -100, '7891234567890')
+      `)
+
+      const result = await repository.findByGTIN('7891234567890')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
       }
     })
   })
