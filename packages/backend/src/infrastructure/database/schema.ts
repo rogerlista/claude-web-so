@@ -14,46 +14,36 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
  * - Timestamps for audit trail
  */
 export const products = sqliteTable('products', {
-  /**
-   * Product ID (primary key)
-   * Stored as text to support various ID formats (UUID, nanoid, etc.)
-   */
+  // Identificação
   id: text('id').primaryKey().notNull(),
+  codigo: text('codigo'), // Código interno
+  sku: text('sku').unique(), // Stock Keeping Unit
+  gtin: text('gtin').unique(), // Código de barras (EAN)
+  dun14: text('dun14'), // Código DUN-14
+  codigoBalanca: text('codigo_balanca'), // Código para balança
 
-  /**
-   * Product description
-   * Required field with whitespace trimmed
-   */
+  // Status e informações básicas
+  status: text('status').default('ACTIVE'), // ACTIVE, INACTIVE
   description: text('description').notNull(),
+  unidadeMedida: text('unidade_medida').default('UN'), // UN, KG, LT, etc
 
-  /**
-   * Product price in cents
-   * Stored as integer to avoid floating-point precision issues
-   * Example: $10.50 = 1050 cents
-   */
+  // Preços (em centavos)
   priceInCents: integer('price_in_cents').notNull(),
+  precoPromocionalInCents: integer('preco_promocional_in_cents'),
+  precoPromocionalInicio: integer('preco_promocional_inicio', { mode: 'timestamp' }),
+  precoPromocionalFim: integer('preco_promocional_fim', { mode: 'timestamp' }),
 
-  /**
-   * Stock Keeping Unit (optional)
-   * Alphanumeric identifier for inventory management
-   */
-  sku: text('sku'),
+  // Informações Fiscais/Tributárias (NFC-e)
+  origemTributaria: text('origem_tributaria'), // 0-8 conforme SEFAZ
+  ncm: text('ncm'), // Nomenclatura Comum do Mercosul (8 dígitos)
+  cest: text('cest'), // Código Especificador da Substituição Tributária
+  tributacao: text('tributacao'), // CST/CSOSN
+  aliquotaIcms: integer('aliquota_icms'), // % * 100 (ex: 18% = 1800)
 
-  /**
-   * Global Trade Item Number (optional)
-   * Barcode identifier (GTIN-8, GTIN-12, GTIN-13, or GTIN-14)
-   */
-  gtin: text('gtin'),
-
-  /**
-   * Timestamp when record was created
-   */
+  // Auditoria
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
-
-  /**
-   * Timestamp when record was last updated
-   */
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete
 })
 
 /**
@@ -146,41 +136,37 @@ export type CustomerInsert = typeof customers.$inferInsert
  * - Timestamps for audit trail
  */
 export const sales = sqliteTable('sales', {
-  /**
-   * Sale ID (primary key)
-   * Stored as text to support various ID formats (UUID, nanoid, etc.)
-   */
+  // Identificação
   id: text('id').primaryKey().notNull(),
+  numeroVenda: integer('numero_venda').unique(), // Número sequencial da venda
+  dataHora: integer('data_hora', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 
-  /**
-   * Customer ID (foreign key)
-   * References customers table
-   */
-  customerId: text('customer_id')
-    .notNull()
-    .references(() => customers.id),
+  // Usuário responsável
+  userId: text('user_id').references(() => users.id),
 
-  /**
-   * Sale total in cents
-   * Stored as integer to avoid floating-point precision issues
-   * Example: $26.50 = 2650 cents
-   */
-  totalInCents: integer('total_in_cents').notNull(),
+  // Cliente (opcional para NFC-e)
+  customerId: text('customer_id').references(() => customers.id),
+  cpfCliente: text('cpf_cliente'), // CPF pode ser informado sem cadastro completo
+  emailCliente: text('email_cliente'), // Email para envio da NFC-e
 
-  /**
-   * Sale status
-   * Valid values: PENDING, COMPLETED, CANCELLED
-   */
-  status: text('status').notNull(),
+  // Status da venda
+  status: text('status').notNull().default('PENDING'), // PENDING, COMPLETED, CANCELLED
 
-  /**
-   * Timestamp when record was created
-   */
+  // Valores (em centavos) - compatibilidade com schema antigo
+  totalInCents: integer('total_in_cents'), // Mantido para compatibilidade
+  totalBrutoInCents: integer('total_bruto_in_cents'),
+  descontoInCents: integer('desconto_in_cents').default(0),
+  acrescimoInCents: integer('acrescimo_in_cents').default(0),
+  totalLiquidoInCents: integer('total_liquido_in_cents'),
+
+  // Informações NFC-e
+  chaveNfce: text('chave_nfce').unique(), // Chave de acesso da NFC-e (44 dígitos)
+  numeroNfce: integer('numero_nfce'), // Número da NFC-e
+  serieNfce: text('serie_nfce'), // Série da NFC-e
+  statusNfce: text('status_nfce'), // PENDENTE, AUTORIZADA, REJEITADA, CANCELADA
+
+  // Auditoria
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
-
-  /**
-   * Timestamp when record was last updated
-   */
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
@@ -209,51 +195,29 @@ export type SaleInsert = typeof sales.$inferInsert
  * - Timestamp for audit trail
  */
 export const saleItems = sqliteTable('sale_items', {
-  /**
-   * Sale Item ID (primary key)
-   * Auto-generated unique identifier
-   */
   id: text('id').primaryKey().notNull(),
 
-  /**
-   * Sale ID (foreign key)
-   * References sales table
-   */
+  // Relacionamentos
   saleId: text('sale_id')
     .notNull()
     .references(() => sales.id, { onDelete: 'cascade' }),
-
-  /**
-   * Product ID (foreign key)
-   * References products table
-   */
   productId: text('product_id')
     .notNull()
     .references(() => products.id),
 
-  /**
-   * Item quantity
-   * Must be a positive integer
-   */
+  // Informações do item na venda (snapshot do momento da venda)
+  numeroItem: integer('numero_item'), // Ordem do item na venda (1, 2, 3...)
+  codigo: text('codigo'), // Código do produto no momento da venda
+  descricao: text('descricao'), // Descrição do produto no momento da venda
+
+  // Quantidade e valores (em centavos) - compatibilidade
   quantity: integer('quantity').notNull(),
+  unitPriceInCents: integer('unit_price_in_cents'), // Compatibilidade
+  totalInCents: integer('total_in_cents'), // Compatibilidade
+  valorUnitarioInCents: integer('valor_unitario_in_cents'),
+  totalItemInCents: integer('total_item_in_cents'),
 
-  /**
-   * Unit price in cents
-   * Price per unit at the time of sale
-   * Stored as integer to avoid floating-point precision issues
-   */
-  unitPriceInCents: integer('unit_price_in_cents').notNull(),
-
-  /**
-   * Total in cents
-   * Calculated as quantity * unit_price_in_cents
-   * Stored as integer to avoid floating-point precision issues
-   */
-  totalInCents: integer('total_in_cents').notNull(),
-
-  /**
-   * Timestamp when record was created
-   */
+  // Auditoria
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 

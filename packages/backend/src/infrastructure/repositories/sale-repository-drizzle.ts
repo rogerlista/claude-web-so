@@ -73,7 +73,9 @@ const rowToSaleItem = (row: SaleItemRow): Result<SaleItem, string> => {
     return ResultUtils.err(`Invalid ProductId in database: ${productIdResult.error}`)
   }
 
-  const priceResult = createPrice(row.unitPriceInCents / 100)
+  // Use unitPriceInCents if available, fallback to valorUnitarioInCents
+  const unitPriceCents = row.unitPriceInCents ?? row.valorUnitarioInCents ?? 0
+  const priceResult = createPrice(unitPriceCents / 100)
   if (!priceResult.ok) {
     return ResultUtils.err(`Invalid Price in database: ${priceResult.error}`)
   }
@@ -100,6 +102,11 @@ const rowToSale = (saleRow: SaleRow, itemRows: SaleItemRow[]): Result<Sale, stri
     return ResultUtils.err(`Invalid SaleId in database: ${saleIdResult.error}`)
   }
 
+  // CustomerId is now optional (can be null for guest sales)
+  if (!saleRow.customerId) {
+    return ResultUtils.err('Sale must have a customerId')
+  }
+
   const customerIdResult = createCustomerId(saleRow.customerId)
   if (!customerIdResult.ok) {
     return ResultUtils.err(`Invalid CustomerId in database: ${customerIdResult.error}`)
@@ -124,11 +131,14 @@ const rowToSale = (saleRow: SaleRow, itemRows: SaleItemRow[]): Result<Sale, stri
     .filter((r): r is { ok: true; value: SaleItem } => r.ok)
     .map((r) => r.value)
 
+  // Use totalInCents if available, fallback to totalLiquidoInCents
+  const totalCents = saleRow.totalInCents ?? saleRow.totalLiquidoInCents ?? 0
+
   return ResultUtils.ok({
     id: saleIdResult.value,
     customerId: customerIdResult.value,
     items,
-    total: saleRow.totalInCents / 100,
+    total: totalCents / 100,
     status: statusResult.value,
     createdAt: saleRow.createdAt,
   })
