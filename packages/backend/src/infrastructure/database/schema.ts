@@ -69,3 +69,74 @@ export type ProductRow = typeof products.$inferSelect
  * TypeScript type for inserting new products
  */
 export type ProductInsert = typeof products.$inferInsert
+
+/**
+ * Customers Table Schema
+ *
+ * Database schema for customers using Drizzle ORM with SQLite.
+ *
+ * Design decisions:
+ * - id: Text primary key (allows flexible ID strategies)
+ * - cpf: Unique constraint for Brazilian tax ID
+ * - email: Optional, unique when present
+ * - phone: Optional text field for Brazilian phone numbers
+ * - Timestamps for audit trail
+ */
+export const customers = sqliteTable('customers', {
+  /**
+   * Customer ID (primary key)
+   * Stored as text to support various ID formats (UUID, nanoid, etc.)
+   */
+  id: text('id').primaryKey().notNull(),
+
+  /**
+   * Customer name
+   * Required field
+   */
+  name: text('name').notNull(),
+
+  /**
+   * CPF - Cadastro de Pessoa Física (Brazilian Tax ID)
+   * 11 digits, stored without formatting
+   * Unique constraint - each CPF can only be registered once
+   */
+  cpf: text('cpf').notNull().unique(),
+
+  /**
+   * Email address (optional)
+   * Stored as lowercase
+   * Unique constraint when present
+   */
+  email: text('email').unique(),
+
+  /**
+   * Phone number (optional)
+   * Brazilian phone format (10-13 digits)
+   * Stored without formatting
+   */
+  phone: text('phone'),
+
+  /**
+   * Timestamp when record was created
+   */
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+
+  /**
+   * Timestamp when record was last updated
+   */
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+})
+
+/**
+ * TypeScript type inferred from the customers schema
+ */
+export type CustomerRow = typeof customers.$inferSelect
+
+/**
+ * TypeScript type for inserting new customers
+ */
+export type CustomerInsert = typeof customers.$inferInsert
