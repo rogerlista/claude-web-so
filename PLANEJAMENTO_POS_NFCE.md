@@ -793,11 +793,23 @@ Antes de aprovar um PR, validar:
 
 ### 3.1 Design System e Componentes UI
 
-- [ ] **T019** - Configurar biblioteca de componentes UI
-  - Escolher e configurar (Vuetify, PrimeVue, Element Plus ou criar custom)
-  - Definir paleta de cores
-  - Definir tipografia
-  - Configurar tema claro/escuro (opcional)
+**DECISÃO: Componentes Customizados** ✅
+
+Optamos por **criar componentes customizados** ao invés de usar bibliotecas UI prontas por:
+- Performance e tamanho de bundle otimizados para PWA
+- Controle total sobre comportamento e acessibilidade
+- Design system específico para PDV sem adaptações forçadas
+- Melhor suporte offline-first
+
+**Documentação**: Ver `docs/DESIGN_SYSTEM.md`
+
+- [ ] **T019** - Configurar Design System customizado
+  - ✅ Definir paleta de cores (Primary, Success, Warning, Error, Neutral)
+  - ✅ Definir tipografia (Fontes, tamanhos, pesos)
+  - ✅ Definir tokens CSS (espaçamento, bordas, sombras, transições)
+  - ✅ Documentar diretrizes de acessibilidade (WCAG AA)
+  - Criar arquivo de tokens CSS globais
+  - Configurar reset CSS e utilities
 
 - [ ] **T020** - Criar componentes base reutilizáveis
   - Button

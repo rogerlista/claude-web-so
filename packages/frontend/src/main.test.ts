@@ -1,22 +1,25 @@
+import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { status, version } from './main'
+import App from './App.vue'
 
 /**
- * Basic infrastructure tests for frontend
- * Phase 1: Infrastructure setup
- * Phase 2: Will add domain logic with TDD
+ * Phase 3: Main application tests
+ * Testing Vue app bootstrap and design system integration
  */
 
-describe('Frontend Infrastructure', () => {
-  it('should export version', () => {
-    expect(version).toBe('0.0.0')
+describe('Frontend Application', () => {
+  it('should render App component', () => {
+    const wrapper = mount(App)
+    expect(wrapper.exists()).toBe(true)
   })
 
-  it('should indicate Phase 1 completion', () => {
-    expect(status).toContain('Phase 1 Complete')
+  it('should display application title', () => {
+    const wrapper = mount(App)
+    expect(wrapper.text()).toContain('POS NFC-e')
   })
 
-  it('should be ready for Phase 2 domain implementation', () => {
-    expect(status).toContain('Phase 2 TDD')
+  it('should have app container element', () => {
+    const wrapper = mount(App)
+    expect(wrapper.find('#app').exists()).toBe(true)
   })
 })
