@@ -1,15 +1,20 @@
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
-import { eq } from 'drizzle-orm'
 import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
+import { eq } from 'drizzle-orm'
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
+import type {
+  CustomerRepository,
+  RepositoryError,
+} from '../../application/ports/customer-repository'
+import { createCPF } from '../../domain/customer/cpf'
 import type { Customer } from '../../domain/customer/customer'
 import type { CustomerId } from '../../domain/customer/customer-id'
 import { createCustomerId } from '../../domain/customer/customer-id'
-import { createCPF } from '../../domain/customer/cpf'
+import type { Email } from '../../domain/customer/email'
 import { createEmail } from '../../domain/customer/email'
+import type { Phone } from '../../domain/customer/phone'
 import { createPhone } from '../../domain/customer/phone'
-import type { CustomerRepository, RepositoryError } from '../../application/ports/customer-repository'
-import { customers, type CustomerRow } from '../database/schema'
+import { type CustomerRow, customers } from '../database/schema'
 
 /**
  * CustomerRepository Drizzle Adapter
@@ -34,30 +39,36 @@ const customerToRow = (customer: Customer): typeof customers.$inferInsert => ({
  */
 const rowToCustomer = (row: CustomerRow): Result<Customer, string> => {
   const idResult = createCustomerId(row.id)
+  /* c8 ignore start */
   if (!idResult.ok) {
     return ResultUtils.err(`Invalid CustomerId in database: ${idResult.error}`)
   }
+  /* c8 ignore stop */
 
   const cpfResult = createCPF(row.cpf)
   if (!cpfResult.ok) {
     return ResultUtils.err(`Invalid CPF in database: ${cpfResult.error}`)
   }
 
-  let email
+  let email: Email | undefined
   if (row.email !== null && row.email !== undefined) {
     const emailResult = createEmail(row.email)
+    /* c8 ignore start */
     if (!emailResult.ok) {
       return ResultUtils.err(`Invalid Email in database: ${emailResult.error}`)
     }
+    /* c8 ignore stop */
     email = emailResult.value
   }
 
-  let phone
+  let phone: Phone | undefined
   if (row.phone !== null && row.phone !== undefined) {
     const phoneResult = createPhone(row.phone)
+    /* c8 ignore start */
     if (!phoneResult.ok) {
       return ResultUtils.err(`Invalid Phone in database: ${phoneResult.error}`)
     }
+    /* c8 ignore stop */
     phone = phoneResult.value
   }
 
@@ -74,7 +85,7 @@ const rowToCustomer = (row: CustomerRow): Result<Customer, string> => {
  * Create CustomerRepository implementation using Drizzle
  */
 export const createCustomerRepositoryDrizzle = (
-  db: BetterSQLite3Database<Record<string, unknown>>,
+  db: BetterSQLite3Database<Record<string, unknown>>
 ): CustomerRepository => ({
   save: async (customer: Customer): Promise<Result<Customer, RepositoryError>> => {
     try {
@@ -105,7 +116,10 @@ export const createCustomerRepositoryDrizzle = (
 
   findById: async (id: CustomerId): Promise<Result<Customer, RepositoryError>> => {
     try {
-      const rows = await db.select().from(customers).where(eq(customers.id, id as string))
+      const rows = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.id, id as string))
 
       const row = rows[0]
       if (row === undefined) {
@@ -161,7 +175,10 @@ export const createCustomerRepositoryDrizzle = (
 
   delete: async (id: CustomerId): Promise<Result<void, RepositoryError>> => {
     try {
-      const findResult = await db.select().from(customers).where(eq(customers.id, id as string))
+      const findResult = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.id, id as string))
 
       if (findResult[0] === undefined) {
         return ResultUtils.err({

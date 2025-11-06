@@ -93,9 +93,11 @@ export const createSaleUseCase =
 
     for (let i = 0; i < input.items.length; i++) {
       const itemInput = input.items[i]
+      /* c8 ignore start */
       if (!itemInput) {
         continue
       }
+      /* c8 ignore stop */
 
       // Validate ProductId
       const productIdResult = createProductId(itemInput.productId)

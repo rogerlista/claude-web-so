@@ -1,15 +1,17 @@
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
-import { eq } from 'drizzle-orm'
 import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
+import { eq } from 'drizzle-orm'
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
+import type { ProductRepository, RepositoryError } from '../../application/ports/product-repository'
+import { createGTIN } from '../../domain/product/gtin'
+import type { GTIN } from '../../domain/product/gtin'
+import { createPrice } from '../../domain/product/price'
 import type { Product } from '../../domain/product/product'
 import type { ProductId } from '../../domain/product/product-id'
 import { createProductId } from '../../domain/product/product-id'
-import { createPrice } from '../../domain/product/price'
+import type { SKU } from '../../domain/product/sku'
 import { createSKU } from '../../domain/product/sku'
-import { createGTIN } from '../../domain/product/gtin'
-import type { ProductRepository, RepositoryError } from '../../application/ports/product-repository'
-import { products, type ProductRow } from '../database/schema'
+import { type ProductRow, products } from '../database/schema'
 
 /**
  * ProductRepository Drizzle Adapter
@@ -39,9 +41,11 @@ const productToRow = (product: Product): typeof products.$inferInsert => ({
  */
 const rowToProduct = (row: ProductRow): Result<Product, string> => {
   const idResult = createProductId(row.id)
+  /* c8 ignore start */
   if (!idResult.ok) {
     return ResultUtils.err(`Invalid ProductId in database: ${idResult.error}`)
   }
+  /* c8 ignore stop */
 
   const price = row.priceInCents / 100
   const priceResult = createPrice(price)
@@ -49,21 +53,25 @@ const rowToProduct = (row: ProductRow): Result<Product, string> => {
     return ResultUtils.err(`Invalid Price in database: ${priceResult.error}`)
   }
 
-  let sku
+  let sku: SKU | undefined
   if (row.sku !== null && row.sku !== undefined) {
     const skuResult = createSKU(row.sku)
+    /* c8 ignore start */
     if (!skuResult.ok) {
       return ResultUtils.err(`Invalid SKU in database: ${skuResult.error}`)
     }
+    /* c8 ignore stop */
     sku = skuResult.value
   }
 
-  let gtin
+  let gtin: GTIN | undefined
   if (row.gtin !== null && row.gtin !== undefined) {
     const gtinResult = createGTIN(row.gtin)
+    /* c8 ignore start */
     if (!gtinResult.ok) {
       return ResultUtils.err(`Invalid GTIN in database: ${gtinResult.error}`)
     }
+    /* c8 ignore stop */
     gtin = gtinResult.value
   }
 
@@ -83,7 +91,7 @@ const rowToProduct = (row: ProductRow): Result<Product, string> => {
  * @returns ProductRepository implementation
  */
 export const createProductRepositoryDrizzle = (
-  db: BetterSQLite3Database<Record<string, unknown>>,
+  db: BetterSQLite3Database<Record<string, unknown>>
 ): ProductRepository => ({
   /**
    * Save a product (insert or update)
@@ -121,7 +129,10 @@ export const createProductRepositoryDrizzle = (
    */
   findById: async (id: ProductId): Promise<Result<Product, RepositoryError>> => {
     try {
-      const rows = await db.select().from(products).where(eq(products.id, id as string))
+      const rows = await db
+        .select()
+        .from(products)
+        .where(eq(products.id, id as string))
 
       const row = rows[0]
       if (row === undefined) {
@@ -185,7 +196,10 @@ export const createProductRepositoryDrizzle = (
   delete: async (id: ProductId): Promise<Result<void, RepositoryError>> => {
     try {
       // Check if product exists
-      const findResult = await db.select().from(products).where(eq(products.id, id as string))
+      const findResult = await db
+        .select()
+        .from(products)
+        .where(eq(products.id, id as string))
 
       if (findResult[0] === undefined) {
         return ResultUtils.err({

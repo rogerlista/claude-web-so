@@ -468,6 +468,15 @@ describe('SaleRepository Drizzle Adapter', () => {
         expect(result.error.type).toBe('DATABASE_ERROR')
       }
     })
+
+    it('should return empty array when no sales with status exist', async () => {
+      const result = await repository.findByStatus('CANCELLED')
+
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.value).toHaveLength(0)
+      }
+    })
   })
 
   describe('findAll', () => {

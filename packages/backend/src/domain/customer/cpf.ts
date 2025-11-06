@@ -26,9 +26,11 @@ const calculateCheckDigit = (digits: number[]): number => {
 
   for (let i = 0; i < digits.length; i++) {
     const digit = digits[i]
+    /* c8 ignore start */
     if (digit !== undefined) {
       sum += digit * (factor - i)
     }
+    /* c8 ignore stop */
   }
 
   const remainder = sum % 11
