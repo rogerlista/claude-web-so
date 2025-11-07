@@ -128,7 +128,7 @@ describe('Product Entity', () => {
 
     it('should create Product with different prices', () => {
       const idResult = createProductId('prod-123')
-      const priceResult1 = createPrice(0)
+      const priceResult1 = createPrice(0.01)
       const priceResult2 = createPrice(999.99)
 
       if (!idResult.ok || !priceResult1.ok || !priceResult2.ok) {
@@ -137,7 +137,7 @@ describe('Product Entity', () => {
 
       const result1 = createProduct({
         id: idResult.value,
-        description: 'Free Product',
+        description: 'Cheap Product',
         price: priceResult1.value,
       })
 
@@ -149,7 +149,7 @@ describe('Product Entity', () => {
 
       expect(result1.ok).toBe(true)
       if (result1.ok) {
-        expect(result1.value.price).toBe(0)
+        expect(result1.value.price).toBe(0.01)
       }
 
       expect(result2.ok).toBe(true)

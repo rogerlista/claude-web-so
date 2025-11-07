@@ -7,7 +7,7 @@ import { type Price, createPrice } from './price'
  * Tests for Price branded type
  *
  * Domain Rules:
- * - Price must be a non-negative number
+ * - Price must be greater than zero (positive)
  * - Price must have at most 2 decimal places
  * - Price cannot be NaN or Infinity
  */
@@ -23,12 +23,12 @@ describe('Price', () => {
       }
     })
 
-    it('should create a valid Price from zero', () => {
+    it('should reject zero price', () => {
       const result = createPrice(0)
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value).toBe(0)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('Price must be greater than zero')
       }
     })
 
@@ -37,7 +37,7 @@ describe('Price', () => {
 
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toContain('Price cannot be negative')
+        expect(result.error).toContain('Price must be greater than zero')
       }
     })
 

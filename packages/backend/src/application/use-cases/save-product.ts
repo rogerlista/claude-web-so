@@ -60,6 +60,27 @@ export const createSaveProduct =
       return ResultUtils.err(gtinResult.error)
     }
 
+    // Validate SKU uniqueness if provided
+    if (skuResult?.ok) {
+      const existingBySKU = await deps.repository.findBySKU(skuResult.value)
+      if (existingBySKU.ok && existingBySKU.value.length > 0) {
+        // Check if any existing product has different ID (indicating duplicate)
+        const hasDuplicate = existingBySKU.value.some((p) => p.id !== productIdResult.value)
+        if (hasDuplicate) {
+          return ResultUtils.err(`SKU ${skuResult.value} already exists for another product`)
+        }
+      }
+    }
+
+    // Validate GTIN uniqueness if provided
+    if (gtinResult?.ok) {
+      const existingByGTIN = await deps.repository.findByGTIN(gtinResult.value)
+      if (existingByGTIN.ok && existingByGTIN.value.id !== productIdResult.value) {
+        // Product with this GTIN exists and has different ID (duplicate)
+        return ResultUtils.err(`GTIN ${gtinResult.value} already exists for another product`)
+      }
+    }
+
     // Create product domain entity
     const productResult = createProduct({
       id: productIdResult.value,

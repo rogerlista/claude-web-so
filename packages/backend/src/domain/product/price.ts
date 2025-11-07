@@ -5,7 +5,7 @@ import { ResultUtils } from '@pos-nfce/shared'
  * Price - Branded type for monetary values
  *
  * Domain Rules:
- * - Must be non-negative
+ * - Must be greater than zero (positive)
  * - Must have at most 2 decimal places
  * - Cannot be NaN or Infinity
  */
@@ -23,9 +23,9 @@ export const createPrice = (value: number): Result<Price, string> => {
     return ResultUtils.err('Price must be a valid number')
   }
 
-  // Validate non-negative
-  if (value < 0) {
-    return ResultUtils.err('Price cannot be negative')
+  // Validate positive (greater than zero)
+  if (value <= 0) {
+    return ResultUtils.err('Price must be greater than zero')
   }
 
   // Validate decimal places (at most 2)
