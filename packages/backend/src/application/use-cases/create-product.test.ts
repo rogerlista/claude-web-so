@@ -3,7 +3,11 @@ import { ResultUtils } from '@pos-nfce/shared'
 import { describe, expect, it } from 'vitest'
 import type { Product } from '../../domain/product/product'
 import type { ProductRepository, RepositoryError } from '../ports/product-repository'
-import { type CreateProductInput, type CreateProductUseCaseError, createProductUseCase } from './create-product'
+import {
+  type CreateProductInput,
+  type CreateProductUseCaseError,
+  createProductUseCase,
+} from './create-product'
 
 /**
  * TDD - RED Phase
@@ -20,9 +24,7 @@ import { type CreateProductInput, type CreateProductUseCaseError, createProductU
 /**
  * Mock ProductRepository for testing
  */
-const createMockRepository = (
-  saveResult: Result<Product, RepositoryError>,
-): ProductRepository => ({
+const createMockRepository = (saveResult: Result<Product, RepositoryError>): ProductRepository => ({
   save: async () => saveResult,
   findById: async () => ResultUtils.err({ type: 'NOT_FOUND' as const, id: 'test' }),
   findAll: async () => ResultUtils.ok([]),
@@ -40,7 +42,7 @@ describe('CreateProduct Use Case', () => {
           id: 'prod-123' as any,
           description: 'Test Product',
           price: 10.5 as any,
-        }),
+        })
       )
 
       const useCase = createProductUseCase(mockRepo)
@@ -69,7 +71,7 @@ describe('CreateProduct Use Case', () => {
           price: 10.5 as any,
           sku: 'PROD-123' as any,
           gtin: '7898357417892' as any,
-        }),
+        })
       )
 
       const useCase = createProductUseCase(mockRepo)
@@ -190,7 +192,7 @@ describe('CreateProduct Use Case', () => {
 
     it('should handle repository errors', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.err({ type: 'DATABASE_ERROR' as const, message: 'Connection failed' }),
+        ResultUtils.err({ type: 'DATABASE_ERROR' as const, message: 'Connection failed' })
       )
 
       const useCase = createProductUseCase(mockRepo)
@@ -212,7 +214,7 @@ describe('CreateProduct Use Case', () => {
 
     it('should handle duplicate product error', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.err({ type: 'DUPLICATE' as const, id: 'prod-123' }),
+        ResultUtils.err({ type: 'DUPLICATE' as const, id: 'prod-123' })
       )
 
       const useCase = createProductUseCase(mockRepo)
