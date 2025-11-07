@@ -31,6 +31,7 @@
     "db:seed": "vite-node src/infrastructure/database/seed.ts"
   },
   "dependencies": {
+    "@hono/node-server": "1.19.6",
     "@pos-nfce/shared": "workspace:*",
     "better-sqlite3": "latest",
     "drizzle-orm": "latest",

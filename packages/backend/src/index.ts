@@ -1,12 +1,49 @@
 /**
  * @pos-nfce/backend - Entry Point
  *
- * Phase 1: Infrastructure Complete
- * Phase 2: Domain implementation with TDD will start here
+ * Phase 4: Módulo de Produtos - REST API
  *
- * This file is a placeholder for Phase 2.
- * All domain logic will be implemented using TDD (RED-GREEN-REFACTOR).
+ * Functional Architecture:
+ * - Database connection → Repository adapter → Use cases → HTTP routes
+ * - All dependencies injected via function parameters (currying)
  */
 
+import { serve } from '@hono/node-server'
+import { createDatabase } from './infrastructure/database/connection'
+import { createProductRepositoryDrizzle } from './infrastructure/repositories/product-repository-drizzle'
+import { createApp } from './presentation/app'
+
+/**
+ * Application Bootstrap
+ *
+ * Wires dependencies and starts the server
+ * Pure functional approach - no classes, no OOP
+ */
+const bootstrap = () => {
+  // Create database connection
+  const db = createDatabase()
+
+  // Create repository adapters
+  const productRepository = createProductRepositoryDrizzle(db)
+
+  // Create app with injected dependencies
+  const app = createApp({
+    productRepository,
+  })
+
+  // Start server
+  const port = Number.parseInt(process.env['PORT'] ?? '3000', 10)
+
+  serve({
+    fetch: app.fetch,
+    port,
+  })
+}
+
+// Start application if running as main module
+if (import.meta.url === `file://${process.argv[1]}`) {
+  bootstrap()
+}
+
 export const version = '0.0.0'
-export const status = 'Phase 1 Complete - Ready for Phase 2 TDD'
+export const status = 'Phase 4: Módulo de Produtos - REST API'

@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { status, version } from './index'
 
 /**
- * Basic infrastructure tests for backend
- * Phase 1: Infrastructure setup
- * Phase 2: Will add domain logic with TDD
+ * Backend Infrastructure Tests
+ * Phase 4: Módulo de Produtos - REST API
  */
 
 describe('Backend Infrastructure', () => {
@@ -12,11 +11,15 @@ describe('Backend Infrastructure', () => {
     expect(version).toBe('0.0.0')
   })
 
-  it('should indicate Phase 1 completion', () => {
-    expect(status).toContain('Phase 1 Complete')
+  it('should indicate Phase 4 completion', () => {
+    expect(status).toContain('Phase 4')
   })
 
-  it('should be ready for Phase 2 domain implementation', () => {
-    expect(status).toContain('Phase 2 TDD')
+  it('should indicate Módulo de Produtos implementation', () => {
+    expect(status).toContain('Módulo de Produtos')
+  })
+
+  it('should indicate REST API availability', () => {
+    expect(status).toContain('REST API')
   })
 })
