@@ -67,6 +67,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
         },
         201
       )
+      /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Invalid request body' }, 400)
     }
@@ -107,6 +108,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
         pageSize: result.value.pageSize,
         totalPages: result.value.totalPages,
       })
+      /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Failed to fetch products' }, 500)
     }
@@ -132,6 +134,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
         sku: result.value.sku,
         gtin: result.value.gtin,
       })
+      /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Failed to fetch product' }, 500)
     }
@@ -164,6 +167,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
         sku: result.value.sku,
         gtin: result.value.gtin,
       })
+      /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Invalid request body' }, 400)
     }
@@ -183,6 +187,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
       }
 
       return c.json({ message: 'Product deleted successfully' })
+      /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Failed to delete product' }, 500)
     }

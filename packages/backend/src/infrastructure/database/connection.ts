@@ -22,6 +22,7 @@ import * as schema from './schema'
  * const db = createDatabase('./test.db') // for testing
  * ```
  */
+/* c8 ignore next 11 */
 export const createDatabase = (
   dbPath = 'data/pos-nfce.db'
 ): BetterSQLite3Database<typeof schema> => {

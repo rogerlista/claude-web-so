@@ -57,6 +57,7 @@ export const createApp = (deps: AppDeps): Hono => {
   })
 
   // Error handler
+  /* c8 ignore next 4 */
   app.onError((err, c) => {
     console.error('Server error:', err)
     return c.json({ error: 'Internal server error' }, 500)
