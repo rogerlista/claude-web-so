@@ -29,6 +29,7 @@ const createMockRepository = (
   delete: async () => ResultUtils.ok(undefined),
   findBySKU: async () => ResultUtils.ok([]),
   findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND' as const, id: 'test' }),
+  search: async () => ResultUtils.ok([]),
 })
 
 describe('CreateProduct Use Case', () => {

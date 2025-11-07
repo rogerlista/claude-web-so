@@ -1,6 +1,6 @@
 import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
-import { eq } from 'drizzle-orm'
+import { eq, like, or } from 'drizzle-orm'
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import type { ProductRepository, RepositoryError } from '../../application/ports/product-repository'
 import { createGTIN } from '../../domain/product/gtin'
@@ -275,6 +275,51 @@ export const createProductRepositoryDrizzle = (
       }
 
       return ResultUtils.ok(productResult.value)
+    } catch (error) {
+      return ResultUtils.err({
+        type: 'DATABASE_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      })
+    }
+  },
+
+  /**
+   * Search products by query (description, SKU, or GTIN)
+   *
+   * Performs case-insensitive partial match across multiple fields
+   */
+  search: async (query: string): Promise<Result<readonly Product[], RepositoryError>> => {
+    try {
+      // SQLite LIKE is case-insensitive by default
+      const searchPattern = `%${query}%`
+
+      const rows = await db
+        .select()
+        .from(products)
+        .where(
+          or(
+            like(products.description, searchPattern),
+            like(products.sku, searchPattern),
+            like(products.gtin, searchPattern)
+          )
+        )
+
+      const productResults = rows.map(rowToProduct)
+
+      // Check if any conversion failed
+      const failedResult = productResults.find((r) => !r.ok)
+      if (failedResult && !failedResult.ok) {
+        return ResultUtils.err({
+          type: 'DATABASE_ERROR',
+          message: failedResult.error,
+        })
+      }
+
+      const productList = productResults
+        .filter((r): r is { ok: true; value: Product } => r.ok)
+        .map((r) => r.value)
+
+      return ResultUtils.ok(productList)
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',

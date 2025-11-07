@@ -516,4 +516,127 @@ describe('ProductRepository Drizzle Adapter', () => {
       }
     })
   })
+
+  describe('search', () => {
+    it('should search products by description (case-insensitive partial match)', async () => {
+      // Create test products
+      const product1Id = createProductId('prod-1')
+      const product1Price = createPrice(10.5)
+      const product2Id = createProductId('prod-2')
+      const product2Price = createPrice(20.0)
+      const product3Id = createProductId('prod-3')
+      const product3Price = createPrice(15.0)
+
+      if (
+        !product1Id.ok ||
+        !product1Price.ok ||
+        !product2Id.ok ||
+        !product2Price.ok ||
+        !product3Id.ok ||
+        !product3Price.ok
+      ) {
+        throw new Error('Test setup failed')
+      }
+
+      // Save products
+      await repository.save({
+        id: product1Id.value,
+        description: 'Arroz Branco 1kg',
+        price: product1Price.value,
+      })
+
+      await repository.save({
+        id: product2Id.value,
+        description: 'Arroz Integral 1kg',
+        price: product2Price.value,
+      })
+
+      await repository.save({
+        id: product3Id.value,
+        description: 'Feijão Preto 1kg',
+        price: product3Price.value,
+      })
+
+      // Search for "arroz" (should match 2 products)
+      const result = await repository.search('arroz')
+
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.value).toHaveLength(2)
+        expect(result.value.some((p) => p.description === 'Arroz Branco 1kg')).toBe(true)
+        expect(result.value.some((p) => p.description === 'Arroz Integral 1kg')).toBe(true)
+      }
+    })
+
+    it('should search products by SKU', async () => {
+      const productId = createProductId('prod-1')
+      const productPrice = createPrice(15.0)
+      const productSKU = createSKU('ARR001')
+
+      if (!productId.ok || !productPrice.ok || !productSKU.ok) {
+        throw new Error('Test setup failed')
+      }
+
+      await repository.save({
+        id: productId.value,
+        description: 'Arroz Branco 1kg',
+        price: productPrice.value,
+        sku: productSKU.value,
+      })
+
+      const result = await repository.search('ARR')
+
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.value).toHaveLength(1)
+        expect(result.value[0]?.sku).toBe('ARR001')
+      }
+    })
+
+    it('should search products by GTIN', async () => {
+      const productId = createProductId('prod-1')
+      const productPrice = createPrice(15.0)
+      const productGTIN = createGTIN('7898357417892')
+
+      if (!productId.ok || !productPrice.ok || !productGTIN.ok) {
+        throw new Error('Test setup failed')
+      }
+
+      await repository.save({
+        id: productId.value,
+        description: 'Arroz Branco 1kg',
+        price: productPrice.value,
+        gtin: productGTIN.value,
+      })
+
+      const result = await repository.search('7898')
+
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.value).toHaveLength(1)
+        expect(result.value[0]?.gtin).toBe('7898357417892')
+      }
+    })
+
+    it('should return empty array when no products match', async () => {
+      const result = await repository.search('nonexistent')
+
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.value).toHaveLength(0)
+      }
+    })
+
+    it('should handle database error', async () => {
+      // Close database to trigger error
+      sqlite.close()
+
+      const result = await repository.search('test')
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('DATABASE_ERROR')
+      }
+    })
+  })
 })

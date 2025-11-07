@@ -14,6 +14,7 @@ describe('Product Routes', () => {
     delete: async () => ResultUtils.ok(undefined),
     findBySKU: async () => ResultUtils.ok([]),
     findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+    search: async () => ResultUtils.ok([]),
   })
 
   describe('POST /', () => {
@@ -257,6 +258,75 @@ describe('Product Routes', () => {
       const res = await app.request('/550e8400-e29b-41d4-a716-446655440000', { method: 'DELETE' })
 
       expect(res.status).toBe(404)
+    })
+  })
+
+  describe('GET /search', () => {
+    it('should search products by query', async () => {
+      const product1Id = createProductId('prod-1')
+      const product1Price = createPrice(10.5)
+      const product2Id = createProductId('prod-2')
+      const product2Price = createPrice(20.0)
+
+      if (!product1Id.ok || !product1Price.ok || !product2Id.ok || !product2Price.ok) {
+        throw new Error('Failed to create test data')
+      }
+
+      const mockRepo: ProductRepository = {
+        ...createMockRepository(),
+        search: async (query) => {
+          if (query === 'arroz') {
+            return ResultUtils.ok([
+              {
+                id: product1Id.value,
+                description: 'Arroz Branco 1kg',
+                price: product1Price.value,
+              },
+              {
+                id: product2Id.value,
+                description: 'Arroz Integral 1kg',
+                price: product2Price.value,
+              },
+            ])
+          }
+          return ResultUtils.ok([])
+        },
+      }
+
+      const app = createProductRoutes({ repository: mockRepo })
+
+      const res = await app.request('/search?q=arroz', { method: 'GET' })
+
+      expect(res.status).toBe(200)
+      const data = (await res.json()) as Record<string, unknown>
+      expect(data['total']).toBe(2)
+      expect(Array.isArray(data['data'])).toBe(true)
+    })
+
+    it('should return 400 when query parameter is missing', async () => {
+      const app = createProductRoutes({ repository: createMockRepository() })
+
+      const res = await app.request('/search', { method: 'GET' })
+
+      expect(res.status).toBe(400)
+      const data = (await res.json()) as Record<string, unknown>
+      expect(data['error']).toBe('Query parameter "q" is required')
+    })
+
+    it('should return empty array when no products match', async () => {
+      const mockRepo: ProductRepository = {
+        ...createMockRepository(),
+        search: async () => ResultUtils.ok([]),
+      }
+
+      const app = createProductRoutes({ repository: mockRepo })
+
+      const res = await app.request('/search?q=nonexistent', { method: 'GET' })
+
+      expect(res.status).toBe(200)
+      const data = (await res.json()) as Record<string, unknown>
+      expect(data['total']).toBe(0)
+      expect(Array.isArray(data['data'])).toBe(true)
     })
   })
 })

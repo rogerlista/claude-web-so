@@ -16,6 +16,7 @@ describe('save-product use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })
@@ -48,6 +49,7 @@ describe('save-product use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })
@@ -79,6 +81,7 @@ describe('save-product use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })
@@ -133,6 +136,7 @@ describe('save-product use case', () => {
         return Promise.resolve(ResultUtils.ok([]))
       },
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })
@@ -180,6 +184,7 @@ describe('save-product use case', () => {
         }
         return Promise.resolve(ResultUtils.err({ type: 'NOT_FOUND', id: '' }))
       },
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })
@@ -230,6 +235,7 @@ describe('save-product use case', () => {
         return Promise.resolve(ResultUtils.ok([]))
       },
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })
@@ -274,6 +280,7 @@ describe('save-product use case', () => {
         }
         return Promise.resolve(ResultUtils.err({ type: 'NOT_FOUND', id: '' }))
       },
+      search: async () => ResultUtils.ok([]),
     }
 
     const saveProduct = createSaveProduct({ repository: mockRepository })

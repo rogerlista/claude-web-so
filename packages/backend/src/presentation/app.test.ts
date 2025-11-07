@@ -11,6 +11,7 @@ describe('App', () => {
     delete: async () => ResultUtils.ok(undefined),
     findBySKU: async () => ResultUtils.ok([]),
     findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
   })
 
   it('should have health check endpoint', async () => {

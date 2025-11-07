@@ -25,6 +25,7 @@ describe('delete-product use case', () => {
       },
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const deleteProduct = createDeleteProduct({ repository: mockRepository })
@@ -42,6 +43,7 @@ describe('delete-product use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const deleteProduct = createDeleteProduct({ repository: mockRepository })
@@ -62,6 +64,7 @@ describe('delete-product use case', () => {
       delete: async (id) => ResultUtils.err({ type: 'NOT_FOUND', id: id as string }),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const deleteProduct = createDeleteProduct({ repository: mockRepository })
@@ -82,6 +85,7 @@ describe('delete-product use case', () => {
       delete: async () => ResultUtils.err({ type: 'DATABASE_ERROR', message: 'Failed to delete' }),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const deleteProduct = createDeleteProduct({ repository: mockRepository })

@@ -41,6 +41,7 @@ describe('find-all-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findAllProducts = createFindAllProducts({ repository: mockRepository })
@@ -72,6 +73,7 @@ describe('find-all-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findAllProducts = createFindAllProducts({ repository: mockRepository })
@@ -115,6 +117,7 @@ describe('find-all-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findAllProducts = createFindAllProducts({ repository: mockRepository })
@@ -137,6 +140,7 @@ describe('find-all-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findAllProducts = createFindAllProducts({ repository: mockRepository })
@@ -157,6 +161,7 @@ describe('find-all-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findAllProducts = createFindAllProducts({ repository: mockRepository })
@@ -177,6 +182,7 @@ describe('find-all-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findAllProducts = createFindAllProducts({ repository: mockRepository })

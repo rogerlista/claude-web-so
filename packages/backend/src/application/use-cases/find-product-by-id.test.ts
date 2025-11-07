@@ -38,6 +38,7 @@ describe('find-product-by-id use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findProductById = createFindProductById({ repository: mockRepository })
@@ -60,6 +61,7 @@ describe('find-product-by-id use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findProductById = createFindProductById({ repository: mockRepository })
@@ -80,6 +82,7 @@ describe('find-product-by-id use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findProductById = createFindProductById({ repository: mockRepository })
@@ -101,6 +104,7 @@ describe('find-product-by-id use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+      search: async () => ResultUtils.ok([]),
     }
 
     const findProductById = createFindProductById({ repository: mockRepository })

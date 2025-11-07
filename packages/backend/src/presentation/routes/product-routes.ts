@@ -4,6 +4,7 @@ import { createDeleteProduct } from '../../application/use-cases/delete-product'
 import { createFindAllProducts } from '../../application/use-cases/find-all-products'
 import { createFindProductById } from '../../application/use-cases/find-product-by-id'
 import { createSaveProduct } from '../../application/use-cases/save-product'
+import { createSearchProducts } from '../../application/use-cases/search-products'
 
 /**
  * Product Routes
@@ -14,6 +15,7 @@ import { createSaveProduct } from '../../application/use-cases/save-product'
  * Endpoints:
  * - POST /api/produtos - Create/Update product
  * - GET /api/produtos - List products (paginated)
+ * - GET /api/produtos/search - Search products by query
  * - GET /api/produtos/:id - Get product by ID
  * - PUT /api/produtos/:id - Update product
  * - DELETE /api/produtos/:id - Delete product
@@ -36,6 +38,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
   const saveProduct = createSaveProduct(deps)
   const findProductById = createFindProductById(deps)
   const findAllProducts = createFindAllProducts(deps)
+  const searchProducts = createSearchProducts(deps)
   const deleteProduct = createDeleteProduct(deps)
 
   /**
@@ -111,6 +114,39 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
       /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Failed to fetch products' }, 500)
+    }
+  })
+
+  /**
+   * GET /api/produtos/search - Search products
+   */
+  app.get('/search', async (c) => {
+    try {
+      const query = c.req.query('q')
+
+      if (!query) {
+        return c.json({ error: 'Query parameter "q" is required' }, 400)
+      }
+
+      const result = await searchProducts({ query })
+
+      if (!result.ok) {
+        return c.json({ error: result.error }, 400)
+      }
+
+      return c.json({
+        data: result.value.map((product) => ({
+          id: product.id,
+          description: product.description,
+          price: product.price,
+          sku: product.sku,
+          gtin: product.gtin,
+        })),
+        total: result.value.length,
+      })
+      /* c8 ignore next 3 */
+    } catch (_error) {
+      return c.json({ error: 'Failed to search products' }, 500)
     }
   })
 

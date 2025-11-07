@@ -75,4 +75,14 @@ export type ProductRepository = {
    * @returns Result with Product or NOT_FOUND error
    */
   readonly findByGTIN: (gtin: string) => Promise<Result<Product, RepositoryError>>
+
+  /**
+   * Search products by query (description, SKU, or GTIN)
+   *
+   * Performs case-insensitive partial match across multiple fields
+   *
+   * @param query - Search query string
+   * @returns Result with array of matching Products or RepositoryError
+   */
+  readonly search: (query: string) => Promise<Result<readonly Product[], RepositoryError>>
 }
