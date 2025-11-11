@@ -57,11 +57,16 @@ const createMockSale = (
     throw new Error('Mock setup failed')
   }
 
+  const grossTotal = quantity * unitPrice
   return {
     id: saleIdResult.value,
     customerId: customerIdResult.value,
     items: [itemResult.value],
-    total: quantity * unitPrice,
+    grossTotal,
+    discount: 0,
+    addition: 0,
+    netTotal: grossTotal,
+    payments: [],
     status,
     createdAt,
   }
@@ -106,7 +111,7 @@ describe('CreateSale Use Case', () => {
         expect(result.value.id).toBe('sale-123')
         expect(result.value.customerId).toBe('customer-456')
         expect(result.value.items).toHaveLength(1)
-        expect(result.value.total).toBe(21.0)
+        expect(result.value.netTotal).toBe(21.0)
         expect(result.value.status).toBe('PENDING')
       }
     })
@@ -151,7 +156,11 @@ describe('CreateSale Use Case', () => {
         id: saleIdResult.value,
         customerId: customerIdResult.value,
         items: [item1Result.value, item2Result.value],
-        total: 26.0,
+        grossTotal: 26.0,
+        discount: 0,
+        addition: 0,
+        netTotal: 26.0,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }
@@ -182,7 +191,7 @@ describe('CreateSale Use Case', () => {
       expect(result.ok).toBe(true)
       if (result.ok) {
         expect(result.value.items).toHaveLength(2)
-        expect(result.value.total).toBe(26.0)
+        expect(result.value.netTotal).toBe(26.0)
       }
     })
 
