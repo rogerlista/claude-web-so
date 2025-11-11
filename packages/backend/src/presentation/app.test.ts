@@ -1,10 +1,11 @@
 import { ResultUtils } from '@pos-nfce/shared'
 import { describe, expect, it } from 'vitest'
+import type { InventoryRepository } from '../application/ports/inventory-repository'
 import type { ProductRepository } from '../application/ports/product-repository'
 import { createApp } from './app'
 
 describe('App', () => {
-  const createMockRepository = (): ProductRepository => ({
+  const createMockProductRepository = (): ProductRepository => ({
     save: async () => ResultUtils.err({ type: 'UNKNOWN', message: 'Not implemented' }),
     findById: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
     findAll: async () => ResultUtils.ok([]),
@@ -14,8 +15,18 @@ describe('App', () => {
     search: async () => ResultUtils.ok([]),
   })
 
+  const createMockInventoryRepository = (): InventoryRepository => ({
+    saveMovement: async () => ResultUtils.err({ type: 'UNKNOWN', message: 'Not implemented' }),
+    getStock: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+    listMovements: async () => ResultUtils.ok([]),
+    findById: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+  })
+
   it('should have health check endpoint', async () => {
-    const app = createApp({ productRepository: createMockRepository() })
+    const app = createApp({
+      productRepository: createMockProductRepository(),
+      inventoryRepository: createMockInventoryRepository(),
+    })
 
     const res = await app.request('/health', { method: 'GET' })
 
@@ -26,7 +37,10 @@ describe('App', () => {
   })
 
   it('should return 404 for non-existent routes', async () => {
-    const app = createApp({ productRepository: createMockRepository() })
+    const app = createApp({
+      productRepository: createMockProductRepository(),
+      inventoryRepository: createMockInventoryRepository(),
+    })
 
     const res = await app.request('/non-existent', { method: 'GET' })
 
@@ -36,7 +50,10 @@ describe('App', () => {
   })
 
   it('should have product routes mounted', async () => {
-    const app = createApp({ productRepository: createMockRepository() })
+    const app = createApp({
+      productRepository: createMockProductRepository(),
+      inventoryRepository: createMockInventoryRepository(),
+    })
 
     const res = await app.request('/api/produtos', { method: 'GET' })
 

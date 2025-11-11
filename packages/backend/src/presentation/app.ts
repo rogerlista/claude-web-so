@@ -1,7 +1,9 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import type { InventoryRepository } from '../application/ports/inventory-repository'
 import type { ProductRepository } from '../application/ports/product-repository'
+import { createInventoryRoutes } from './routes/inventory-routes'
 import { createProductRoutes } from './routes/product-routes'
 
 /**
@@ -15,6 +17,7 @@ import { createProductRoutes } from './routes/product-routes'
 
 type AppDeps = {
   readonly productRepository: ProductRepository
+  readonly inventoryRepository: InventoryRepository
 }
 
 /**
@@ -50,6 +53,7 @@ export const createApp = (deps: AppDeps): Hono => {
 
   // API Routes
   app.route('/api/produtos', createProductRoutes({ repository: deps.productRepository }))
+  app.route('/api/estoque', createInventoryRoutes({ repository: deps.inventoryRepository }))
 
   // 404 handler
   app.notFound((c) => {
