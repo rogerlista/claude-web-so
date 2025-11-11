@@ -241,9 +241,10 @@ export const inventory = sqliteTable('inventory', {
   productId: text('product_id')
     .notNull()
     .references(() => products.id),
-  quantity: integer('quantity').notNull(),
-  movementType: text('movement_type').notNull(), // 'IN', 'OUT', 'ADJUSTMENT'
-  observation: text('observation'),
+  quantity: integer('quantity').notNull(), // Stored as integer with 4 decimal precision (value * 10000)
+  movementType: text('movement_type').notNull(), // 'entrada', 'saida', 'ajuste'
+  description: text('description'), // Optional description
+  movementDate: integer('movement_date', { mode: 'timestamp' }).notNull(), // Date of movement
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
