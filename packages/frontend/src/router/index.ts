@@ -41,6 +41,24 @@ export const createRouter = (history: RouterHistory): Router => {
         meta: { requiresAuth: true },
         props: true,
       },
+      {
+        path: '/inventory',
+        name: 'inventory',
+        component: () => import('../views/inventory/InventoryMovementView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/inventory/movement',
+        name: 'inventory-movement',
+        component: () => import('../views/inventory/InventoryMovementView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/inventory/count',
+        name: 'inventory-count',
+        component: () => import('../views/inventory/InventoryCountView.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   })
 

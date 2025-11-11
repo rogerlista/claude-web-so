@@ -36,7 +36,9 @@ export const useInventoryStore = defineStore('inventory', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const registerMovement = async (input: RegisterMovementInput): Promise<InventoryMovement | null> => {
+  const registerMovement = async (
+    input: RegisterMovementInput
+  ): Promise<InventoryMovement | null> => {
     loading.value = true
     error.value = null
 
