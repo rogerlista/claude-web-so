@@ -65,7 +65,9 @@ export const createSaveProduct =
       const existingBySKU = await deps.repository.findBySKU(skuResult.value)
       if (existingBySKU.ok && existingBySKU.value.length > 0) {
         // Check if any existing product has different ID (indicating duplicate)
-        const hasDuplicate = existingBySKU.value.some((p) => p.id !== productIdResult.value)
+        const hasDuplicate = existingBySKU.value.some(
+          (p: Product) => p.id !== productIdResult.value
+        )
         if (hasDuplicate) {
           return ResultUtils.err(`SKU ${skuResult.value} already exists for another product`)
         }

@@ -5,6 +5,7 @@ import { createFindAllProducts } from '../../application/use-cases/find-all-prod
 import { createFindProductById } from '../../application/use-cases/find-product-by-id'
 import { createSaveProduct } from '../../application/use-cases/save-product'
 import { createSearchProducts } from '../../application/use-cases/search-products'
+import type { Product } from '../../domain/product/product'
 
 /**
  * Product Routes
@@ -99,7 +100,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
       }
 
       return c.json({
-        data: result.value.data.map((product) => ({
+        data: result.value.data.map((product: Product) => ({
           id: product.id,
           description: product.description,
           price: product.price,
@@ -135,7 +136,7 @@ export const createProductRoutes = (deps: ProductRoutesDeps): Hono => {
       }
 
       return c.json({
-        data: result.value.map((product) => ({
+        data: result.value.map((product: Product) => ({
           id: product.id,
           description: product.description,
           price: product.price,

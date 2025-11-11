@@ -1,7 +1,11 @@
 import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
 import { describe, expect, it } from 'vitest'
+import { createGTIN } from '../../domain/product/gtin'
+import { createPrice } from '../../domain/product/price'
 import type { Product } from '../../domain/product/product'
+import { createProductId } from '../../domain/product/product-id'
+import { createSKU } from '../../domain/product/sku'
 import type { ProductRepository, RepositoryError } from '../ports/product-repository'
 import {
   type CreateProductInput,
@@ -22,6 +26,46 @@ import {
  */
 
 /**
+ * Helper to create a mock Product for testing
+ */
+const createMockProduct = (data: {
+  id: string
+  description: string
+  price: number
+  sku?: string
+  gtin?: string
+}): Product => {
+  const idResult = createProductId(data.id)
+  const priceResult = createPrice(data.price)
+
+  if (!idResult.ok || !priceResult.ok) {
+    throw new Error('Invalid mock product data')
+  }
+
+  const product: Product = {
+    id: idResult.value,
+    description: data.description,
+    price: priceResult.value,
+  }
+
+  if (data.sku) {
+    const skuResult = createSKU(data.sku)
+    if (skuResult.ok) {
+      Object.assign(product, { sku: skuResult.value })
+    }
+  }
+
+  if (data.gtin) {
+    const gtinResult = createGTIN(data.gtin)
+    if (gtinResult.ok) {
+      Object.assign(product, { gtin: gtinResult.value })
+    }
+  }
+
+  return product
+}
+
+/**
  * Mock ProductRepository for testing
  */
 const createMockRepository = (saveResult: Result<Product, RepositoryError>): ProductRepository => ({
@@ -38,11 +82,13 @@ describe('CreateProduct Use Case', () => {
   describe('createProductUseCase', () => {
     it('should create a product with valid data', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.ok({
-          id: 'prod-123' as any,
-          description: 'Test Product',
-          price: 10.5 as any,
-        })
+        ResultUtils.ok(
+          createMockProduct({
+            id: 'prod-123',
+            description: 'Test Product',
+            price: 10.5,
+          })
+        )
       )
 
       const useCase = createProductUseCase(mockRepo)
@@ -65,13 +111,15 @@ describe('CreateProduct Use Case', () => {
 
     it('should create a product with SKU and GTIN', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.ok({
-          id: 'prod-123' as any,
-          description: 'Test Product',
-          price: 10.5 as any,
-          sku: 'PROD-123' as any,
-          gtin: '7898357417892' as any,
-        })
+        ResultUtils.ok(
+          createMockProduct({
+            id: 'prod-123',
+            description: 'Test Product',
+            price: 10.5,
+            sku: 'PROD-123',
+            gtin: '7898357417892',
+          })
+        )
       )
 
       const useCase = createProductUseCase(mockRepo)
@@ -94,7 +142,9 @@ describe('CreateProduct Use Case', () => {
     })
 
     it('should reject invalid product ID', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockProduct({ id: 'prod-123', description: 'Test', price: 10 }))
+      )
       const useCase = createProductUseCase(mockRepo)
 
       const input: CreateProductInput = {
@@ -113,7 +163,9 @@ describe('CreateProduct Use Case', () => {
     })
 
     it('should reject invalid price', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockProduct({ id: 'prod-123', description: 'Test', price: 10 }))
+      )
       const useCase = createProductUseCase(mockRepo)
 
       const input: CreateProductInput = {
@@ -132,7 +184,9 @@ describe('CreateProduct Use Case', () => {
     })
 
     it('should reject invalid description', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockProduct({ id: 'prod-123', description: 'Test', price: 10 }))
+      )
       const useCase = createProductUseCase(mockRepo)
 
       const input: CreateProductInput = {
@@ -151,7 +205,9 @@ describe('CreateProduct Use Case', () => {
     })
 
     it('should reject invalid SKU', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockProduct({ id: 'prod-123', description: 'Test', price: 10 }))
+      )
       const useCase = createProductUseCase(mockRepo)
 
       const input: CreateProductInput = {
@@ -171,7 +227,9 @@ describe('CreateProduct Use Case', () => {
     })
 
     it('should reject invalid GTIN', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockProduct({ id: 'prod-123', description: 'Test', price: 10 }))
+      )
       const useCase = createProductUseCase(mockRepo)
 
       const input: CreateProductInput = {

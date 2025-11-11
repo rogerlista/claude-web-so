@@ -24,23 +24,25 @@ describe('search-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
-      search: async (query) => {
+      search: (query) => {
         // Simulate searching by description
         if (query.toLowerCase().includes('arroz')) {
-          return ResultUtils.ok([
-            {
-              id: product1Id.value,
-              description: 'Arroz Branco 1kg',
-              price: product1Price.value,
-            },
-            {
-              id: product2Id.value,
-              description: 'Arroz Integral 1kg',
-              price: product2Price.value,
-            },
-          ])
+          return Promise.resolve(
+            ResultUtils.ok([
+              {
+                id: product1Id.value,
+                description: 'Arroz Branco 1kg',
+                price: product1Price.value,
+              },
+              {
+                id: product2Id.value,
+                description: 'Arroz Integral 1kg',
+                price: product2Price.value,
+              },
+            ])
+          )
         }
-        return ResultUtils.ok([])
+        return Promise.resolve(ResultUtils.ok([]))
       },
     }
 
@@ -72,18 +74,20 @@ describe('search-products use case', () => {
       delete: async () => ResultUtils.ok(undefined),
       findBySKU: async () => ResultUtils.ok([]),
       findByGTIN: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
-      search: async (query) => {
+      search: (query) => {
         if (query.toUpperCase().includes('ARR')) {
-          return ResultUtils.ok([
-            {
-              id: productId.value,
-              description: 'Arroz Branco 1kg',
-              price: productPrice.value,
-              sku: productSKU.value,
-            },
-          ])
+          return Promise.resolve(
+            ResultUtils.ok([
+              {
+                id: productId.value,
+                description: 'Arroz Branco 1kg',
+                price: productPrice.value,
+                sku: productSKU.value,
+              },
+            ])
+          )
         }
-        return ResultUtils.ok([])
+        return Promise.resolve(ResultUtils.ok([]))
       },
     }
 

@@ -30,8 +30,10 @@ const calculateCheckDigit = (digits: number[]): number => {
 
   // Start from the right, alternating multipliers 3 and 1
   for (let i = digits.length - 1; i >= 0; i--) {
-    // Safe: loop bounds guarantee i is within array length
-    const digit = digits[i]!
+    const digit = digits[i]
+    if (digit === undefined) {
+      throw new Error('Unexpected undefined digit in GTIN calculation')
+    }
     const position = digits.length - 1 - i
     const multiplier = position % 2 === 0 ? 3 : 1
     sum += digit * multiplier
@@ -49,8 +51,10 @@ const calculateCheckDigit = (digits: number[]): number => {
  */
 const validateCheckDigit = (gtin: string): boolean => {
   const digits = gtin.split('').map(Number)
-  // Safe: called after validating non-empty string
-  const checkDigit = digits[digits.length - 1]!
+  const checkDigit = digits[digits.length - 1]
+  if (checkDigit === undefined) {
+    return false
+  }
   const dataDigits = digits.slice(0, -1)
 
   const expectedCheckDigit = calculateCheckDigit(dataDigits)

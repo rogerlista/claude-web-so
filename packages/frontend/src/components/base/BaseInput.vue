@@ -20,7 +20,7 @@ import { computed } from 'vue'
 
 export interface BaseInputProps {
   /** Input value (v-model) */
-  modelValue?: string | number
+  modelValue?: string | number | undefined
   /** Input label text */
   label?: string
   /** Input type */
@@ -34,13 +34,19 @@ export interface BaseInputProps {
   /** Required field */
   required?: boolean
   /** Error message */
-  error?: string
+  error?: string | undefined
   /** Helper text (shown below input when no error) */
   helperText?: string
   /** Maximum character length */
   maxLength?: number
   /** Input ID (auto-generated if not provided) */
   id?: string
+  /** Input name attribute */
+  name?: string
+  /** Step value for number inputs */
+  step?: string
+  /** Minimum value for number inputs */
+  min?: string
   /** ARIA label for accessibility */
   ariaLabel?: string
 }
@@ -120,6 +126,7 @@ const handleKeyup = (event: KeyboardEvent) => {
     <!-- Input Field -->
     <input
       :id="inputId"
+      :name="name"
       :type="type"
       :value="modelValue"
       :placeholder="placeholder"
@@ -127,6 +134,8 @@ const handleKeyup = (event: KeyboardEvent) => {
       :readonly="readonly"
       :required="required"
       :maxlength="maxLength"
+      :step="step"
+      :min="min"
       :aria-label="ariaLabel"
       :aria-required="required"
       :aria-invalid="!!error"

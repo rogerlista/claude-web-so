@@ -274,22 +274,24 @@ describe('Product Routes', () => {
 
       const mockRepo: ProductRepository = {
         ...createMockRepository(),
-        search: async (query) => {
+        search: (query) => {
           if (query === 'arroz') {
-            return ResultUtils.ok([
-              {
-                id: product1Id.value,
-                description: 'Arroz Branco 1kg',
-                price: product1Price.value,
-              },
-              {
-                id: product2Id.value,
-                description: 'Arroz Integral 1kg',
-                price: product2Price.value,
-              },
-            ])
+            return Promise.resolve(
+              ResultUtils.ok([
+                {
+                  id: product1Id.value,
+                  description: 'Arroz Branco 1kg',
+                  price: product1Price.value,
+                },
+                {
+                  id: product2Id.value,
+                  description: 'Arroz Integral 1kg',
+                  price: product2Price.value,
+                },
+              ])
+            )
           }
-          return ResultUtils.ok([])
+          return Promise.resolve(ResultUtils.ok([]))
         },
       }
 
