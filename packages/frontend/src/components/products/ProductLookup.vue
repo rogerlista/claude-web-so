@@ -16,7 +16,7 @@ interface Props {
 
 type Emits = (e: 'select', product: Product) => void
 
-const props = withDefaults(defineProps<Props>(), {
+const { placeholder } = withDefaults(defineProps<Props>(), {
   placeholder: 'Buscar produto por SKU, GTIN, descrição...',
 })
 

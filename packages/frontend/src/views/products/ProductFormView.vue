@@ -33,7 +33,6 @@ const form = ref<CreateProductInput>({
   gtin: '',
   codigo: '',
   unidade_medida: 'UN',
-  preco_promocional: undefined,
   ncm: '',
   cest: '',
 })
@@ -96,12 +95,14 @@ const loadProduct = async (id: string): Promise<void> => {
       descricao: data.data.descricao,
       preco_unitario: data.data.preco_unitario,
       status: data.data.status,
-      gtin: data.data.gtin,
-      codigo: data.data.codigo,
-      unidade_medida: data.data.unidade_medida,
-      preco_promocional: data.data.preco_promocional,
-      ncm: data.data.ncm,
-      cest: data.data.cest,
+      ...(data.data.gtin && { gtin: data.data.gtin }),
+      ...(data.data.codigo && { codigo: data.data.codigo }),
+      ...(data.data.unidade_medida && { unidade_medida: data.data.unidade_medida }),
+      ...(data.data.preco_promocional !== undefined && {
+        preco_promocional: data.data.preco_promocional,
+      }),
+      ...(data.data.ncm && { ncm: data.data.ncm }),
+      ...(data.data.cest && { cest: data.data.cest }),
     }
   }
 }

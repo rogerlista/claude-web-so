@@ -1,7 +1,11 @@
 import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
 import { describe, expect, it } from 'vitest'
+import { createCPF } from '../../domain/customer/cpf'
 import type { Customer } from '../../domain/customer/customer'
+import { createCustomerId } from '../../domain/customer/customer-id'
+import { createEmail } from '../../domain/customer/email'
+import { createPhone } from '../../domain/customer/phone'
 import type { CustomerRepository, RepositoryError } from '../ports/customer-repository'
 import {
   type CreateCustomerInput,
@@ -22,10 +26,50 @@ import {
  */
 
 /**
+ * Helper to create a mock Customer for testing
+ */
+const createMockCustomer = (data: {
+  id: string
+  name: string
+  cpf: string
+  email?: string
+  phone?: string
+}): Customer => {
+  const idResult = createCustomerId(data.id)
+  const cpfResult = createCPF(data.cpf)
+
+  if (!idResult.ok || !cpfResult.ok) {
+    throw new Error('Invalid mock customer data')
+  }
+
+  const customer: Customer = {
+    id: idResult.value,
+    name: data.name,
+    cpf: cpfResult.value,
+  }
+
+  if (data.email) {
+    const emailResult = createEmail(data.email)
+    if (emailResult.ok) {
+      Object.assign(customer, { email: emailResult.value })
+    }
+  }
+
+  if (data.phone) {
+    const phoneResult = createPhone(data.phone)
+    if (phoneResult.ok) {
+      Object.assign(customer, { phone: phoneResult.value })
+    }
+  }
+
+  return customer
+}
+
+/**
  * Mock CustomerRepository for testing
  */
 const createMockRepository = (
-  saveResult: Result<Customer, RepositoryError>,
+  saveResult: Result<Customer, RepositoryError>
 ): CustomerRepository => ({
   save: async () => saveResult,
   findById: async () => ResultUtils.err({ type: 'NOT_FOUND' as const, id: 'test' }),
@@ -39,11 +83,13 @@ describe('CreateCustomer Use Case', () => {
   describe('createCustomerUseCase', () => {
     it('should create a customer with valid data', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.ok({
-          id: 'customer-123' as any,
-          name: 'João Silva',
-          cpf: '12345678909' as any,
-        }),
+        ResultUtils.ok(
+          createMockCustomer({
+            id: 'customer-123',
+            name: 'João Silva',
+            cpf: '12345678909',
+          })
+        )
       )
 
       const useCase = createCustomerUseCase(mockRepo)
@@ -66,13 +112,15 @@ describe('CreateCustomer Use Case', () => {
 
     it('should create a customer with email and phone', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.ok({
-          id: 'customer-123' as any,
-          name: 'João Silva',
-          cpf: '12345678909' as any,
-          email: 'joao@example.com' as any,
-          phone: '11987654321' as any,
-        }),
+        ResultUtils.ok(
+          createMockCustomer({
+            id: 'customer-123',
+            name: 'João Silva',
+            cpf: '12345678909',
+            email: 'joao@example.com',
+            phone: '11987654321',
+          })
+        )
       )
 
       const useCase = createCustomerUseCase(mockRepo)
@@ -95,7 +143,9 @@ describe('CreateCustomer Use Case', () => {
     })
 
     it('should reject invalid customer ID', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
+      )
       const useCase = createCustomerUseCase(mockRepo)
 
       const input: CreateCustomerInput = {
@@ -114,7 +164,9 @@ describe('CreateCustomer Use Case', () => {
     })
 
     it('should reject invalid CPF', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
+      )
       const useCase = createCustomerUseCase(mockRepo)
 
       const input: CreateCustomerInput = {
@@ -133,7 +185,9 @@ describe('CreateCustomer Use Case', () => {
     })
 
     it('should reject empty name', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
+      )
       const useCase = createCustomerUseCase(mockRepo)
 
       const input: CreateCustomerInput = {
@@ -152,7 +206,9 @@ describe('CreateCustomer Use Case', () => {
     })
 
     it('should reject invalid email', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
+      )
       const useCase = createCustomerUseCase(mockRepo)
 
       const input: CreateCustomerInput = {
@@ -172,7 +228,9 @@ describe('CreateCustomer Use Case', () => {
     })
 
     it('should reject invalid phone', async () => {
-      const mockRepo = createMockRepository(ResultUtils.ok({} as any))
+      const mockRepo = createMockRepository(
+        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
+      )
       const useCase = createCustomerUseCase(mockRepo)
 
       const input: CreateCustomerInput = {
@@ -193,7 +251,7 @@ describe('CreateCustomer Use Case', () => {
 
     it('should handle repository errors', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.err({ type: 'DATABASE_ERROR' as const, message: 'Connection failed' }),
+        ResultUtils.err({ type: 'DATABASE_ERROR' as const, message: 'Connection failed' })
       )
 
       const useCase = createCustomerUseCase(mockRepo)
@@ -215,7 +273,7 @@ describe('CreateCustomer Use Case', () => {
 
     it('should handle duplicate customer error', async () => {
       const mockRepo = createMockRepository(
-        ResultUtils.err({ type: 'DUPLICATE' as const, id: 'customer-123' }),
+        ResultUtils.err({ type: 'DUPLICATE' as const, id: 'customer-123' })
       )
 
       const useCase = createCustomerUseCase(mockRepo)

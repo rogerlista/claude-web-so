@@ -38,7 +38,8 @@ const filteredProducts = computed(() => {
   return products
 })
 
-const handleRowClick = (product: Product): void => {
+const handleRowClick = (row: Record<string, unknown>): void => {
+  const product = row as unknown as Product
   router.push(`/products/${product.id}/edit`)
 }
 

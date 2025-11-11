@@ -1,11 +1,13 @@
 import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
+import type { GTIN } from '../../domain/product/gtin'
 import { createGTIN } from '../../domain/product/gtin'
 import { createPrice } from '../../domain/product/price'
 import { createProduct } from '../../domain/product/product'
-import { createProductId } from '../../domain/product/product-id'
-import { createSKU } from '../../domain/product/sku'
 import type { Product } from '../../domain/product/product'
+import { createProductId } from '../../domain/product/product-id'
+import type { SKU } from '../../domain/product/sku'
+import { createSKU } from '../../domain/product/sku'
 import type { ProductRepository, RepositoryError } from '../ports/product-repository'
 
 /**
@@ -44,7 +46,7 @@ export type CreateProductUseCaseError =
  * CreateProduct use case function type
  */
 export type CreateProductUseCase = (
-  input: CreateProductInput,
+  input: CreateProductInput
 ) => Promise<Result<Product, CreateProductUseCaseError>>
 
 /**
@@ -78,7 +80,7 @@ export const createProductUseCase =
     }
 
     // Step 3: Validate and create SKU (if provided)
-    let sku
+    let sku: SKU | undefined
     if (input.sku !== undefined) {
       const skuResult = createSKU(input.sku)
       if (!skuResult.ok) {
@@ -91,7 +93,7 @@ export const createProductUseCase =
     }
 
     // Step 4: Validate and create GTIN (if provided)
-    let gtin
+    let gtin: GTIN | undefined
     if (input.gtin !== undefined) {
       const gtinResult = createGTIN(input.gtin)
       if (!gtinResult.ok) {

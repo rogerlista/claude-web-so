@@ -20,7 +20,7 @@ import { computed } from 'vue'
 
 export interface BaseInputProps {
   /** Input value (v-model) */
-  modelValue?: string | number
+  modelValue?: string | number | undefined
   /** Input label text */
   label?: string
   /** Input type */
@@ -34,7 +34,7 @@ export interface BaseInputProps {
   /** Required field */
   required?: boolean
   /** Error message */
-  error?: string
+  error?: string | undefined
   /** Helper text (shown below input when no error) */
   helperText?: string
   /** Maximum character length */

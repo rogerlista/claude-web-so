@@ -23,7 +23,7 @@ interface Props {
 
 type Emits = (e: 'row-click', row: DataRow) => void
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   loading: false,
   striped: false,
   hoverable: true,
@@ -59,7 +59,7 @@ const handleRowClick = (row: DataRow): void => {
           <th v-for="column in columns" :key="column.key">
             {{ column.label }}
           </th>
-          <th v-if="$slots.actions" class="actions-header">Ações</th>
+          <th v-if="$slots['actions']" class="actions-header">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -69,7 +69,7 @@ const handleRowClick = (row: DataRow): void => {
               {{ row[column.key] }}
             </slot>
           </td>
-          <td v-if="$slots.actions" class="actions-cell">
+          <td v-if="$slots['actions']" class="actions-cell">
             <slot name="actions" :row="row" />
           </td>
         </tr>

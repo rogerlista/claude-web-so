@@ -2,10 +2,12 @@ import type { Result } from '@pos-nfce/shared'
 import { ResultUtils } from '@pos-nfce/shared'
 import { createCPF } from '../../domain/customer/cpf'
 import { createCustomer } from '../../domain/customer/customer'
-import { createCustomerId } from '../../domain/customer/customer-id'
-import { createEmail } from '../../domain/customer/email'
-import { createPhone } from '../../domain/customer/phone'
 import type { Customer } from '../../domain/customer/customer'
+import { createCustomerId } from '../../domain/customer/customer-id'
+import type { Email } from '../../domain/customer/email'
+import { createEmail } from '../../domain/customer/email'
+import type { Phone } from '../../domain/customer/phone'
+import { createPhone } from '../../domain/customer/phone'
 import type { CustomerRepository, RepositoryError } from '../ports/customer-repository'
 
 /**
@@ -44,7 +46,7 @@ export type CreateCustomerUseCaseError =
  * CreateCustomer use case function type
  */
 export type CreateCustomerUseCase = (
-  input: CreateCustomerInput,
+  input: CreateCustomerInput
 ) => Promise<Result<Customer, CreateCustomerUseCaseError>>
 
 /**
@@ -78,7 +80,7 @@ export const createCustomerUseCase =
     }
 
     // Step 3: Validate and create Email (if provided)
-    let email
+    let email: Email | undefined
     if (input.email !== undefined) {
       const emailResult = createEmail(input.email)
       if (!emailResult.ok) {
@@ -91,7 +93,7 @@ export const createCustomerUseCase =
     }
 
     // Step 4: Validate and create Phone (if provided)
-    let phone
+    let phone: Phone | undefined
     if (input.phone !== undefined) {
       const phoneResult = createPhone(input.phone)
       if (!phoneResult.ok) {
