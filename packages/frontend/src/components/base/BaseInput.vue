@@ -41,6 +41,12 @@ export interface BaseInputProps {
   maxLength?: number
   /** Input ID (auto-generated if not provided) */
   id?: string
+  /** Input name attribute */
+  name?: string
+  /** Step value for number inputs */
+  step?: string
+  /** Minimum value for number inputs */
+  min?: string
   /** ARIA label for accessibility */
   ariaLabel?: string
 }
@@ -120,6 +126,7 @@ const handleKeyup = (event: KeyboardEvent) => {
     <!-- Input Field -->
     <input
       :id="inputId"
+      :name="name"
       :type="type"
       :value="modelValue"
       :placeholder="placeholder"
@@ -127,6 +134,8 @@ const handleKeyup = (event: KeyboardEvent) => {
       :readonly="readonly"
       :required="required"
       :maxlength="maxLength"
+      :step="step"
+      :min="min"
       :aria-label="ariaLabel"
       :aria-required="required"
       :aria-invalid="!!error"

@@ -1,13 +1,17 @@
 /**
  * @pos-nfce/frontend - Entry Point
  *
- * Phase 3: Interface and Component Implementation
- * Custom Design System with Vue 3 + TypeScript
+ * Phase 4: Product Management Implementation
+ * - Vue Router for navigation
+ * - Pinia for state management
+ * - Custom Design System with Vue 3 + TypeScript
  */
 
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import { createWebHistory } from 'vue-router'
 import App from './App.vue'
+import { createRouter } from './router'
 
 // Import Design System CSS
 import './styles/tokens.css'
@@ -19,8 +23,10 @@ import { registerServiceWorker } from './infrastructure/service-worker/sw-manage
 
 const app = createApp(App)
 const pinia = createPinia()
+const router = createRouter(createWebHistory())
 
 app.use(pinia)
+app.use(router)
 
 app.mount('#app')
 

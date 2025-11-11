@@ -563,8 +563,8 @@ describe('ProductRepository Drizzle Adapter', () => {
       expect(result.ok).toBe(true)
       if (result.ok) {
         expect(result.value).toHaveLength(2)
-        expect(result.value.some((p) => p.description === 'Arroz Branco 1kg')).toBe(true)
-        expect(result.value.some((p) => p.description === 'Arroz Integral 1kg')).toBe(true)
+        expect(result.value.some((p: Product) => p.description === 'Arroz Branco 1kg')).toBe(true)
+        expect(result.value.some((p: Product) => p.description === 'Arroz Integral 1kg')).toBe(true)
       }
     })
 
