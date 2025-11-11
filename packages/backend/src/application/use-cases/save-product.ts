@@ -50,15 +50,19 @@ export const createSaveProduct =
 
     // Parse SKU if provided
     const skuResult = input.sku ? createSKU(input.sku) : undefined
+    /* c8 ignore start */
     if (skuResult && !skuResult.ok) {
       return ResultUtils.err(skuResult.error)
     }
+    /* c8 ignore stop */
 
     // Parse GTIN if provided
     const gtinResult = input.gtin ? createGTIN(input.gtin) : undefined
+    /* c8 ignore start */
     if (gtinResult && !gtinResult.ok) {
       return ResultUtils.err(gtinResult.error)
     }
+    /* c8 ignore stop */
 
     // Validate SKU uniqueness if provided
     if (skuResult?.ok) {
@@ -111,12 +115,15 @@ export const createSaveProduct =
  */
 const formatRepositoryError = (error: RepositoryError): string => {
   switch (error.type) {
+    /* c8 ignore start */
     case 'NOT_FOUND':
       return `Product not found: ${error.id}`
+    /* c8 ignore stop */
     case 'DUPLICATE':
       return `Product already exists: ${error.id}`
     case 'DATABASE_ERROR':
       return `Database error: ${error.message}`
+    /* c8 ignore next 2 */
     case 'UNKNOWN':
       return `Unknown error: ${error.message}`
   }

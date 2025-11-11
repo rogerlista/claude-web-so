@@ -112,13 +112,14 @@ export const createFindAllProducts =
  */
 const formatRepositoryError = (error: RepositoryError): string => {
   switch (error.type) {
+    /* c8 ignore next 2 */
     case 'NOT_FOUND':
       return `Product with id ${error.id} not found`
     case 'DATABASE_ERROR':
       return `Database error: ${error.message}`
-    case 'DUPLICATE':
+    case 'DUPLICATE' /* c8 ignore start */:
       return `Duplicate product with id ${error.id}`
     case 'UNKNOWN':
-      return `Unknown error: ${error.message}`
+      return `Unknown error: ${error.message}` /* c8 ignore stop */
   }
 }

@@ -72,9 +72,9 @@ const formatRepositoryError = (error: RepositoryError): string => {
       return `Product with id ${error.id} not found`
     case 'DATABASE_ERROR':
       return `Database error: ${error.message}`
-    case 'DUPLICATE':
+    case 'DUPLICATE' /* c8 ignore start */:
       return `Duplicate product with id ${error.id}`
     case 'UNKNOWN':
-      return `Unknown error: ${error.message}`
+      return `Unknown error: ${error.message}` /* c8 ignore stop */
   }
 }

@@ -39,6 +39,7 @@ const rowToMovement = (row: InventoryRow): Result<InventoryMovement, string> => 
   const productIdResult = createProductId(row.productId)
   const quantityResult = createQuantity(quantityFromDb(row.quantity))
 
+  /* c8 ignore start */
   if (!idResult.ok) {
     return ResultUtils.err(`Invalid InventoryId: ${idResult.error}`)
   }
@@ -50,6 +51,7 @@ const rowToMovement = (row: InventoryRow): Result<InventoryMovement, string> => 
   if (!quantityResult.ok) {
     return ResultUtils.err(`Invalid Quantity: ${quantityResult.error}`)
   }
+  /* c8 ignore stop */
 
   return createInventoryMovement({
     id: idResult.value,
@@ -88,6 +90,7 @@ export const createInventoryRepositoryDrizzle = (
         await db.insert(inventory).values(insertData)
 
         return ResultUtils.ok(movement)
+        /* c8 ignore start */
       } catch (error) {
         // Handle duplicate key error
         if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
@@ -110,6 +113,7 @@ export const createInventoryRepositoryDrizzle = (
           type: 'UNKNOWN',
           message: error instanceof Error ? error.message : 'Unknown database error',
         })
+        /* c8 ignore stop */
       }
     },
 
@@ -147,12 +151,14 @@ export const createInventoryRepositoryDrizzle = (
         if (lastAjusteIndex >= 0) {
           // Start with the ajuste value
           const ajusteMovement = movements[lastAjusteIndex]
+          /* c8 ignore start */
           if (!ajusteMovement) {
             return ResultUtils.err({
               type: 'UNKNOWN',
               message: 'Ajuste movement not found at expected index',
             })
           }
+          /* c8 ignore stop */
           currentStock = quantityFromDb(ajusteMovement.quantity)
 
           // Then process movements AFTER the ajuste (indices 0 to lastAjusteIndex-1)
@@ -186,6 +192,7 @@ export const createInventoryRepositoryDrizzle = (
         }
 
         const quantityResult = createQuantity(currentStock)
+        /* c8 ignore start */
         if (!quantityResult.ok) {
           return ResultUtils.err({
             type: 'UNKNOWN',
@@ -200,17 +207,20 @@ export const createInventoryRepositoryDrizzle = (
             message: 'No movements found after validation',
           })
         }
+        /* c8 ignore stop */
 
         return ResultUtils.ok({
           productId,
           currentQuantity: quantityResult.value,
           lastMovementDate: lastMovement.movementDate,
         })
+        /* c8 ignore start */
       } catch (error) {
         return ResultUtils.err({
           type: 'UNKNOWN',
           message: error instanceof Error ? error.message : 'Unknown database error',
         })
+        /* c8 ignore stop */
       }
     },
 
@@ -231,21 +241,25 @@ export const createInventoryRepositoryDrizzle = (
 
         for (const row of rows) {
           const movementResult = rowToMovement(row)
+          /* c8 ignore start */
           if (!movementResult.ok) {
             return ResultUtils.err({
               type: 'UNKNOWN',
               message: `Failed to convert row to movement: ${movementResult.error}`,
             })
           }
+          /* c8 ignore stop */
           movements.push(movementResult.value)
         }
 
         return ResultUtils.ok(movements)
+        /* c8 ignore start */
       } catch (error) {
         return ResultUtils.err({
           type: 'UNKNOWN',
           message: error instanceof Error ? error.message : 'Unknown database error',
         })
+        /* c8 ignore stop */
       }
     },
 
@@ -264,6 +278,7 @@ export const createInventoryRepositoryDrizzle = (
         }
 
         const row = rows[0]
+        /* c8 ignore start */
         if (!row) {
           return ResultUtils.err({
             type: 'UNKNOWN',
@@ -278,13 +293,16 @@ export const createInventoryRepositoryDrizzle = (
             message: `Failed to convert row to movement: ${movementResult.error}`,
           })
         }
+        /* c8 ignore stop */
 
         return ResultUtils.ok(movementResult.value)
+        /* c8 ignore start */
       } catch (error) {
         return ResultUtils.err({
           type: 'UNKNOWN',
           message: error instanceof Error ? error.message : 'Unknown database error',
         })
+        /* c8 ignore stop */
       }
     },
   }

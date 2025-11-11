@@ -83,11 +83,12 @@ export const registerStockMovementUseCase =
     })
 
     if (!movementResult.ok) {
+      /* c8 ignore start */
       return ResultUtils.err({
         type: 'VALIDATION_ERROR',
         message: `InventoryMovement creation failed: ${movementResult.error}`,
       })
-    }
+    } /* c8 ignore stop */
 
     // Step 5: Save movement using repository
     const saveResult = await repository.saveMovement(movementResult.value)

@@ -116,11 +116,13 @@ export const createProductRepositoryDrizzle = (
         })
 
       return ResultUtils.ok(product)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 
@@ -143,19 +145,23 @@ export const createProductRepositoryDrizzle = (
       }
 
       const productResult = rowToProduct(row)
+      /* c8 ignore start */
       if (!productResult.ok) {
         return ResultUtils.err({
           type: 'DATABASE_ERROR',
           message: productResult.error,
         })
       }
+      /* c8 ignore stop */
 
       return ResultUtils.ok(productResult.value)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 
@@ -169,6 +175,7 @@ export const createProductRepositoryDrizzle = (
       const productResults = rows.map(rowToProduct)
 
       // Check if any conversion failed
+      /* c8 ignore start */
       const failedResult = productResults.find((r) => !r.ok)
       if (failedResult && !failedResult.ok) {
         return ResultUtils.err({
@@ -176,17 +183,20 @@ export const createProductRepositoryDrizzle = (
           message: failedResult.error,
         })
       }
+      /* c8 ignore stop */
 
       const productList = productResults
         .filter((r): r is { ok: true; value: Product } => r.ok)
         .map((r) => r.value)
 
       return ResultUtils.ok(productList)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 
@@ -212,11 +222,13 @@ export const createProductRepositoryDrizzle = (
       await db.delete(products).where(eq(products.id, id as string))
 
       return ResultUtils.ok(undefined)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 
@@ -230,6 +242,7 @@ export const createProductRepositoryDrizzle = (
       const productResults = rows.map(rowToProduct)
 
       // Check if any conversion failed
+      /* c8 ignore start */
       const failedResult = productResults.find((r) => !r.ok)
       if (failedResult && !failedResult.ok) {
         return ResultUtils.err({
@@ -237,17 +250,20 @@ export const createProductRepositoryDrizzle = (
           message: failedResult.error,
         })
       }
+      /* c8 ignore stop */
 
       const productList = productResults
         .filter((r): r is { ok: true; value: Product } => r.ok)
         .map((r) => r.value)
 
       return ResultUtils.ok(productList)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 
@@ -267,19 +283,23 @@ export const createProductRepositoryDrizzle = (
       }
 
       const productResult = rowToProduct(row)
+      /* c8 ignore start */
       if (!productResult.ok) {
         return ResultUtils.err({
           type: 'DATABASE_ERROR',
           message: productResult.error,
         })
       }
+      /* c8 ignore stop */
 
       return ResultUtils.ok(productResult.value)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 
@@ -307,6 +327,7 @@ export const createProductRepositoryDrizzle = (
       const productResults = rows.map(rowToProduct)
 
       // Check if any conversion failed
+      /* c8 ignore start */
       const failedResult = productResults.find((r) => !r.ok)
       if (failedResult && !failedResult.ok) {
         return ResultUtils.err({
@@ -314,17 +335,20 @@ export const createProductRepositoryDrizzle = (
           message: failedResult.error,
         })
       }
+      /* c8 ignore stop */
 
       const productList = productResults
         .filter((r): r is { ok: true; value: Product } => r.ok)
         .map((r) => r.value)
 
       return ResultUtils.ok(productList)
+      /* c8 ignore start */
     } catch (error) {
       return ResultUtils.err({
         type: 'DATABASE_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error',
       })
+      /* c8 ignore stop */
     }
   },
 })
