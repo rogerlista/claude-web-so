@@ -9,7 +9,21 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['hono', /^node:.*/],
+      external: [
+        'hono',
+        '@hono/node-server',
+        'drizzle-orm',
+        'better-sqlite3',
+        '@pos-nfce/shared',
+        /^node:.*/,
+        'http',
+        'http2',
+        'stream',
+        'crypto',
+        'fs',
+        'path',
+        'util',
+      ],
       output: {
         preserveModules: false,
         exports: 'named',

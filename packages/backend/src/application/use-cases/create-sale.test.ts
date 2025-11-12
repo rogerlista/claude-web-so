@@ -279,7 +279,7 @@ describe('CreateSale Use Case', () => {
       }
     })
 
-    it('should reject empty items array', async () => {
+    it('should allow empty items array (Phase 6: items can be added later)', async () => {
       const mockRepo = createMockRepository(ResultUtils.ok({} as Sale))
       const useCase = createSaleUseCase(mockRepo)
 
@@ -291,11 +291,8 @@ describe('CreateSale Use Case', () => {
 
       const result = await useCase(input)
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'VALIDATION_ERROR') {
-        expect(result.error.type).toBe('VALIDATION_ERROR')
-        expect(result.error.message).toContain('at least one item')
-      }
+      // Phase 6 allows creating sales with no items (items can be added via add-sale-item)
+      expect(result.ok).toBe(true)
     })
 
     it('should reject invalid product ID in item', async () => {
