@@ -41,6 +41,18 @@ export const createRouter = (history: RouterHistory): Router => {
         meta: { requiresAuth: true },
         props: true,
       },
+      {
+        path: '/pos',
+        name: 'pos',
+        component: () => import('../views/pos/POSView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/pos/checkout/:id',
+        name: 'pos-checkout',
+        component: () => import('../views/pos/POSCheckoutView.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   })
 

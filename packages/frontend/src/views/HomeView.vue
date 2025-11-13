@@ -19,8 +19,10 @@ import BaseCard from '../components/base/BaseCard.vue'
       </BaseCard>
 
       <BaseCard title="PDV" elevation="md">
-        <p>Ponto de venda</p>
-        <span class="card-link disabled">Em breve</span>
+        <p>Ponto de venda - Fase 6 concluída</p>
+        <router-link to="/pos" class="card-link">
+          Abrir PDV →
+        </router-link>
       </BaseCard>
 
       <BaseCard title="Caixa" elevation="md">
