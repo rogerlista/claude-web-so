@@ -13,53 +13,53 @@
  * ```
  */
 
-import { computed } from 'vue'
+import { computed } from "vue";
 
 export interface BaseButtonProps {
-  /** Button variant style */
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
-  /** Button size */
-  size?: 'sm' | 'md' | 'lg'
-  /** Button type attribute */
-  type?: 'button' | 'submit' | 'reset'
-  /** Disabled state */
-  disabled?: boolean
-  /** Loading state - shows spinner and disables interaction */
-  loading?: boolean
-  /** Makes button full width */
-  fullWidth?: boolean
+	/** Button variant style */
+	variant?: "primary" | "secondary" | "danger" | "ghost";
+	/** Button size */
+	size?: "sm" | "md" | "lg";
+	/** Button type attribute */
+	type?: "button" | "submit" | "reset";
+	/** Disabled state */
+	disabled?: boolean;
+	/** Loading state - shows spinner and disables interaction */
+	loading?: boolean;
+	/** Makes button full width */
+	fullWidth?: boolean;
 }
 
 const props = withDefaults(defineProps<BaseButtonProps>(), {
-  variant: 'primary',
-  size: 'md',
-  type: 'button',
-  disabled: false,
-  loading: false,
-  fullWidth: false,
-})
+	variant: "primary",
+	size: "md",
+	type: "button",
+	disabled: false,
+	loading: false,
+	fullWidth: false,
+});
 
 const emit = defineEmits<{
-  click: [event: MouseEvent]
-  focus: [event: FocusEvent]
-  blur: [event: FocusEvent]
-}>()
+	click: [event: MouseEvent];
+	focus: [event: FocusEvent];
+	blur: [event: FocusEvent];
+}>();
 
 const handleClick = (event: MouseEvent) => {
-  if (!props.disabled && !props.loading) {
-    emit('click', event)
-  }
-}
+	if (!props.disabled && !props.loading) {
+		emit("click", event);
+	}
+};
 
 const handleFocus = (event: FocusEvent) => {
-  emit('focus', event)
-}
+	emit("focus", event);
+};
 
 const handleBlur = (event: FocusEvent) => {
-  emit('blur', event)
-}
+	emit("blur", event);
+};
 
-const isDisabled = computed(() => props.disabled || props.loading)
+const isDisabled = computed(() => props.disabled || props.loading);
 </script>
 
 <template>

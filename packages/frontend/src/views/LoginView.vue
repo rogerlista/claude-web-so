@@ -2,30 +2,32 @@
 /**
  * Login View
  */
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import LoginForm from '../components/auth/LoginForm.vue'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const isLoading = ref(false)
-const loginError = ref('')
+const router = useRouter();
+const isLoading = ref(false);
+const loginError = ref("");
 
-const handleLogin = async (credentials: { username: string; password: string }) => {
-  isLoading.value = true
-  loginError.value = ''
+const handleLogin = async (credentials: {
+	username: string;
+	password: string;
+}) => {
+	isLoading.value = true;
+	loginError.value = "";
 
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+	// Simulate API call
+	await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  if (credentials.username === 'admin' && credentials.password === 'admin') {
-    // TODO: Implement proper authentication
-    await router.push('/')
-  } else {
-    loginError.value = 'Usuário ou senha inválidos'
-  }
+	if (credentials.username === "admin" && credentials.password === "admin") {
+		// TODO: Implement proper authentication
+		await router.push("/");
+	} else {
+		loginError.value = "Usuário ou senha inválidos";
+	}
 
-  isLoading.value = false
-}
+	isLoading.value = false;
+};
 </script>
 
 <template>

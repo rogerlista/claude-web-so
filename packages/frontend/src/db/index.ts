@@ -5,9 +5,13 @@
  * usando SQLite (SQL.js) + Drizzle ORM
  */
 
-export { initDatabase, getDatabase, closeDatabase, saveDatabaseToStorage } from './client'
-export { runMigrations } from './migrate'
-export * from './schema'
-
 // Re-export tipos do Drizzle para facilitar uso
-export type { SQLJsDatabase } from 'drizzle-orm/sql-js'
+export type { SQLJsDatabase } from "drizzle-orm/sql-js";
+export {
+	closeDatabase,
+	getDatabase,
+	initDatabase,
+	saveDatabaseToStorage,
+} from "./client";
+export { runMigrations } from "./migrate";
+export * from "./schema";

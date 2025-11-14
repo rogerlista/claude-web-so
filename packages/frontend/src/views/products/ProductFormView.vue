@@ -4,120 +4,123 @@
  * TDD Phase: GREEN - Implementation to pass tests
  */
 
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import BaseButton from '../../components/base/BaseButton.vue'
-import BaseCard from '../../components/base/BaseCard.vue'
-import BaseInput from '../../components/base/BaseInput.vue'
-import type { CreateProductInput } from '../../stores/products'
-import { useProductsStore } from '../../stores/products'
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import type { CreateProductInput } from "../../stores/products";
+import { useProductsStore } from "../../stores/products";
 
 interface Props {
-  readonly id?: string
+	readonly id?: string;
 }
 
-const props = defineProps<Props>()
-const route = useRoute()
-const router = useRouter()
-const productsStore = useProductsStore()
+const props = defineProps<Props>();
+const route = useRoute();
+const router = useRouter();
+const productsStore = useProductsStore();
 
 // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
-const isEditMode = computed(() => !!props.id || !!route.params['id'])
-const pageTitle = computed(() => (isEditMode.value ? 'Editar Produto' : 'Novo Produto'))
+const isEditMode = computed(() => !!props.id || !!route.params["id"]);
+const pageTitle = computed(() =>
+	isEditMode.value ? "Editar Produto" : "Novo Produto",
+);
 
 // Form state
 const form = ref<CreateProductInput>({
-  sku: '',
-  descricao: '',
-  preco_unitario: 0,
-  status: 'ativo',
-  gtin: '',
-  codigo: '',
-  unidade_medida: 'UN',
-  ncm: '',
-  cest: '',
-})
+	sku: "",
+	descricao: "",
+	preco_unitario: 0,
+	status: "ativo",
+	gtin: "",
+	codigo: "",
+	unidade_medida: "UN",
+	ncm: "",
+	cest: "",
+});
 
-const errors = ref<Partial<Record<keyof CreateProductInput, string>>>({})
-const isSubmitting = ref(false)
+const errors = ref<Partial<Record<keyof CreateProductInput, string>>>({});
+const isSubmitting = ref(false);
 
 const validateForm = (): boolean => {
-  errors.value = {}
+	errors.value = {};
 
-  if (!form.value.sku.trim()) {
-    errors.value.sku = 'SKU é obrigatório'
-  }
+	if (!form.value.sku.trim()) {
+		errors.value.sku = "SKU é obrigatório";
+	}
 
-  if (!form.value.descricao.trim()) {
-    errors.value.descricao = 'Descrição é obrigatório'
-  }
+	if (!form.value.descricao.trim()) {
+		errors.value.descricao = "Descrição é obrigatório";
+	}
 
-  if (form.value.preco_unitario <= 0) {
-    errors.value.preco_unitario = 'Preço deve ser maior que zero'
-  }
+	if (form.value.preco_unitario <= 0) {
+		errors.value.preco_unitario = "Preço deve ser maior que zero";
+	}
 
-  return Object.keys(errors.value).length === 0
-}
+	return Object.keys(errors.value).length === 0;
+};
 
 const handleSubmit = async (): Promise<void> => {
-  if (!validateForm()) {
-    return
-  }
+	if (!validateForm()) {
+		return;
+	}
 
-  isSubmitting.value = true
+	isSubmitting.value = true;
 
-  try {
-    if (isEditMode.value) {
-      // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
-      const productId = props.id || (route.params['id'] as string)
-      await productsStore.updateProduct(productId, form.value)
-    } else {
-      await productsStore.createProduct(form.value)
-    }
+	try {
+		if (isEditMode.value) {
+			// biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
+			const productId = props.id || (route.params["id"] as string);
+			await productsStore.updateProduct(productId, form.value);
+		} else {
+			await productsStore.createProduct(form.value);
+		}
 
-    if (!productsStore.error) {
-      await router.push('/products')
-    }
-  } finally {
-    isSubmitting.value = false
-  }
-}
+		if (!productsStore.error) {
+			await router.push("/products");
+		}
+	} finally {
+		isSubmitting.value = false;
+	}
+};
 
 const handleCancel = (): void => {
-  router.back()
-}
+	router.back();
+};
 
 const loadProduct = async (id: string): Promise<void> => {
-  const response = await fetch(`http://localhost:3000/api/produtos/${id}`)
+	const response = await fetch(`http://localhost:3000/api/produtos/${id}`);
 
-  if (response.ok) {
-    const data = (await response.json()) as { data: CreateProductInput & { id: string } }
-    form.value = {
-      sku: data.data.sku,
-      descricao: data.data.descricao,
-      preco_unitario: data.data.preco_unitario,
-      status: data.data.status,
-      ...(data.data.gtin && { gtin: data.data.gtin }),
-      ...(data.data.codigo && { codigo: data.data.codigo }),
-      ...(data.data.unidade_medida && { unidade_medida: data.data.unidade_medida }),
-      ...(data.data.preco_promocional !== undefined && {
-        preco_promocional: data.data.preco_promocional,
-      }),
-      ...(data.data.ncm && { ncm: data.data.ncm }),
-      ...(data.data.cest && { cest: data.data.cest }),
-    }
-  }
-}
+	if (response.ok) {
+		const data = (await response.json()) as {
+			data: CreateProductInput & { id: string };
+		};
+		form.value = {
+			sku: data.data.sku,
+			descricao: data.data.descricao,
+			preco_unitario: data.data.preco_unitario,
+			status: data.data.status,
+			...(data.data.gtin && { gtin: data.data.gtin }),
+			...(data.data.codigo && { codigo: data.data.codigo }),
+			...(data.data.unidade_medida && {
+				unidade_medida: data.data.unidade_medida,
+			}),
+			...(data.data.preco_promocional !== undefined && {
+				preco_promocional: data.data.preco_promocional,
+			}),
+			...(data.data.ncm && { ncm: data.data.ncm }),
+			...(data.data.cest && { cest: data.data.cest }),
+		};
+	}
+};
 
 onMounted(() => {
-  if (isEditMode.value) {
-    // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
-    const productId = props.id || (route.params['id'] as string)
-    if (productId) {
-      loadProduct(productId)
-    }
-  }
-})
+	if (isEditMode.value) {
+		// biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
+		const productId = props.id || (route.params["id"] as string);
+		if (productId) {
+			loadProduct(productId);
+		}
+	}
+});
 </script>
 
 <template>

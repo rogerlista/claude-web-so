@@ -1,46 +1,51 @@
 {
-  "name": "pos-nfce-system",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "description": "Sistema POS com emissão de NFC-e - Monorepo",
-  "keywords": ["pos", "nfce", "pdv", "point-of-sale"],
-  "license": "UNLICENSED",
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
-  },
-  "packageManager": "pnpm@9.14.4",
-  "scripts": {
-    "prepare": "lefthook install",
-    "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "test:watch": "pnpm -r --parallel test:watch",
-    "test:coverage": "pnpm -r test:coverage",
-    "test:ui": "pnpm -r --parallel test:ui",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "typecheck": "pnpm -r typecheck",
-    "clean": "pnpm -r clean && rm -rf node_modules",
-    "commit": "git-cz",
-    "tdd:validate": "tsx scripts/tdd-validator.ts",
-    "tdd:start": "tsx scripts/tdd-start.ts"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@commitlint/cli": "^19.5.0",
-    "@commitlint/config-conventional": "^19.5.0",
-    "commitizen": "^4.3.1",
-    "cz-conventional-changelog": "^3.3.0",
-    "lefthook": "^1.9.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  }
+	"name": "pos-nfce-system",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Sistema POS com emissão de NFC-e - Monorepo",
+	"keywords": [
+		"pos",
+		"nfce",
+		"pdv",
+		"point-of-sale"
+	],
+	"license": "UNLICENSED",
+	"engines": {
+		"node": ">=20.0.0",
+		"pnpm": ">=9.0.0"
+	},
+	"packageManager": "pnpm@9.14.4",
+	"scripts": {
+		"prepare": "lefthook install",
+		"dev": "pnpm -r --parallel dev",
+		"build": "pnpm -r build",
+		"test": "pnpm -r test",
+		"test:watch": "pnpm -r --parallel test:watch",
+		"test:coverage": "pnpm -r test:coverage",
+		"test:ui": "pnpm -r --parallel test:ui",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"typecheck": "pnpm -r typecheck",
+		"clean": "pnpm -r clean && rm -rf node_modules",
+		"commit": "git-cz",
+		"tdd:validate": "tsx scripts/tdd-validator.ts",
+		"tdd:start": "tsx scripts/tdd-start.ts"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.5",
+		"@commitlint/cli": "^20.1.0",
+		"@commitlint/config-conventional": "^20.0.0",
+		"commitizen": "^4.3.1",
+		"cz-conventional-changelog": "^3.3.0",
+		"lefthook": "^2.0.4",
+		"tsx": "^4.20.6",
+		"typescript": "^5.9.3"
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
+	}
 }

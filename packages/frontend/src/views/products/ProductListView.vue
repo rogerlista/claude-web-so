@@ -4,76 +4,72 @@
  * TDD Phase: GREEN - Implementation to pass tests
  */
 
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import BaseButton from '../../components/base/BaseButton.vue'
-import BaseCard from '../../components/base/BaseCard.vue'
-import BaseDataTable from '../../components/base/BaseDataTable.vue'
-import type { Column } from '../../components/base/BaseDataTable.vue'
-import BaseInput from '../../components/base/BaseInput.vue'
-import type { Product } from '../../stores/products'
-import { useProductsStore } from '../../stores/products'
+import { computed, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import type { Column } from "../../components/base/BaseDataTable.vue";
+import type { Product } from "../../stores/products";
+import { useProductsStore } from "../../stores/products";
 
-const router = useRouter()
-const productsStore = useProductsStore()
+const router = useRouter();
+const productsStore = useProductsStore();
 
-const searchQuery = ref('')
-const statusFilter = ref<'todos' | 'ativo' | 'inativo'>('todos')
+const searchQuery = ref("");
+const statusFilter = ref<"todos" | "ativo" | "inativo">("todos");
 
 const columns: readonly Column[] = [
-  { key: 'sku', label: 'SKU' },
-  { key: 'descricao', label: 'Descrição' },
-  { key: 'preco_unitario', label: 'Preço' },
-  { key: 'status', label: 'Status' },
-] as const
+	{ key: "sku", label: "SKU" },
+	{ key: "descricao", label: "Descrição" },
+	{ key: "preco_unitario", label: "Preço" },
+	{ key: "status", label: "Status" },
+] as const;
 
 const filteredProducts = computed(() => {
-  let products = productsStore.products
+	let products = productsStore.products;
 
-  // Filter by status
-  if (statusFilter.value !== 'todos') {
-    products = products.filter((p) => p.status === statusFilter.value)
-  }
+	// Filter by status
+	if (statusFilter.value !== "todos") {
+		products = products.filter((p) => p.status === statusFilter.value);
+	}
 
-  return products
-})
+	return products;
+});
 
 const handleRowClick = (row: Record<string, unknown>): void => {
-  const product = row as unknown as Product
-  router.push(`/products/${product.id}/edit`)
-}
+	const product = row as unknown as Product;
+	router.push(`/products/${product.id}/edit`);
+};
 
 const handleCreateProduct = (): void => {
-  router.push('/products/create')
-}
+	router.push("/products/create");
+};
 
 const handleSearch = (): void => {
-  if (searchQuery.value.trim()) {
-    productsStore.searchProducts(searchQuery.value)
-  } else {
-    productsStore.fetchProducts()
-  }
-}
+	if (searchQuery.value.trim()) {
+		productsStore.searchProducts(searchQuery.value);
+	} else {
+		productsStore.fetchProducts();
+	}
+};
 
 // Debounce search
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(searchQuery, () => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
+	if (searchTimeout) {
+		clearTimeout(searchTimeout);
+	}
 
-  searchTimeout = setTimeout(() => {
-    handleSearch()
-  }, 300)
-})
+	searchTimeout = setTimeout(() => {
+		handleSearch();
+	}, 300);
+});
 
-const setStatusFilter = (status: 'todos' | 'ativo' | 'inativo'): void => {
-  statusFilter.value = status
-}
+const setStatusFilter = (status: "todos" | "ativo" | "inativo"): void => {
+	statusFilter.value = status;
+};
 
 onMounted(() => {
-  productsStore.fetchProducts()
-})
+	productsStore.fetchProducts();
+});
 </script>
 
 <template>

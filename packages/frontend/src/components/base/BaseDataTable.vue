@@ -4,36 +4,34 @@
  * TDD Phase: GREEN - Implementation to pass tests
  */
 
-import BaseLoading from './BaseLoading.vue'
-
 export interface Column {
-  readonly key: string
-  readonly label: string
+	readonly key: string;
+	readonly label: string;
 }
 
-type DataRow = Record<string, unknown>
+type DataRow = Record<string, unknown>;
 
 interface Props {
-  readonly columns: readonly Column[]
-  readonly rows: readonly DataRow[]
-  readonly loading?: boolean
-  readonly striped?: boolean
-  readonly hoverable?: boolean
+	readonly columns: readonly Column[];
+	readonly rows: readonly DataRow[];
+	readonly loading?: boolean;
+	readonly striped?: boolean;
+	readonly hoverable?: boolean;
 }
 
-type Emits = (e: 'row-click', row: DataRow) => void
+type Emits = (e: "row-click", row: DataRow) => void;
 
 withDefaults(defineProps<Props>(), {
-  loading: false,
-  striped: false,
-  hoverable: true,
-})
+	loading: false,
+	striped: false,
+	hoverable: true,
+});
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<Emits>();
 
 const handleRowClick = (row: DataRow): void => {
-  emit('row-click', row)
-}
+	emit("row-click", row);
+};
 </script>
 
 <template>

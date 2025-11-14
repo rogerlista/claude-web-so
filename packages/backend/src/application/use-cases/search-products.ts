@@ -1,7 +1,10 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
-import type { Product } from '../../domain/product/product'
-import type { ProductRepository, RepositoryError } from '../ports/product-repository'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
+import type { Product } from "../../domain/product/product";
+import type {
+	ProductRepository,
+	RepositoryError,
+} from "../ports/product-repository";
 
 /**
  * SearchProducts Use Case
@@ -22,15 +25,15 @@ import type { ProductRepository, RepositoryError } from '../ports/product-reposi
  * Dependencies for the SearchProducts use case
  */
 export type SearchProductsDeps = {
-  readonly repository: ProductRepository
-}
+	readonly repository: ProductRepository;
+};
 
 /**
  * Input for searching products
  */
 export type SearchProductsInput = {
-  readonly query: string
-}
+	readonly query: string;
+};
 
 /**
  * Search products by query string
@@ -39,36 +42,38 @@ export type SearchProductsInput = {
  * @returns Function that searches products by query
  */
 export const createSearchProducts =
-  (deps: SearchProductsDeps) =>
-  async (input: SearchProductsInput): Promise<Result<readonly Product[], string>> => {
-    // Validate query
-    const trimmedQuery = input.query.trim()
+	(deps: SearchProductsDeps) =>
+	async (
+		input: SearchProductsInput,
+	): Promise<Result<readonly Product[], string>> => {
+		// Validate query
+		const trimmedQuery = input.query.trim();
 
-    if (trimmedQuery.length === 0) {
-      return ResultUtils.err('Query cannot be empty')
-    }
+		if (trimmedQuery.length === 0) {
+			return ResultUtils.err("Query cannot be empty");
+		}
 
-    // Search products using repository
-    const searchResult = await deps.repository.search(trimmedQuery)
+		// Search products using repository
+		const searchResult = await deps.repository.search(trimmedQuery);
 
-    // Map repository errors to user-friendly messages
-    if (!searchResult.ok) {
-      return ResultUtils.err(mapRepositoryError(searchResult.error))
-    }
+		// Map repository errors to user-friendly messages
+		if (!searchResult.ok) {
+			return ResultUtils.err(mapRepositoryError(searchResult.error));
+		}
 
-    return ResultUtils.ok(searchResult.value)
-  }
+		return ResultUtils.ok(searchResult.value);
+	};
 
 /**
  * Map repository errors to user-friendly error messages
  */
 const mapRepositoryError = (error: RepositoryError): string => {
-  switch (error.type) {
-    case 'DATABASE_ERROR':
-      return error.message
-    case 'UNKNOWN' /* c8 ignore start */:
-      return error.message
-    default:
-      return 'An unexpected error occurred' /* c8 ignore stop */
-  }
-}
+	switch (error.type) {
+		case "DATABASE_ERROR":
+			return error.message;
+		case "UNKNOWN" /* c8 ignore start */:
+			return error.message;
+		default:
+			return "An unexpected error occurred"; /* c8 ignore stop */
+	}
+};

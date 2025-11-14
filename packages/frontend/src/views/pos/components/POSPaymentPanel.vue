@@ -116,63 +116,80 @@
  * Phase 6: T043 - Seleção de métodos de pagamento
  */
 
-import { computed, ref } from 'vue'
-import BaseButton from '../../../components/base/BaseButton.vue'
-import { PAYMENT_METHODS, type SalePayment } from '../../../stores/sales'
+import { computed, ref } from "vue";
+import type { SalePayment } from "../../../stores/sales";
 
 interface Props {
-  payments: readonly SalePayment[]
-  total: number
+	payments: readonly SalePayment[];
+	total: number;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  'add-payment': [paymentMethodCode: string, amount: number]
-  complete: []
-}>()
+	"add-payment": [paymentMethodCode: string, amount: number];
+	complete: [];
+}>();
 
-const selectedPaymentMethod = ref('')
-const paymentAmount = ref<number>(0)
+const PAYMENT_METHODS = [
+	{ code: "01", description: "Dinheiro" },
+	{ code: "03", description: "Cartão de Crédito" },
+	{ code: "04", description: "Cartão de Débito" },
+	{ code: "05", description: "Crédito Loja" },
+	{ code: "10", description: "Vale Alimentação" },
+	{ code: "11", description: "Vale Refeição" },
+	{ code: "12", description: "Vale Presente" },
+	{ code: "13", description: "Vale Combustível" },
+	{ code: "15", description: "Boleto Bancário" },
+	{ code: "17", description: "PIX" },
+	{ code: "99", description: "Outros" },
+] as const;
+
+const selectedPaymentMethod = ref("");
+const paymentAmount = ref<number>(0);
 
 const paidAmount = computed(() => {
-  return props.payments.reduce((sum, payment) => sum + payment.amount, 0)
-})
+	return props.payments.reduce((sum, payment) => sum + payment.amount, 0);
+});
 
 const remainingAmount = computed(() => {
-  return props.total - paidAmount.value
-})
+	return props.total - paidAmount.value;
+});
 
 const isFullyPaid = computed(() => {
-  return paidAmount.value >= props.total
-})
+	return paidAmount.value >= props.total;
+});
 
 const canAddPayment = computed(() => {
-  return selectedPaymentMethod.value !== '' && paymentAmount.value > 0 && !isFullyPaid.value
-})
+	return (
+		selectedPaymentMethod.value !== "" &&
+		paymentAmount.value > 0 &&
+		!isFullyPaid.value
+	);
+});
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+};
 
 const handleAddPayment = (): void => {
-  if (canAddPayment.value) {
-    emit('add-payment', selectedPaymentMethod.value, paymentAmount.value)
+	if (canAddPayment.value) {
+		emit("add-payment", selectedPaymentMethod.value, paymentAmount.value);
 
-    // Reset form
-    selectedPaymentMethod.value = ''
-    paymentAmount.value = 0
-  }
-}
+		// Reset form
+		selectedPaymentMethod.value = "";
+		paymentAmount.value = 0;
+	}
+};
 
 const handleComplete = (): void => {
-  if (isFullyPaid.value) {
-    emit('complete')
-  }
-}
+	if (isFullyPaid.value) {
+		emit("complete");
+	}
+};
 </script>
 
 <style scoped>

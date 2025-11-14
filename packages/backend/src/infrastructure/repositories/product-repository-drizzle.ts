@@ -1,17 +1,20 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
-import { eq, like, or } from 'drizzle-orm'
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
-import type { ProductRepository, RepositoryError } from '../../application/ports/product-repository'
-import { createGTIN } from '../../domain/product/gtin'
-import type { GTIN } from '../../domain/product/gtin'
-import { createPrice } from '../../domain/product/price'
-import type { Product } from '../../domain/product/product'
-import type { ProductId } from '../../domain/product/product-id'
-import { createProductId } from '../../domain/product/product-id'
-import type { SKU } from '../../domain/product/sku'
-import { createSKU } from '../../domain/product/sku'
-import { type ProductRow, products } from '../database/schema'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
+import { eq, like, or } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type {
+	ProductRepository,
+	RepositoryError,
+} from "../../application/ports/product-repository";
+import type { GTIN } from "../../domain/product/gtin";
+import { createGTIN } from "../../domain/product/gtin";
+import { createPrice } from "../../domain/product/price";
+import type { Product } from "../../domain/product/product";
+import type { ProductId } from "../../domain/product/product-id";
+import { createProductId } from "../../domain/product/product-id";
+import type { SKU } from "../../domain/product/sku";
+import { createSKU } from "../../domain/product/sku";
+import { type ProductRow, products } from "../database/schema";
 
 /**
  * ProductRepository Drizzle Adapter
@@ -29,60 +32,60 @@ import { type ProductRow, products } from '../database/schema'
  * Map domain Product to database ProductRow (for insert/update)
  */
 const productToRow = (product: Product): typeof products.$inferInsert => ({
-  id: product.id as string,
-  description: product.description,
-  priceInCents: Math.round(product.price * 100),
-  sku: product.sku as string | undefined,
-  gtin: product.gtin as string | undefined,
-})
+	id: product.id as string,
+	description: product.description,
+	priceInCents: Math.round(product.price * 100),
+	sku: product.sku as string | undefined,
+	gtin: product.gtin as string | undefined,
+});
 
 /**
  * Map database ProductRow to domain Product
  */
 const rowToProduct = (row: ProductRow): Result<Product, string> => {
-  const idResult = createProductId(row.id)
-  /* c8 ignore start */
-  if (!idResult.ok) {
-    return ResultUtils.err(`Invalid ProductId in database: ${idResult.error}`)
-  }
-  /* c8 ignore stop */
+	const idResult = createProductId(row.id);
+	/* c8 ignore start */
+	if (!idResult.ok) {
+		return ResultUtils.err(`Invalid ProductId in database: ${idResult.error}`);
+	}
+	/* c8 ignore stop */
 
-  const price = row.priceInCents / 100
-  const priceResult = createPrice(price)
-  if (!priceResult.ok) {
-    return ResultUtils.err(`Invalid Price in database: ${priceResult.error}`)
-  }
+	const price = row.priceInCents / 100;
+	const priceResult = createPrice(price);
+	if (!priceResult.ok) {
+		return ResultUtils.err(`Invalid Price in database: ${priceResult.error}`);
+	}
 
-  let sku: SKU | undefined
-  if (row.sku !== null && row.sku !== undefined) {
-    const skuResult = createSKU(row.sku)
-    /* c8 ignore start */
-    if (!skuResult.ok) {
-      return ResultUtils.err(`Invalid SKU in database: ${skuResult.error}`)
-    }
-    /* c8 ignore stop */
-    sku = skuResult.value
-  }
+	let sku: SKU | undefined;
+	if (row.sku !== null && row.sku !== undefined) {
+		const skuResult = createSKU(row.sku);
+		/* c8 ignore start */
+		if (!skuResult.ok) {
+			return ResultUtils.err(`Invalid SKU in database: ${skuResult.error}`);
+		}
+		/* c8 ignore stop */
+		sku = skuResult.value;
+	}
 
-  let gtin: GTIN | undefined
-  if (row.gtin !== null && row.gtin !== undefined) {
-    const gtinResult = createGTIN(row.gtin)
-    /* c8 ignore start */
-    if (!gtinResult.ok) {
-      return ResultUtils.err(`Invalid GTIN in database: ${gtinResult.error}`)
-    }
-    /* c8 ignore stop */
-    gtin = gtinResult.value
-  }
+	let gtin: GTIN | undefined;
+	if (row.gtin !== null && row.gtin !== undefined) {
+		const gtinResult = createGTIN(row.gtin);
+		/* c8 ignore start */
+		if (!gtinResult.ok) {
+			return ResultUtils.err(`Invalid GTIN in database: ${gtinResult.error}`);
+		}
+		/* c8 ignore stop */
+		gtin = gtinResult.value;
+	}
 
-  return ResultUtils.ok({
-    id: idResult.value,
-    description: row.description,
-    price: priceResult.value,
-    ...(sku !== undefined && { sku }),
-    ...(gtin !== undefined && { gtin }),
-  })
-}
+	return ResultUtils.ok({
+		id: idResult.value,
+		description: row.description,
+		price: priceResult.value,
+		...(sku !== undefined && { sku }),
+		...(gtin !== undefined && { gtin }),
+	});
+};
 
 /**
  * Create ProductRepository implementation using Drizzle
@@ -91,264 +94,278 @@ const rowToProduct = (row: ProductRow): Result<Product, string> => {
  * @returns ProductRepository implementation
  */
 export const createProductRepositoryDrizzle = (
-  db: BetterSQLite3Database<Record<string, unknown>>
+	db: BetterSQLite3Database<Record<string, unknown>>,
 ): ProductRepository => ({
-  /**
-   * Save a product (insert or update)
-   */
-  save: async (product: Product): Promise<Result<Product, RepositoryError>> => {
-    try {
-      const row = productToRow(product)
+	/**
+	 * Save a product (insert or update)
+	 */
+	save: async (product: Product): Promise<Result<Product, RepositoryError>> => {
+		try {
+			const row = productToRow(product);
 
-      // Use INSERT OR REPLACE for upsert behavior
-      await db
-        .insert(products)
-        .values(row)
-        .onConflictDoUpdate({
-          target: products.id,
-          set: {
-            description: row.description,
-            priceInCents: row.priceInCents,
-            sku: row.sku,
-            gtin: row.gtin,
-            updatedAt: new Date(),
-          },
-        })
+			// Use INSERT OR REPLACE for upsert behavior
+			await db
+				.insert(products)
+				.values(row)
+				.onConflictDoUpdate({
+					target: products.id,
+					set: {
+						description: row.description,
+						priceInCents: row.priceInCents,
+						sku: row.sku,
+						gtin: row.gtin,
+						updatedAt: new Date(),
+					},
+				});
 
-      return ResultUtils.ok(product)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
+			return ResultUtils.ok(product);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
 
-  /**
-   * Find a product by ID
-   */
-  findById: async (id: ProductId): Promise<Result<Product, RepositoryError>> => {
-    try {
-      const rows = await db
-        .select()
-        .from(products)
-        .where(eq(products.id, id as string))
+	/**
+	 * Find a product by ID
+	 */
+	findById: async (
+		id: ProductId,
+	): Promise<Result<Product, RepositoryError>> => {
+		try {
+			const rows = await db
+				.select()
+				.from(products)
+				.where(eq(products.id, id as string));
 
-      const row = rows[0]
-      if (row === undefined) {
-        return ResultUtils.err({
-          type: 'NOT_FOUND',
-          id: id as string,
-        })
-      }
+			const row = rows[0];
+			if (row === undefined) {
+				return ResultUtils.err({
+					type: "NOT_FOUND",
+					id: id as string,
+				});
+			}
 
-      const productResult = rowToProduct(row)
-      /* c8 ignore start */
-      if (!productResult.ok) {
-        return ResultUtils.err({
-          type: 'DATABASE_ERROR',
-          message: productResult.error,
-        })
-      }
-      /* c8 ignore stop */
+			const productResult = rowToProduct(row);
+			/* c8 ignore start */
+			if (!productResult.ok) {
+				return ResultUtils.err({
+					type: "DATABASE_ERROR",
+					message: productResult.error,
+				});
+			}
+			/* c8 ignore stop */
 
-      return ResultUtils.ok(productResult.value)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
+			return ResultUtils.ok(productResult.value);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
 
-  /**
-   * Find all products
-   */
-  findAll: async (): Promise<Result<readonly Product[], RepositoryError>> => {
-    try {
-      const rows = await db.select().from(products)
+	/**
+	 * Find all products
+	 */
+	findAll: async (): Promise<Result<readonly Product[], RepositoryError>> => {
+		try {
+			const rows = await db.select().from(products);
 
-      const productResults = rows.map(rowToProduct)
+			const productResults = rows.map(rowToProduct);
 
-      // Check if any conversion failed
-      /* c8 ignore start */
-      const failedResult = productResults.find((r) => !r.ok)
-      if (failedResult && !failedResult.ok) {
-        return ResultUtils.err({
-          type: 'DATABASE_ERROR',
-          message: failedResult.error,
-        })
-      }
-      /* c8 ignore stop */
+			// Check if any conversion failed
+			/* c8 ignore start */
+			const failedResult = productResults.find((r) => !r.ok);
+			if (failedResult && !failedResult.ok) {
+				return ResultUtils.err({
+					type: "DATABASE_ERROR",
+					message: failedResult.error,
+				});
+			}
+			/* c8 ignore stop */
 
-      const productList = productResults
-        .filter((r): r is { ok: true; value: Product } => r.ok)
-        .map((r) => r.value)
+			const productList = productResults
+				.filter((r): r is { ok: true; value: Product } => r.ok)
+				.map((r) => r.value);
 
-      return ResultUtils.ok(productList)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
+			return ResultUtils.ok(productList);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
 
-  /**
-   * Delete a product by ID
-   */
-  delete: async (id: ProductId): Promise<Result<void, RepositoryError>> => {
-    try {
-      // Check if product exists
-      const findResult = await db
-        .select()
-        .from(products)
-        .where(eq(products.id, id as string))
+	/**
+	 * Delete a product by ID
+	 */
+	delete: async (id: ProductId): Promise<Result<void, RepositoryError>> => {
+		try {
+			// Check if product exists
+			const findResult = await db
+				.select()
+				.from(products)
+				.where(eq(products.id, id as string));
 
-      if (findResult[0] === undefined) {
-        return ResultUtils.err({
-          type: 'NOT_FOUND',
-          id: id as string,
-        })
-      }
+			if (findResult[0] === undefined) {
+				return ResultUtils.err({
+					type: "NOT_FOUND",
+					id: id as string,
+				});
+			}
 
-      // Delete product
-      await db.delete(products).where(eq(products.id, id as string))
+			// Delete product
+			await db.delete(products).where(eq(products.id, id as string));
 
-      return ResultUtils.ok(undefined)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
+			return ResultUtils.ok(undefined);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
 
-  /**
-   * Find products by SKU
-   */
-  findBySKU: async (sku: string): Promise<Result<readonly Product[], RepositoryError>> => {
-    try {
-      const rows = await db.select().from(products).where(eq(products.sku, sku))
+	/**
+	 * Find products by SKU
+	 */
+	findBySKU: async (
+		sku: string,
+	): Promise<Result<readonly Product[], RepositoryError>> => {
+		try {
+			const rows = await db
+				.select()
+				.from(products)
+				.where(eq(products.sku, sku));
 
-      const productResults = rows.map(rowToProduct)
+			const productResults = rows.map(rowToProduct);
 
-      // Check if any conversion failed
-      /* c8 ignore start */
-      const failedResult = productResults.find((r) => !r.ok)
-      if (failedResult && !failedResult.ok) {
-        return ResultUtils.err({
-          type: 'DATABASE_ERROR',
-          message: failedResult.error,
-        })
-      }
-      /* c8 ignore stop */
+			// Check if any conversion failed
+			/* c8 ignore start */
+			const failedResult = productResults.find((r) => !r.ok);
+			if (failedResult && !failedResult.ok) {
+				return ResultUtils.err({
+					type: "DATABASE_ERROR",
+					message: failedResult.error,
+				});
+			}
+			/* c8 ignore stop */
 
-      const productList = productResults
-        .filter((r): r is { ok: true; value: Product } => r.ok)
-        .map((r) => r.value)
+			const productList = productResults
+				.filter((r): r is { ok: true; value: Product } => r.ok)
+				.map((r) => r.value);
 
-      return ResultUtils.ok(productList)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
+			return ResultUtils.ok(productList);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
 
-  /**
-   * Find product by GTIN
-   */
-  findByGTIN: async (gtin: string): Promise<Result<Product, RepositoryError>> => {
-    try {
-      const rows = await db.select().from(products).where(eq(products.gtin, gtin))
+	/**
+	 * Find product by GTIN
+	 */
+	findByGTIN: async (
+		gtin: string,
+	): Promise<Result<Product, RepositoryError>> => {
+		try {
+			const rows = await db
+				.select()
+				.from(products)
+				.where(eq(products.gtin, gtin));
 
-      const row = rows[0]
-      if (row === undefined) {
-        return ResultUtils.err({
-          type: 'NOT_FOUND',
-          id: gtin,
-        })
-      }
+			const row = rows[0];
+			if (row === undefined) {
+				return ResultUtils.err({
+					type: "NOT_FOUND",
+					id: gtin,
+				});
+			}
 
-      const productResult = rowToProduct(row)
-      /* c8 ignore start */
-      if (!productResult.ok) {
-        return ResultUtils.err({
-          type: 'DATABASE_ERROR',
-          message: productResult.error,
-        })
-      }
-      /* c8 ignore stop */
+			const productResult = rowToProduct(row);
+			/* c8 ignore start */
+			if (!productResult.ok) {
+				return ResultUtils.err({
+					type: "DATABASE_ERROR",
+					message: productResult.error,
+				});
+			}
+			/* c8 ignore stop */
 
-      return ResultUtils.ok(productResult.value)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
+			return ResultUtils.ok(productResult.value);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
 
-  /**
-   * Search products by query (description, SKU, or GTIN)
-   *
-   * Performs case-insensitive partial match across multiple fields
-   */
-  search: async (query: string): Promise<Result<readonly Product[], RepositoryError>> => {
-    try {
-      // SQLite LIKE is case-insensitive by default
-      const searchPattern = `%${query}%`
+	/**
+	 * Search products by query (description, SKU, or GTIN)
+	 *
+	 * Performs case-insensitive partial match across multiple fields
+	 */
+	search: async (
+		query: string,
+	): Promise<Result<readonly Product[], RepositoryError>> => {
+		try {
+			// SQLite LIKE is case-insensitive by default
+			const searchPattern = `%${query}%`;
 
-      const rows = await db
-        .select()
-        .from(products)
-        .where(
-          or(
-            like(products.description, searchPattern),
-            like(products.sku, searchPattern),
-            like(products.gtin, searchPattern)
-          )
-        )
+			const rows = await db
+				.select()
+				.from(products)
+				.where(
+					or(
+						like(products.description, searchPattern),
+						like(products.sku, searchPattern),
+						like(products.gtin, searchPattern),
+					),
+				);
 
-      const productResults = rows.map(rowToProduct)
+			const productResults = rows.map(rowToProduct);
 
-      // Check if any conversion failed
-      /* c8 ignore start */
-      const failedResult = productResults.find((r) => !r.ok)
-      if (failedResult && !failedResult.ok) {
-        return ResultUtils.err({
-          type: 'DATABASE_ERROR',
-          message: failedResult.error,
-        })
-      }
-      /* c8 ignore stop */
+			// Check if any conversion failed
+			/* c8 ignore start */
+			const failedResult = productResults.find((r) => !r.ok);
+			if (failedResult && !failedResult.ok) {
+				return ResultUtils.err({
+					type: "DATABASE_ERROR",
+					message: failedResult.error,
+				});
+			}
+			/* c8 ignore stop */
 
-      const productList = productResults
-        .filter((r): r is { ok: true; value: Product } => r.ok)
-        .map((r) => r.value)
+			const productList = productResults
+				.filter((r): r is { ok: true; value: Product } => r.ok)
+				.map((r) => r.value);
 
-      return ResultUtils.ok(productList)
-      /* c8 ignore start */
-    } catch (error) {
-      return ResultUtils.err({
-        type: 'DATABASE_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      /* c8 ignore stop */
-    }
-  },
-})
+			return ResultUtils.ok(productList);
+			/* c8 ignore start */
+		} catch (error) {
+			return ResultUtils.err({
+				type: "DATABASE_ERROR",
+				message: error instanceof Error ? error.message : "Unknown error",
+			});
+			/* c8 ignore stop */
+		}
+	},
+});

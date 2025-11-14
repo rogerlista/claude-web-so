@@ -5,131 +5,134 @@
  * Quick product search with autocomplete dropdown
  */
 
-import { onMounted, onUnmounted, ref, watch } from 'vue'
-import type { Product } from '../../stores/products'
-import BaseInput from '../base/BaseInput.vue'
-import BaseLoading from '../base/BaseLoading.vue'
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import type { Product } from "../../stores/products";
 
 interface Props {
-  readonly placeholder?: string
+	readonly placeholder?: string;
 }
 
-type Emits = (e: 'select', product: Product) => void
+type Emits = (e: "select", product: Product) => void;
 
-const { placeholder } = withDefaults(defineProps<Props>(), {
-  placeholder: 'Buscar produto por SKU, GTIN, descrição...',
-})
+const props = withDefaults(defineProps<Props>(), {
+	placeholder: "Buscar produto por SKU, GTIN, descrição...",
+});
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<Emits>();
 
-const searchQuery = ref('')
-const results = ref<readonly Product[]>([])
-const isLoading = ref(false)
-const showDropdown = ref(false)
-const selectedIndex = ref(-1)
-const dropdownRef = ref<HTMLElement | null>(null)
+const searchQuery = ref("");
+const results = ref<readonly Product[]>([]);
+const isLoading = ref(false);
+const showDropdown = ref(false);
+const selectedIndex = ref(-1);
+const dropdownRef = ref<HTMLElement | null>(null);
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const searchProducts = async (query: string): Promise<void> => {
-  if (!query.trim()) {
-    results.value = []
-    showDropdown.value = false
-    return
-  }
+	if (!query.trim()) {
+		results.value = [];
+		showDropdown.value = false;
+		return;
+	}
 
-  isLoading.value = true
+	isLoading.value = true;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/produtos?q=${encodeURIComponent(query)}`)
+	try {
+		const response = await fetch(
+			`${API_BASE_URL}/api/produtos?q=${encodeURIComponent(query)}`,
+		);
 
-    if (response.ok) {
-      const data = (await response.json()) as { data: readonly Product[] }
-      results.value = data.data
-      showDropdown.value = true
-    }
-  } catch (error) {
-    results.value = []
-  } finally {
-    isLoading.value = false
-  }
-}
+		if (response.ok) {
+			const data = (await response.json()) as { data: readonly Product[] };
+			results.value = data.data;
+			showDropdown.value = true;
+		}
+	} catch (_error) {
+		results.value = [];
+	} finally {
+		isLoading.value = false;
+	}
+};
 
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 watch(searchQuery, (newQuery) => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
+	if (searchTimeout) {
+		clearTimeout(searchTimeout);
+	}
 
-  searchTimeout = setTimeout(() => {
-    searchProducts(newQuery)
-  }, 300)
-})
+	searchTimeout = setTimeout(() => {
+		searchProducts(newQuery);
+	}, 300);
+});
 
 const handleSelect = (product: Product): void => {
-  emit('select', product)
-  searchQuery.value = ''
-  results.value = []
-  showDropdown.value = false
-  selectedIndex.value = -1
-}
+	emit("select", product);
+	searchQuery.value = "";
+	results.value = [];
+	showDropdown.value = false;
+	selectedIndex.value = -1;
+};
 
 const handleKeyDown = (event: KeyboardEvent): void => {
-  if (!showDropdown.value) {
-    return
-  }
+	if (!showDropdown.value) {
+		return;
+	}
 
-  switch (event.key) {
-    case 'Escape':
-      showDropdown.value = false
-      selectedIndex.value = -1
-      break
+	switch (event.key) {
+		case "Escape":
+			showDropdown.value = false;
+			selectedIndex.value = -1;
+			break;
 
-    case 'ArrowDown':
-      event.preventDefault()
-      selectedIndex.value = Math.min(selectedIndex.value + 1, results.value.length - 1)
-      break
+		case "ArrowDown":
+			event.preventDefault();
+			selectedIndex.value = Math.min(
+				selectedIndex.value + 1,
+				results.value.length - 1,
+			);
+			break;
 
-    case 'ArrowUp':
-      event.preventDefault()
-      selectedIndex.value = Math.max(selectedIndex.value - 1, -1)
-      break
+		case "ArrowUp":
+			event.preventDefault();
+			selectedIndex.value = Math.max(selectedIndex.value - 1, -1);
+			break;
 
-    case 'Enter': {
-      event.preventDefault()
-      const selectedProduct = results.value[selectedIndex.value]
-      if (selectedIndex.value >= 0 && selectedProduct) {
-        handleSelect(selectedProduct)
-      }
-      break
-    }
-  }
-}
+		case "Enter": {
+			event.preventDefault();
+			const selectedProduct = results.value[selectedIndex.value];
+			if (selectedIndex.value >= 0 && selectedProduct) {
+				handleSelect(selectedProduct);
+			}
+			break;
+		}
+	}
+};
 
 const handleClickOutside = (event: MouseEvent): void => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
-    showDropdown.value = false
-  }
-}
+	if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+		showDropdown.value = false;
+	}
+};
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
+	document.addEventListener("click", handleClickOutside);
+});
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-})
+	document.removeEventListener("click", handleClickOutside);
+	if (searchTimeout) {
+		clearTimeout(searchTimeout);
+	}
+});
 
 const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(price)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(price);
+};
 </script>
 
 <template>
@@ -137,7 +140,7 @@ const formatPrice = (price: number): string => {
     <BaseInput
       v-model="searchQuery"
       type="text"
-      :placeholder="placeholder"
+      :placeholder="props.placeholder"
       @keydown="handleKeyDown"
     />
 

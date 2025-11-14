@@ -4,116 +4,124 @@
  * Tela de movimentação de estoque (Entrada/Saída/Ajuste)
  */
 
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import BaseButton from '../../components/base/BaseButton.vue'
-import BaseCard from '../../components/base/BaseCard.vue'
-import BaseInput from '../../components/base/BaseInput.vue'
-import type { RegisterMovementInput } from '../../stores/inventory'
-import { useInventoryStore } from '../../stores/inventory'
-import { useProductsStore } from '../../stores/products'
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import type { RegisterMovementInput } from "../../stores/inventory";
+import { useInventoryStore } from "../../stores/inventory";
+import { useProductsStore } from "../../stores/products";
 
-const router = useRouter()
-const inventoryStore = useInventoryStore()
-const productsStore = useProductsStore()
+const router = useRouter();
+const inventoryStore = useInventoryStore();
+const productsStore = useProductsStore();
 
-// Form state
-const form = ref<RegisterMovementInput & { productSearch: string }>({
-  productId: '',
-  quantity: 0,
-  type: 'entrada',
-  description: '',
-  productSearch: '',
-})
+// Form state (removing readonly to allow mutations)
+type FormState = {
+	productId: string;
+	quantity: number;
+	type: "entrada" | "saida" | "ajuste";
+	description?: string;
+	productSearch: string;
+};
 
-const selectedProduct = ref<{ id: string; descricao: string } | null>(null)
-const errors = ref<Partial<Record<keyof RegisterMovementInput | 'productSearch', string>>>({})
-const isSubmitting = ref(false)
-const successMessage = ref<string | null>(null)
-const showProductLookup = ref(false)
+const form = ref<FormState>({
+	productId: "",
+	quantity: 0,
+	type: "entrada",
+	description: "",
+	productSearch: "",
+});
+
+const selectedProduct = ref<{ id: string; descricao: string } | null>(null);
+const errors = ref<
+	Partial<Record<keyof RegisterMovementInput | "productSearch", string>>
+>({});
+const isSubmitting = ref(false);
+const successMessage = ref<string | null>(null);
+const showProductLookup = ref(false);
 
 const pageTitle = computed(() => {
-  const titles = {
-    entrada: 'Entrada de Estoque',
-    saida: 'Saída de Estoque',
-    ajuste: 'Ajuste de Estoque',
-  }
-  return titles[form.value.type]
-})
+	const titles = {
+		entrada: "Entrada de Estoque",
+		saida: "Saída de Estoque",
+		ajuste: "Ajuste de Estoque",
+	};
+	return titles[form.value.type];
+});
 
 const validateForm = (): boolean => {
-  errors.value = {}
+	errors.value = {};
 
-  if (!form.value.productId) {
-    errors.value.productSearch = 'Produto é obrigatório'
-  }
+	if (!form.value.productId) {
+		errors.value.productSearch = "Produto é obrigatório";
+	}
 
-  if (form.value.quantity <= 0) {
-    errors.value.quantity = 'Quantidade deve ser maior que zero'
-  }
+	if (form.value.quantity <= 0) {
+		errors.value.quantity = "Quantidade deve ser maior que zero";
+	}
 
-  return Object.keys(errors.value).length === 0
-}
+	return Object.keys(errors.value).length === 0;
+};
 
 const handleSubmit = async (): Promise<void> => {
-  if (!validateForm()) {
-    return
-  }
+	if (!validateForm()) {
+		return;
+	}
 
-  isSubmitting.value = true
-  successMessage.value = null
+	isSubmitting.value = true;
+	successMessage.value = null;
 
-  try {
-    const result = await inventoryStore.registerMovement({
-      productId: form.value.productId,
-      quantity: form.value.quantity,
-      type: form.value.type,
-      description: form.value.description,
-    })
+	try {
+		const input: RegisterMovementInput = {
+			productId: form.value.productId,
+			quantity: form.value.quantity,
+			type: form.value.type,
+			...(form.value.description && { description: form.value.description }),
+		};
+		const result = await inventoryStore.registerMovement(input);
 
-    if (result && !inventoryStore.error) {
-      successMessage.value = `Movimentação registrada com sucesso! Tipo: ${form.value.type.toUpperCase()}`
+		if (result && !inventoryStore.error) {
+			successMessage.value = `Movimentação registrada com sucesso! Tipo: ${form.value.type.toUpperCase()}`;
 
-      // Reset form
-      form.value = {
-        productId: '',
-        quantity: 0,
-        type: form.value.type, // Keep movement type
-        description: '',
-        productSearch: '',
-      }
-      selectedProduct.value = null
+			// Reset form
+			form.value = {
+				productId: "",
+				quantity: 0,
+				type: form.value.type, // Keep movement type
+				description: "",
+				productSearch: "",
+			};
+			selectedProduct.value = null;
 
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        router.push('/inventory')
-      }, 2000)
-    }
-  } finally {
-    isSubmitting.value = false
-  }
-}
+			// Redirect after 2 seconds
+			setTimeout(() => {
+				router.push("/inventory");
+			}, 2000);
+		}
+	} finally {
+		isSubmitting.value = false;
+	}
+};
 
 const handleCancel = (): void => {
-  router.back()
-}
+	router.back();
+};
 
 const handleProductSearch = async (): Promise<void> => {
-  if (!form.value.productSearch.trim()) {
-    return
-  }
+	if (!form.value.productSearch.trim()) {
+		return;
+	}
 
-  await productsStore.searchProducts(form.value.productSearch)
-  showProductLookup.value = true
-}
+	await productsStore.searchProducts(form.value.productSearch);
+	showProductLookup.value = true;
+};
 
 const selectProduct = (product: { id: string; descricao: string }): void => {
-  selectedProduct.value = product
-  form.value.productId = product.id
-  form.value.productSearch = product.descricao
-  showProductLookup.value = false
-  errors.value.productSearch = undefined
-}
+	selectedProduct.value = product;
+	form.value.productId = product.id;
+	form.value.productSearch = product.descricao;
+	showProductLookup.value = false;
+	delete errors.value.productSearch;
+};
 </script>
 
 <template>

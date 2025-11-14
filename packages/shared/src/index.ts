@@ -9,12 +9,11 @@
  */
 
 // Types
-export type { Brand } from './types/brand'
-export type { Result } from './types/result'
-export type { Option } from './types/option'
-
+export type { Brand } from "./types/brand";
+export type { Option } from "./types/option";
+export type { Result } from "./types/result";
+export { compose } from "./utils/compose";
+export { OptionUtils } from "./utils/option";
+export { pipe } from "./utils/pipe";
 // Utilities
-export { ResultUtils } from './utils/result'
-export { OptionUtils } from './utils/option'
-export { pipe } from './utils/pipe'
-export { compose } from './utils/compose'
+export { ResultUtils } from "./utils/result";

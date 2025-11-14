@@ -89,74 +89,73 @@
  * Phase 6: T040 - Aplicação de descontos
  */
 
-import { computed, ref } from 'vue'
-import BaseButton from '../../../components/base/BaseButton.vue'
+import { computed, ref } from "vue";
 
 interface Props {
-  currentDiscount: number
-  maxDiscount: number
+	currentDiscount: number;
+	maxDiscount: number;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  apply: [discount: number]
-  close: []
-}>()
+	apply: [discount: number];
+	close: [];
+}>();
 
-const discountType = ref<'value' | 'percentage'>('value')
-const discountInput = ref<number>(0)
-const errorMessage = ref('')
+const discountType = ref<"value" | "percentage">("value");
+const discountInput = ref<number>(0);
+const errorMessage = ref("");
 
 const calculatedDiscount = computed(() => {
-  if (discountInput.value <= 0) {
-    return 0
-  }
+	if (discountInput.value <= 0) {
+		return 0;
+	}
 
-  if (discountType.value === 'value') {
-    return discountInput.value
-  }
+	if (discountType.value === "value") {
+		return discountInput.value;
+	}
 
-  // Percentage
-  return (props.maxDiscount * discountInput.value) / 100
-})
+	// Percentage
+	return (props.maxDiscount * discountInput.value) / 100;
+});
 
 const isValid = computed(() => {
-  if (discountInput.value <= 0) {
-    errorMessage.value = ''
-    return false
-  }
+	if (discountInput.value <= 0) {
+		errorMessage.value = "";
+		return false;
+	}
 
-  if (discountType.value === 'percentage' && discountInput.value > 100) {
-    errorMessage.value = 'Percentual não pode ser maior que 100%'
-    return false
-  }
+	if (discountType.value === "percentage" && discountInput.value > 100) {
+		errorMessage.value = "Percentual não pode ser maior que 100%";
+		return false;
+	}
 
-  if (calculatedDiscount.value > props.maxDiscount) {
-    errorMessage.value = 'Desconto não pode ser maior que o valor total'
-    return false
-  }
+	if (calculatedDiscount.value > props.maxDiscount) {
+		errorMessage.value = "Desconto não pode ser maior que o valor total";
+		return false;
+	}
 
-  errorMessage.value = ''
-  return true
-})
+	errorMessage.value = "";
+	return true;
+});
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+};
 
 const handleApply = (): void => {
-  if (isValid.value) {
-    emit('apply', calculatedDiscount.value)
-  }
-}
+	if (isValid.value) {
+		emit("apply", calculatedDiscount.value);
+	}
+};
 
 const handleClose = (): void => {
-  emit('close')
-}
+	emit("close");
+};
 </script>
 
 <style scoped>

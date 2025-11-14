@@ -18,45 +18,45 @@
  */
 
 export interface AppSidebarMenuItem {
-  label: string
-  path: string
-  icon?: string
+	label: string;
+	path: string;
+	icon?: string;
 }
 
 export interface AppSidebarProps {
-  /** Whether sidebar is open (mobile) */
-  open?: boolean
-  /** Menu items to display */
-  menuItems?: AppSidebarMenuItem[]
-  /** Current active path */
-  currentPath?: string
+	/** Whether sidebar is open (mobile) */
+	open?: boolean;
+	/** Menu items to display */
+	menuItems?: AppSidebarMenuItem[];
+	/** Current active path */
+	currentPath?: string;
 }
 
 withDefaults(defineProps<AppSidebarProps>(), {
-  open: false,
-  menuItems: () => [],
-})
+	open: false,
+	menuItems: () => [],
+});
 
 const emit = defineEmits<{
-  navigate: [path: string]
-  close: []
-}>()
+	navigate: [path: string];
+	close: [];
+}>();
 
 const handleNavigate = (path: string) => {
-  emit('navigate', path)
-  emit('close')
-}
+	emit("navigate", path);
+	emit("close");
+};
 
 const handleOverlayClick = () => {
-  emit('close')
-}
+	emit("close");
+};
 
 const handleKeydown = (event: KeyboardEvent, path: string) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    handleNavigate(path)
-  }
-}
+	if (event.key === "Enter" || event.key === " ") {
+		event.preventDefault();
+		handleNavigate(path);
+	}
+};
 </script>
 
 <template>

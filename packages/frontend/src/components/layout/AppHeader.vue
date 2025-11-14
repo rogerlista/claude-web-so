@@ -18,36 +18,36 @@
  */
 
 export interface AppHeaderUser {
-  name: string
-  email: string
+	name: string;
+	email: string;
 }
 
 export interface AppHeaderProps {
-  /** Header title */
-  title?: string
-  /** Show menu toggle button for mobile */
-  showMenuToggle?: boolean
-  /** Current user information */
-  user?: AppHeaderUser
+	/** Header title */
+	title?: string;
+	/** Show menu toggle button for mobile */
+	showMenuToggle?: boolean;
+	/** Current user information */
+	user?: AppHeaderUser;
 }
 
 withDefaults(defineProps<AppHeaderProps>(), {
-  title: 'POS NFC-e',
-  showMenuToggle: false,
-})
+	title: "POS NFC-e",
+	showMenuToggle: false,
+});
 
 const emit = defineEmits<{
-  'toggle-menu': []
-  logout: []
-}>()
+	"toggle-menu": [];
+	logout: [];
+}>();
 
 const handleMenuToggle = () => {
-  emit('toggle-menu')
-}
+	emit("toggle-menu");
+};
 
 const handleLogout = () => {
-  emit('logout')
-}
+	emit("logout");
+};
 </script>
 
 <template>

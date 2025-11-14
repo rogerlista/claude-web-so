@@ -3,73 +3,76 @@
  * TDD Phase: GREEN - Minimal implementation to pass tests
  */
 
-import type { Router, RouterHistory } from 'vue-router'
-import { createRouter as createVueRouter } from 'vue-router'
+import type { Router, RouterHistory } from "vue-router";
+import { createRouter as createVueRouter } from "vue-router";
 
 export const createRouter = (history: RouterHistory): Router => {
-  const router = createVueRouter({
-    history,
-    routes: [
-      {
-        path: '/',
-        name: 'home',
-        component: () => import('../views/HomeView.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path: '/login',
-        name: 'login',
-        component: () => import('../views/LoginView.vue'),
-        meta: { requiresAuth: false },
-      },
-      {
-        path: '/products',
-        name: 'products',
-        component: () => import('../views/products/ProductListView.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path: '/products/create',
-        name: 'product-create',
-        component: () => import('../views/products/ProductFormView.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path: '/products/:id/edit',
-        name: 'product-edit',
-        component: () => import('../views/products/ProductFormView.vue'),
-        meta: { requiresAuth: true },
-        props: true,
-      },
-      {
-        path: '/pos',
-        name: 'pos',
-        component: () => import('../views/pos/POSView.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path: '/pos/checkout/:id',
-        name: 'pos-checkout',
-        component: () => import('../views/pos/POSCheckoutView.vue'),
-        path: '/inventory',
-        name: 'inventory',
-        component: () => import('../views/inventory/InventoryMovementView.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path: '/inventory/movement',
-        name: 'inventory-movement',
-        component: () => import('../views/inventory/InventoryMovementView.vue'),
-        meta: { requiresAuth: true },
-      },
-      {
-        path: '/inventory/count',
-        name: 'inventory-count',
-        component: () => import('../views/inventory/InventoryCountView.vue'),
-        meta: { requiresAuth: true },
-      },
-    ],
-  })
+	const router = createVueRouter({
+		history,
+		routes: [
+			{
+				path: "/",
+				name: "home",
+				component: () => import("../views/HomeView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/login",
+				name: "login",
+				component: () => import("../views/LoginView.vue"),
+				meta: { requiresAuth: false },
+			},
+			{
+				path: "/products",
+				name: "products",
+				component: () => import("../views/products/ProductListView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/products/create",
+				name: "product-create",
+				component: () => import("../views/products/ProductFormView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/products/:id/edit",
+				name: "product-edit",
+				component: () => import("../views/products/ProductFormView.vue"),
+				meta: { requiresAuth: true },
+				props: true,
+			},
+			{
+				path: "/pos",
+				name: "pos",
+				component: () => import("../views/pos/POSView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/pos/checkout/:id",
+				name: "pos-checkout",
+				component: () => import("../views/pos/POSCheckoutView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/inventory",
+				name: "inventory",
+				component: () => import("../views/inventory/InventoryMovementView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/inventory/movement",
+				name: "inventory-movement",
+				component: () => import("../views/inventory/InventoryMovementView.vue"),
+				meta: { requiresAuth: true },
+			},
+			{
+				path: "/inventory/count",
+				name: "inventory-count",
+				component: () => import("../views/inventory/InventoryCountView.vue"),
+				meta: { requiresAuth: true },
+			},
+		],
+	});
 
-  return router
-}
+	return router;
+};

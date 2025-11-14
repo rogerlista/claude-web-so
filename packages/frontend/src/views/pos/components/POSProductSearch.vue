@@ -102,101 +102,102 @@
  * Phase 6: T039 - Busca de produtos no PDV
  */
 
-import { onMounted, onUnmounted, ref } from 'vue'
-import BaseButton from '../../../components/base/BaseButton.vue'
-import type { Product } from '../../../stores/products'
-import { useProductsStore } from '../../../stores/products'
+import { onMounted, onUnmounted, ref } from "vue";
+import type { Product } from "../../../stores/products";
+import { useProductsStore } from "../../../stores/products";
 
 interface ProductAddEvent {
-  id: string
-  price: number
-  quantity: number
+	id: string;
+	price: number;
+	quantity: number;
 }
 
 const emit = defineEmits<{
-  'add-product': [product: ProductAddEvent]
-}>()
+	"add-product": [product: ProductAddEvent];
+}>();
 
-const productsStore = useProductsStore()
+const productsStore = useProductsStore();
 
-const searchQuery = ref('')
-const searchResults = ref<readonly Product[]>([])
-const loading = ref(false)
-const showQuantityModal = ref(false)
-const selectedProduct = ref<Product | null>(null)
-const quantity = ref(1)
+const searchQuery = ref("");
+const searchResults = ref<readonly Product[]>([]);
+const loading = ref(false);
+const showQuantityModal = ref(false);
+const selectedProduct = ref<Product | null>(null);
+const quantity = ref(1);
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+};
 
 const handleSearch = async (): Promise<void> => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
-  }
+	if (!searchQuery.value.trim()) {
+		searchResults.value = [];
+		return;
+	}
 
-  loading.value = true
-  try {
-    await productsStore.searchProducts(searchQuery.value)
-    searchResults.value = productsStore.products
-  } finally {
-    loading.value = false
-  }
-}
+	loading.value = true;
+	try {
+		await productsStore.searchProducts(searchQuery.value);
+		searchResults.value = productsStore.products;
+	} finally {
+		loading.value = false;
+	}
+};
 
 const handleSelectProduct = (product: Product): void => {
-  if (product.status !== 'ativo') {
-    alert('Este produto está inativo e não pode ser vendido.')
-    return
-  }
+	if (product.status !== "ativo") {
+		alert("Este produto está inativo e não pode ser vendido.");
+		return;
+	}
 
-  selectedProduct.value = product
-  quantity.value = 1
-  showQuantityModal.value = true
-}
+	selectedProduct.value = product;
+	quantity.value = 1;
+	showQuantityModal.value = true;
+};
 
 const handleAddToSale = (): void => {
-  if (selectedProduct.value && quantity.value > 0) {
-    emit('add-product', {
-      id: selectedProduct.value.id,
-      price: selectedProduct.value.preco_unitario,
-      quantity: quantity.value,
-    })
+	if (selectedProduct.value && quantity.value > 0) {
+		emit("add-product", {
+			id: selectedProduct.value.id,
+			price: selectedProduct.value.preco_unitario,
+			quantity: quantity.value,
+		});
 
-    // Clear search and close modal
-    closeQuantityModal()
-    searchQuery.value = ''
-    searchResults.value = []
-  }
-}
+		// Clear search and close modal
+		closeQuantityModal();
+		searchQuery.value = "";
+		searchResults.value = [];
+	}
+};
 
 const closeQuantityModal = (): void => {
-  showQuantityModal.value = false
-  selectedProduct.value = null
-  quantity.value = 1
-}
+	showQuantityModal.value = false;
+	selectedProduct.value = null;
+	quantity.value = 1;
+};
 
 // Keyboard shortcuts
 const handleKeyPress = (event: KeyboardEvent): void => {
-  // F1 - Focus search
-  if (event.key === 'F1') {
-    event.preventDefault()
-    const input = document.querySelector('.search-box input') as HTMLInputElement
-    input?.focus()
-  }
-}
+	// F1 - Focus search
+	if (event.key === "F1") {
+		event.preventDefault();
+		const input = document.querySelector(
+			".search-box input",
+		) as HTMLInputElement;
+		input?.focus();
+	}
+};
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyPress)
-})
+	window.addEventListener("keydown", handleKeyPress);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyPress)
-})
+	window.removeEventListener("keydown", handleKeyPress);
+});
 </script>
 
 <style scoped>

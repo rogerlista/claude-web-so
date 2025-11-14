@@ -5,34 +5,31 @@
  * Authentication form with username and password inputs
  */
 
-import { ref } from 'vue'
-import BaseAlert from '../base/BaseAlert.vue'
-import BaseButton from '../base/BaseButton.vue'
-import BaseInput from '../base/BaseInput.vue'
+import { ref } from "vue";
 
 export interface LoginFormProps {
-  loading?: boolean
-  error?: string
+	loading?: boolean;
+	error?: string;
 }
 
 withDefaults(defineProps<LoginFormProps>(), {
-  loading: false,
-})
+	loading: false,
+});
 
 const emit = defineEmits<{
-  submit: [credentials: { username: string; password: string }]
-}>()
+	submit: [credentials: { username: string; password: string }];
+}>();
 
-const username = ref('')
-const password = ref('')
+const username = ref("");
+const password = ref("");
 
 const handleSubmit = (e: Event) => {
-  e.preventDefault()
-  emit('submit', {
-    username: username.value,
-    password: password.value,
-  })
-}
+	e.preventDefault();
+	emit("submit", {
+		username: username.value,
+		password: password.value,
+	});
+};
 </script>
 
 <template>

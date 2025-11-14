@@ -1,7 +1,10 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
-import { createProductId } from '../../domain/product/product-id'
-import type { ProductRepository, RepositoryError } from '../ports/product-repository'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
+import { createProductId } from "../../domain/product/product-id";
+import type {
+	ProductRepository,
+	RepositoryError,
+} from "../ports/product-repository";
 
 /**
  * Delete Product Use Case
@@ -17,12 +20,12 @@ import type { ProductRepository, RepositoryError } from '../ports/product-reposi
  */
 
 export type DeleteProductInput = {
-  readonly id: string
-}
+	readonly id: string;
+};
 
 type DeleteProductDeps = {
-  readonly repository: ProductRepository
-}
+	readonly repository: ProductRepository;
+};
 
 /**
  * Creates a delete product function with injected dependencies
@@ -43,37 +46,37 @@ type DeleteProductDeps = {
  * ```
  */
 export const createDeleteProduct =
-  (deps: DeleteProductDeps) =>
-  async (input: DeleteProductInput): Promise<Result<void, string>> => {
-    // Validate and create ProductId
-    const productIdResult = createProductId(input.id)
+	(deps: DeleteProductDeps) =>
+	async (input: DeleteProductInput): Promise<Result<void, string>> => {
+		// Validate and create ProductId
+		const productIdResult = createProductId(input.id);
 
-    if (!productIdResult.ok) {
-      return ResultUtils.err(productIdResult.error)
-    }
+		if (!productIdResult.ok) {
+			return ResultUtils.err(productIdResult.error);
+		}
 
-    // Delete product from repository
-    const deleteResult = await deps.repository.delete(productIdResult.value)
+		// Delete product from repository
+		const deleteResult = await deps.repository.delete(productIdResult.value);
 
-    if (!deleteResult.ok) {
-      return ResultUtils.err(formatRepositoryError(deleteResult.error))
-    }
+		if (!deleteResult.ok) {
+			return ResultUtils.err(formatRepositoryError(deleteResult.error));
+		}
 
-    return ResultUtils.ok(undefined)
-  }
+		return ResultUtils.ok(undefined);
+	};
 
 /**
  * Formats repository error to user-friendly message
  */
 const formatRepositoryError = (error: RepositoryError): string => {
-  switch (error.type) {
-    case 'NOT_FOUND':
-      return `Product with id ${error.id} not found`
-    case 'DATABASE_ERROR':
-      return `Database error: ${error.message}`
-    case 'DUPLICATE' /* c8 ignore start */:
-      return `Duplicate product with id ${error.id}`
-    case 'UNKNOWN':
-      return `Unknown error: ${error.message}` /* c8 ignore stop */
-  }
-}
+	switch (error.type) {
+		case "NOT_FOUND":
+			return `Product with id ${error.id} not found`;
+		case "DATABASE_ERROR":
+			return `Database error: ${error.message}`;
+		case "DUPLICATE" /* c8 ignore start */:
+			return `Duplicate product with id ${error.id}`;
+		case "UNKNOWN":
+			return `Unknown error: ${error.message}`; /* c8 ignore stop */
+	}
+};

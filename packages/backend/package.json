@@ -1,51 +1,51 @@
 {
-  "name": "@pos-nfce/backend",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "description": "Backend API - Sistema POS com NFC-e",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "dev": "vite-node --watch src/index.ts",
-    "build": "vite build && tsc --emitDeclarationOnly",
-    "start": "node dist/index.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist coverage .tsbuildinfo",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "db:drop": "drizzle-kit drop",
-    "db:check": "drizzle-kit check",
-    "db:seed": "vite-node src/infrastructure/database/seed.ts"
-  },
-  "dependencies": {
-    "@hono/node-server": "1.19.6",
-    "@pos-nfce/shared": "workspace:*",
-    "better-sqlite3": "latest",
-    "drizzle-orm": "latest",
-    "hono": "latest"
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "latest",
-    "@types/node": "latest",
-    "@vitest/coverage-v8": "latest",
-    "@vitest/ui": "latest",
-    "drizzle-kit": "latest",
-    "typescript": "latest",
-    "vite": "latest",
-    "vite-node": "latest",
-    "vitest": "latest"
-  }
+	"name": "@pos-nfce/backend",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Backend API - Sistema POS com NFC-e",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"dev": "vite-node --watch src/index.ts",
+		"build": "vite build && tsc --emitDeclarationOnly",
+		"start": "node dist/index.js",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest run --coverage",
+		"typecheck": "tsc --noEmit",
+		"clean": "rm -rf dist coverage .tsbuildinfo",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"db:drop": "drizzle-kit drop",
+		"db:check": "drizzle-kit check",
+		"db:seed": "vite-node src/infrastructure/database/seed.ts"
+	},
+	"dependencies": {
+		"@hono/node-server": "1.19.6",
+		"@pos-nfce/shared": "workspace:*",
+		"better-sqlite3": "12.4.1",
+		"drizzle-orm": "0.44.7",
+		"hono": "4.10.5"
+	},
+	"devDependencies": {
+		"@types/better-sqlite3": "7.6.13",
+		"@types/node": "24.10.1",
+		"@vitest/coverage-v8": "4.0.9",
+		"@vitest/ui": "4.0.9",
+		"drizzle-kit": "0.31.7",
+		"typescript": "5.9.3",
+		"vite": "7.2.2",
+		"vite-node": "5.1.0",
+		"vitest": "4.0.9"
+	}
 }

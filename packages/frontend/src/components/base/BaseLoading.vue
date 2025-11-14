@@ -13,30 +13,30 @@
  */
 
 export interface BaseLoadingProps {
-  /** Loading indicator size */
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-  /** Loading indicator color */
-  color?: 'primary' | 'secondary' | 'white'
-  /** Loading variant */
-  variant?: 'spinner' | 'dots' | 'pulse'
-  /** Text to display below indicator */
-  text?: string
-  /** Show as fullscreen overlay */
-  fullscreen?: boolean
-  /** Add semi-transparent overlay */
-  overlay?: boolean
-  /** ARIA label for accessibility */
-  ariaLabel?: string
+	/** Loading indicator size */
+	size?: "sm" | "md" | "lg" | "xl";
+	/** Loading indicator color */
+	color?: "primary" | "secondary" | "white";
+	/** Loading variant */
+	variant?: "spinner" | "dots" | "pulse";
+	/** Text to display below indicator */
+	text?: string;
+	/** Show as fullscreen overlay */
+	fullscreen?: boolean;
+	/** Add semi-transparent overlay */
+	overlay?: boolean;
+	/** ARIA label for accessibility */
+	ariaLabel?: string;
 }
 
 withDefaults(defineProps<BaseLoadingProps>(), {
-  size: 'md',
-  color: 'primary',
-  variant: 'spinner',
-  fullscreen: false,
-  overlay: false,
-  ariaLabel: 'Carregando',
-})
+	size: "md",
+	color: "primary",
+	variant: "spinner",
+	fullscreen: false,
+	overlay: false,
+	ariaLabel: "Carregando",
+});
 </script>
 
 <template>

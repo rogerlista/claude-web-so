@@ -1,85 +1,85 @@
 {
-  "compilerOptions": {
-    /* Base Options */
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
-    "allowJs": false,
-    "checkJs": false,
-    "jsx": "preserve",
+	"compilerOptions": {
+		/* Base Options */
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"resolveJsonModule": true,
+		"allowJs": false,
+		"checkJs": false,
+		"jsx": "preserve",
 
-    /* Emit */
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": false,
-    "importHelpers": false,
-    "downlevelIteration": true,
-    "inlineSources": false,
-    "noEmit": true,
+		/* Emit */
+		"outDir": "./dist",
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"removeComments": false,
+		"importHelpers": false,
+		"downlevelIteration": true,
+		"inlineSources": false,
+		"noEmit": true,
 
-    /* Interop Constraints */
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
+		/* Interop Constraints */
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
 
-    /* Type Checking - STRICT MODE */
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
+		/* Type Checking - STRICT MODE */
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitThis": true,
+		"alwaysStrict": true,
 
-    /* Additional Checks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    // "noPropertyAccessFromIndexSignature": true,  // Temporarily disabled due to linter conflict
-    "noImplicitOverride": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "exactOptionalPropertyTypes": true,
+		/* Additional Checks */
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		// "noPropertyAccessFromIndexSignature": true,  // Temporarily disabled due to linter conflict
+		"noImplicitOverride": true,
+		"allowUnusedLabels": false,
+		"allowUnreachableCode": false,
+		"exactOptionalPropertyTypes": true,
 
-    /* Completeness */
-    "skipLibCheck": true,
+		/* Completeness */
+		"skipLibCheck": true,
 
-    /* Vue */
-    "useDefineForClassFields": true,
+		/* Vue */
+		"useDefineForClassFields": true,
 
-    /* Path Mapping */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@domain/*": ["./src/domain/*"],
-      "@application/*": ["./src/application/*"],
-      "@infrastructure/*": ["./src/infrastructure/*"],
-      "@presentation/*": ["./src/presentation/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@components/*": ["./src/presentation/components/*"],
-      "@views/*": ["./src/presentation/views/*"],
-      "@composables/*": ["./src/presentation/composables/*"],
-      "@stores/*": ["./src/application/stores/*"]
-    },
+		/* Path Mapping */
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@domain/*": ["./src/domain/*"],
+			"@application/*": ["./src/application/*"],
+			"@infrastructure/*": ["./src/infrastructure/*"],
+			"@presentation/*": ["./src/presentation/*"],
+			"@shared/*": ["./src/shared/*"],
+			"@components/*": ["./src/presentation/components/*"],
+			"@views/*": ["./src/presentation/views/*"],
+			"@composables/*": ["./src/presentation/composables/*"],
+			"@stores/*": ["./src/application/stores/*"]
+		},
 
-    /* Experimental */
-    "experimentalDecorators": false,
-    "emitDecoratorMetadata": false
-  },
-  "include": ["src/**/*", "src/**/*.vue", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "coverage"],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+		/* Experimental */
+		"experimentalDecorators": false,
+		"emitDecoratorMetadata": false
+	},
+	"include": ["src/**/*", "src/**/*.vue", "tests/**/*"],
+	"exclude": ["node_modules", "dist", "coverage"],
+	"references": [
+		{
+			"path": "./tsconfig.node.json"
+		}
+	]
 }

@@ -1,7 +1,10 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
-import type { Product } from '../../domain/product/product'
-import type { ProductRepository, RepositoryError } from '../ports/product-repository'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
+import type { Product } from "../../domain/product/product";
+import type {
+	ProductRepository,
+	RepositoryError,
+} from "../ports/product-repository";
 
 /**
  * Find All Products Use Case
@@ -21,25 +24,25 @@ import type { ProductRepository, RepositoryError } from '../ports/product-reposi
  */
 
 export type FindAllProductsInput = {
-  readonly page?: number
-  readonly pageSize?: number
-}
+	readonly page?: number;
+	readonly pageSize?: number;
+};
 
 export type PaginatedProducts = {
-  readonly data: readonly Product[]
-  readonly total: number
-  readonly page: number
-  readonly pageSize: number
-  readonly totalPages: number
-}
+	readonly data: readonly Product[];
+	readonly total: number;
+	readonly page: number;
+	readonly pageSize: number;
+	readonly totalPages: number;
+};
 
 type FindAllProductsDeps = {
-  readonly repository: ProductRepository
-}
+	readonly repository: ProductRepository;
+};
 
-const DEFAULT_PAGE = 1
-const DEFAULT_PAGE_SIZE = 10
-const MAX_PAGE_SIZE = 100
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
 
 /**
  * Creates a find all products function with injected dependencies
@@ -65,61 +68,65 @@ const MAX_PAGE_SIZE = 100
  * ```
  */
 export const createFindAllProducts =
-  (deps: FindAllProductsDeps) =>
-  async (input: FindAllProductsInput): Promise<Result<PaginatedProducts, string>> => {
-    // Validate and normalize pagination parameters
-    const page = input.page ?? DEFAULT_PAGE
-    const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
+	(deps: FindAllProductsDeps) =>
+	async (
+		input: FindAllProductsInput,
+	): Promise<Result<PaginatedProducts, string>> => {
+		// Validate and normalize pagination parameters
+		const page = input.page ?? DEFAULT_PAGE;
+		const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE;
 
-    // Validation
-    if (page <= 0) {
-      return ResultUtils.err('Page must be greater than 0')
-    }
+		// Validation
+		if (page <= 0) {
+			return ResultUtils.err("Page must be greater than 0");
+		}
 
-    if (pageSize <= 0 || pageSize > MAX_PAGE_SIZE) {
-      return ResultUtils.err(`Page size must be between 1 and ${MAX_PAGE_SIZE}`)
-    }
+		if (pageSize <= 0 || pageSize > MAX_PAGE_SIZE) {
+			return ResultUtils.err(
+				`Page size must be between 1 and ${MAX_PAGE_SIZE}`,
+			);
+		}
 
-    // Find all products
-    const findResult = await deps.repository.findAll()
+		// Find all products
+		const findResult = await deps.repository.findAll();
 
-    if (!findResult.ok) {
-      return ResultUtils.err(formatRepositoryError(findResult.error))
-    }
+		if (!findResult.ok) {
+			return ResultUtils.err(formatRepositoryError(findResult.error));
+		}
 
-    const allProducts = findResult.value
+		const allProducts = findResult.value;
 
-    // Calculate pagination
-    const total = allProducts.length
-    const totalPages = Math.ceil(total / pageSize)
+		// Calculate pagination
+		const total = allProducts.length;
+		const totalPages = Math.ceil(total / pageSize);
 
-    // Apply pagination
-    const startIndex = (page - 1) * pageSize
-    const endIndex = startIndex + pageSize
-    const paginatedData = allProducts.slice(startIndex, endIndex)
+		// Apply pagination
+		const startIndex = (page - 1) * pageSize;
+		const endIndex = startIndex + pageSize;
+		const paginatedData = allProducts.slice(startIndex, endIndex);
 
-    return ResultUtils.ok({
-      data: paginatedData,
-      total,
-      page,
-      pageSize: paginatedData.length,
-      totalPages: total === 0 ? 0 : totalPages,
-    })
-  }
+		return ResultUtils.ok({
+			data: paginatedData,
+			total,
+			page,
+			pageSize: paginatedData.length,
+			totalPages: total === 0 ? 0 : totalPages,
+		});
+	};
 
 /**
  * Formats repository error to user-friendly message
  */
 const formatRepositoryError = (error: RepositoryError): string => {
-  switch (error.type) {
-    /* c8 ignore next 2 */
-    case 'NOT_FOUND':
-      return `Product with id ${error.id} not found`
-    case 'DATABASE_ERROR':
-      return `Database error: ${error.message}`
-    case 'DUPLICATE' /* c8 ignore start */:
-      return `Duplicate product with id ${error.id}`
-    case 'UNKNOWN':
-      return `Unknown error: ${error.message}` /* c8 ignore stop */
-  }
-}
+	switch (error.type) {
+		/* c8 ignore next 2 */
+		case "NOT_FOUND":
+			return `Product with id ${error.id} not found`;
+		case "DATABASE_ERROR":
+			return `Database error: ${error.message}`;
+		case "DUPLICATE" /* c8 ignore start */:
+			return `Duplicate product with id ${error.id}`;
+		case "UNKNOWN":
+			return `Unknown error: ${error.message}`; /* c8 ignore stop */
+	}
+};
