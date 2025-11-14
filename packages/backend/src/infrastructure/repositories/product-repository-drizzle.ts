@@ -1,6 +1,6 @@
 import type { Result } from "@pos-nfce/shared";
 import { ResultUtils } from "@pos-nfce/shared";
-import { eq, like, or } from "drizzle-orm";
+import { and, eq, like, ne, or } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type {
 	ProductRepository,
@@ -102,6 +102,48 @@ export const createProductRepositoryDrizzle = (
 	save: async (product: Product): Promise<Result<Product, RepositoryError>> => {
 		try {
 			const row = productToRow(product);
+
+			// Check for SKU uniqueness (if SKU is provided)
+			if (product.sku) {
+				const existingSku = await db
+					.select()
+					.from(products)
+					.where(
+						and(
+							eq(products.sku, product.sku as string),
+							ne(products.id, product.id as string),
+						),
+					)
+					.limit(1);
+
+				if (existingSku.length > 0) {
+					return ResultUtils.err({
+						type: "DUPLICATE_SKU",
+						message: `SKU ${product.sku} already exists in product ${existingSku[0]?.id}`,
+					});
+				}
+			}
+
+			// Check for GTIN uniqueness (if GTIN is provided)
+			if (product.gtin) {
+				const existingGtin = await db
+					.select()
+					.from(products)
+					.where(
+						and(
+							eq(products.gtin, product.gtin as string),
+							ne(products.id, product.id as string),
+						),
+					)
+					.limit(1);
+
+				if (existingGtin.length > 0) {
+					return ResultUtils.err({
+						type: "DUPLICATE_GTIN",
+						message: `GTIN ${product.gtin} already exists in product ${existingGtin[0]?.id}`,
+					});
+				}
+			}
 
 			// Use INSERT OR REPLACE for upsert behavior
 			await db

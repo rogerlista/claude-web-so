@@ -170,6 +170,150 @@ describe("ProductRepository Drizzle Adapter", () => {
 				expect(result.value.price).toBe(15.99);
 			}
 		});
+
+		describe("SKU/GTIN Uniqueness", () => {
+			it("should reject duplicate SKU on different product", async () => {
+				const id1Result = createProductId("prod-001");
+				const id2Result = createProductId("prod-002");
+				const priceResult = createPrice(10.5);
+				const skuResult = createSKU("DUPLICATE-SKU");
+
+				if (
+					!id1Result.ok ||
+					!id2Result.ok ||
+					!priceResult.ok ||
+					!skuResult.ok
+				) {
+					throw new Error("Test setup failed");
+				}
+
+				// Save first product with SKU
+				const product1: Product = {
+					id: id1Result.value,
+					description: "Product 1",
+					price: priceResult.value,
+					sku: skuResult.value,
+				};
+				const result1 = await repository.save(product1);
+				expect(result1.ok).toBe(true);
+
+				// Try to save second product with same SKU
+				const product2: Product = {
+					id: id2Result.value,
+					description: "Product 2",
+					price: priceResult.value,
+					sku: skuResult.value,
+				};
+				const result2 = await repository.save(product2);
+
+				expect(result2.ok).toBe(false);
+				if (!result2.ok) {
+					expect(result2.error.type).toBe("DUPLICATE_SKU");
+					expect(result2.error.message).toContain("DUPLICATE-SKU");
+				}
+			});
+
+			it("should reject duplicate GTIN on different product", async () => {
+				const id1Result = createProductId("prod-001");
+				const id2Result = createProductId("prod-002");
+				const priceResult = createPrice(10.5);
+				const gtinResult = createGTIN("7898357417892");
+
+				if (
+					!id1Result.ok ||
+					!id2Result.ok ||
+					!priceResult.ok ||
+					!gtinResult.ok
+				) {
+					throw new Error("Test setup failed");
+				}
+
+				// Save first product with GTIN
+				const product1: Product = {
+					id: id1Result.value,
+					description: "Product 1",
+					price: priceResult.value,
+					gtin: gtinResult.value,
+				};
+				const result1 = await repository.save(product1);
+				expect(result1.ok).toBe(true);
+
+				// Try to save second product with same GTIN
+				const product2: Product = {
+					id: id2Result.value,
+					description: "Product 2",
+					price: priceResult.value,
+					gtin: gtinResult.value,
+				};
+				const result2 = await repository.save(product2);
+
+				expect(result2.ok).toBe(false);
+				if (!result2.ok) {
+					expect(result2.error.type).toBe("DUPLICATE_GTIN");
+					expect(result2.error.message).toContain("7898357417892");
+				}
+			});
+
+			it("should allow same SKU when updating same product", async () => {
+				const idResult = createProductId("prod-001");
+				const priceResult = createPrice(10.5);
+				const skuResult = createSKU("MY-SKU");
+
+				if (!idResult.ok || !priceResult.ok || !skuResult.ok) {
+					throw new Error("Test setup failed");
+				}
+
+				// Save product
+				const product1: Product = {
+					id: idResult.value,
+					description: "Product 1",
+					price: priceResult.value,
+					sku: skuResult.value,
+				};
+				await repository.save(product1);
+
+				// Update same product with same SKU
+				const product2: Product = {
+					id: idResult.value,
+					description: "Updated Product",
+					price: priceResult.value,
+					sku: skuResult.value,
+				};
+				const result = await repository.save(product2);
+
+				expect(result.ok).toBe(true);
+			});
+
+			it("should allow same GTIN when updating same product", async () => {
+				const idResult = createProductId("prod-001");
+				const priceResult = createPrice(10.5);
+				const gtinResult = createGTIN("7898357417892");
+
+				if (!idResult.ok || !priceResult.ok || !gtinResult.ok) {
+					throw new Error("Test setup failed");
+				}
+
+				// Save product
+				const product1: Product = {
+					id: idResult.value,
+					description: "Product 1",
+					price: priceResult.value,
+					gtin: gtinResult.value,
+				};
+				await repository.save(product1);
+
+				// Update same product with same GTIN
+				const product2: Product = {
+					id: idResult.value,
+					description: "Updated Product",
+					price: priceResult.value,
+					gtin: gtinResult.value,
+				};
+				const result = await repository.save(product2);
+
+				expect(result.ok).toBe(true);
+			});
+		});
 	});
 
 	describe("findById", () => {
