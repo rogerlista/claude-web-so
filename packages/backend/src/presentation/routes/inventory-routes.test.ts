@@ -102,6 +102,129 @@ describe("Inventory Routes", () => {
 
 			expect(response.status).toBe(400);
 		});
+
+		it("should validate stock before allowing exit when type is 'saida'", async () => {
+			const productIdResult = createProductId("prod-001");
+			const availableQuantity = createQuantity(100);
+			const exitQuantity = createQuantity(50);
+
+			if (!productIdResult.ok || !availableQuantity.ok || !exitQuantity.ok) {
+				throw new Error("Failed to create test data");
+			}
+
+			const idResult = createInventoryId("exit-001");
+			if (!idResult.ok) {
+				throw new Error("Failed to create test data");
+			}
+
+			const testMovement = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: exitQuantity.value,
+				type: "saida",
+				date: new Date(),
+			});
+
+			if (!testMovement.ok) {
+				throw new Error("Failed to create test movement");
+			}
+
+			const mockRepo: InventoryRepository = {
+				...createMockRepository(),
+				getStock: async () =>
+					ResultUtils.ok({
+						productId: productIdResult.value,
+						currentQuantity: availableQuantity.value,
+						lastMovementDate: new Date(),
+					}),
+				saveMovement: async () => ResultUtils.ok(testMovement.value),
+			};
+
+			const app = createInventoryRoutes({ repository: mockRepo });
+
+			const response = await app.request("/movimentos", {
+				method: "POST",
+				body: JSON.stringify({
+					id: "exit-001",
+					productId: "prod-001",
+					quantity: 50,
+					type: "saida",
+					date: new Date().toISOString(),
+				}),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			expect(response.status).toBe(201);
+		});
+
+		it("should reject exit when insufficient stock", async () => {
+			const productIdResult = createProductId("prod-001");
+			const availableQuantity = createQuantity(30);
+
+			if (!productIdResult.ok || !availableQuantity.ok) {
+				throw new Error("Failed to create test data");
+			}
+
+			const mockRepo: InventoryRepository = {
+				...createMockRepository(),
+				getStock: async () =>
+					ResultUtils.ok({
+						productId: productIdResult.value,
+						currentQuantity: availableQuantity.value,
+						lastMovementDate: new Date(),
+					}),
+			};
+
+			const app = createInventoryRoutes({ repository: mockRepo });
+
+			const response = await app.request("/movimentos", {
+				method: "POST",
+				body: JSON.stringify({
+					id: "exit-002",
+					productId: "prod-001",
+					quantity: 50,
+					type: "saida",
+					date: new Date().toISOString(),
+				}),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			expect(response.status).toBe(400);
+			const data = (await response.json()) as Record<string, unknown>;
+			expect(data.error).toBeDefined();
+		});
+
+		it("should reject exit when no stock exists for product", async () => {
+			const mockRepo: InventoryRepository = {
+				...createMockRepository(),
+				getStock: async () =>
+					ResultUtils.err({ type: "NOT_FOUND", id: "prod-001" }),
+			};
+
+			const app = createInventoryRoutes({ repository: mockRepo });
+
+			const response = await app.request("/movimentos", {
+				method: "POST",
+				body: JSON.stringify({
+					id: "exit-003",
+					productId: "prod-001",
+					quantity: 10,
+					type: "saida",
+					date: new Date().toISOString(),
+				}),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			expect(response.status).toBe(400);
+			const data = (await response.json()) as Record<string, unknown>;
+			expect(data.error).toBeDefined();
+		});
 	});
 
 	describe("GET /stock/:productId", () => {
