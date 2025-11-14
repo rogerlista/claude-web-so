@@ -142,7 +142,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleIdResult.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 21.0,
+        grossTotal: 21.0,
+        discount: 0,
+        addition: 0,
+        netTotal: 21.0,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date('2025-01-01'),
       }
@@ -154,7 +158,7 @@ describe('SaleRepository Drizzle Adapter', () => {
         expect(result.value.id).toBe('sale-123')
         expect(result.value.customerId).toBe('customer-456')
         expect(result.value.items).toHaveLength(1)
-        expect(result.value.total).toBe(21.0)
+        expect(result.value.netTotal).toBe(21.0)
         expect(result.value.status).toBe('PENDING')
       }
     })
@@ -196,7 +200,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleIdResult.value,
         customerId: customerIdResult.value,
         items: [item1Result.value, item2Result.value],
-        total: 26.0,
+        grossTotal: 26.0,
+        discount: 0,
+        addition: 0,
+        netTotal: 26.0,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }
@@ -233,7 +241,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleIdResult.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 21.0,
+        grossTotal: 21.0,
+        discount: 0,
+        addition: 0,
+        netTotal: 21.0,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }
@@ -275,7 +287,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleIdResult.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 21.0,
+        grossTotal: 21.0,
+        discount: 0,
+        addition: 0,
+        netTotal: 21.0,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date('2025-01-01'),
       }
@@ -288,7 +304,7 @@ describe('SaleRepository Drizzle Adapter', () => {
       if (result.ok) {
         expect(result.value.id).toBe('sale-123')
         expect(result.value.items).toHaveLength(1)
-        expect(result.value.total).toBe(21.0)
+        expect(result.value.netTotal).toBe(21.0)
       }
     })
 
@@ -356,7 +372,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleId1Result.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 10.5,
+        grossTotal: 10.5,
+        discount: 0,
+        addition: 0,
+        netTotal: 10.5,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }
@@ -365,7 +385,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleId2Result.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 10.5,
+        grossTotal: 10.5,
+        discount: 0,
+        addition: 0,
+        netTotal: 10.5,
+        payments: [],
         status: 'COMPLETED',
         createdAt: new Date(),
       }
@@ -431,7 +455,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleId1Result.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 10.5,
+        grossTotal: 10.5,
+        discount: 0,
+        addition: 0,
+        netTotal: 10.5,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }
@@ -440,7 +468,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleId2Result.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 10.5,
+        grossTotal: 10.5,
+        discount: 0,
+        addition: 0,
+        netTotal: 10.5,
+        payments: [],
         status: 'COMPLETED',
         createdAt: new Date(),
       }
@@ -511,7 +543,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleId1Result.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 10.5,
+        grossTotal: 10.5,
+        discount: 0,
+        addition: 0,
+        netTotal: 10.5,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }
@@ -520,7 +556,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleId2Result.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 10.5,
+        grossTotal: 10.5,
+        discount: 0,
+        addition: 0,
+        netTotal: 10.5,
+        payments: [],
         status: 'COMPLETED',
         createdAt: new Date(),
       }
@@ -574,7 +614,11 @@ describe('SaleRepository Drizzle Adapter', () => {
         id: saleIdResult.value,
         customerId: customerIdResult.value,
         items: [itemResult.value],
-        total: 21.0,
+        grossTotal: 21.0,
+        discount: 0,
+        addition: 0,
+        netTotal: 21.0,
+        payments: [],
         status: 'PENDING',
         createdAt: new Date(),
       }

@@ -3,7 +3,7 @@ import { status, version } from './index'
 
 /**
  * Backend Infrastructure Tests
- * Phase 4: Módulo de Produtos - REST API
+ * Phase 6: Sales Management System with Payments
  */
 
 describe('Backend Infrastructure', () => {
@@ -11,15 +11,15 @@ describe('Backend Infrastructure', () => {
     expect(version).toBe('0.0.0')
   })
 
-  it('should indicate Phase 4 completion', () => {
-    expect(status).toContain('Phase 4')
+  it('should indicate Phase 6 completion', () => {
+    expect(status).toContain('Phase 6')
   })
 
-  it('should indicate Módulo de Produtos implementation', () => {
-    expect(status).toContain('Módulo de Produtos')
+  it('should indicate Sales Management System implementation', () => {
+    expect(status).toContain('Sales Management System')
   })
 
-  it('should indicate REST API availability', () => {
-    expect(status).toContain('REST API')
+  it('should indicate Payments support', () => {
+    expect(status).toContain('Payments')
   })
 })

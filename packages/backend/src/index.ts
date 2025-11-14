@@ -12,6 +12,7 @@ import { serve } from '@hono/node-server'
 import { createDatabase } from './infrastructure/database/connection'
 import { createInventoryRepositoryDrizzle } from './infrastructure/repositories/inventory-repository-drizzle'
 import { createProductRepositoryDrizzle } from './infrastructure/repositories/product-repository-drizzle'
+import { createSaleRepositoryDrizzle } from './infrastructure/repositories/sale-repository-drizzle'
 import { createApp } from './presentation/app'
 
 /**
@@ -27,11 +28,13 @@ const bootstrap = () => {
   // Create repository adapters
   const productRepository = createProductRepositoryDrizzle(db)
   const inventoryRepository = createInventoryRepositoryDrizzle(db)
+  const saleRepository = createSaleRepositoryDrizzle(db)
 
   // Create app with injected dependencies
   const app = createApp({
     productRepository,
     inventoryRepository,
+    saleRepository,
   })
 
   // Start server
@@ -49,4 +52,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export const version = '0.0.0'
-export const status = 'Phase 4: Módulo de Produtos - REST API'
+export const status = 'Phase 6: Sales Management System with Payments'

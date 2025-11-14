@@ -41,6 +41,33 @@ export const createRouter = (history: RouterHistory): Router => {
         meta: { requiresAuth: true },
         props: true,
       },
+      {
+        path: '/pos',
+        name: 'pos',
+        component: () => import('../views/pos/POSView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/pos/checkout/:id',
+        name: 'pos-checkout',
+        component: () => import('../views/pos/POSCheckoutView.vue'),
+        path: '/inventory',
+        name: 'inventory',
+        component: () => import('../views/inventory/InventoryMovementView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/inventory/movement',
+        name: 'inventory-movement',
+        component: () => import('../views/inventory/InventoryMovementView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/inventory/count',
+        name: 'inventory-count',
+        component: () => import('../views/inventory/InventoryCountView.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   })
 

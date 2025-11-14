@@ -39,7 +39,9 @@ export type CreateSaleItemInput = {
 export type CreateSaleInput = {
   readonly id: string
   readonly customerId: string
-  readonly items: readonly CreateSaleItemInput[]
+  readonly items?: readonly CreateSaleItemInput[]
+  readonly discount?: number
+  readonly addition?: number
   readonly status?: string
   readonly createdAt?: Date
 }
@@ -90,6 +92,7 @@ export const createSaleUseCase =
 
     // Step 3: Validate and create SaleItems
     const saleItems: SaleItem[] = []
+    const items = input.items ?? []
 
     for (let i = 0; i < input.items.length; i++) {
       const itemInput = input.items[i]
@@ -151,6 +154,8 @@ export const createSaleUseCase =
       id: saleIdResult.value,
       customerId: customerIdResult.value,
       items: saleItems,
+      ...(input.discount !== undefined && { discount: input.discount }),
+      ...(input.addition !== undefined && { addition: input.addition }),
       ...(status !== undefined && { status }),
       ...(input.createdAt !== undefined && { createdAt: input.createdAt }),
     })
