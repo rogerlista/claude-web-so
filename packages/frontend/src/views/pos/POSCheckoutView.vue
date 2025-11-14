@@ -45,9 +45,74 @@
             <span>Desconto:</span>
             <span>-{{ formatCurrency(sale.discount) }}</span>
           </div>
+          <div v-if="sale.addition > 0" class="total-line addition">
+            <span>Acréscimo:</span>
+            <span>+{{ formatCurrency(sale.addition) }}</span>
+          </div>
           <div class="total-line total">
             <span>Total:</span>
             <span>{{ formatCurrency(sale.netTotal) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discount/Surcharge Section -->
+      <div class="adjustment-section">
+        <h2>Desconto e Acréscimo</h2>
+        <p class="section-description">Ajuste o valor da venda antes do pagamento</p>
+
+        <div class="adjustment-grid">
+          <div class="adjustment-group">
+            <label for="discount-input">Desconto (R$)</label>
+            <div class="input-with-button">
+              <input
+                id="discount-input"
+                v-model.number="discountInput"
+                type="number"
+                min="0"
+                :max="sale.grossTotal"
+                step="0.01"
+                placeholder="0.00"
+                class="form-input"
+              />
+              <BaseButton
+                variant="secondary"
+                size="sm"
+                :disabled="salesStore.loading || !discountInput || discountInput <= 0"
+                @click="handleApplyDiscount"
+              >
+                Aplicar
+              </BaseButton>
+            </div>
+            <p v-if="sale.discount > 0" class="current-value">
+              Desconto atual: {{ formatCurrency(sale.discount) }}
+            </p>
+          </div>
+
+          <div class="adjustment-group">
+            <label for="surcharge-input">Acréscimo (R$)</label>
+            <div class="input-with-button">
+              <input
+                id="surcharge-input"
+                v-model.number="surchargeInput"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                class="form-input"
+              />
+              <BaseButton
+                variant="secondary"
+                size="sm"
+                :disabled="salesStore.loading || !surchargeInput || surchargeInput <= 0"
+                @click="handleApplySurcharge"
+              >
+                Aplicar
+              </BaseButton>
+            </div>
+            <p v-if="sale.addition > 0" class="current-value">
+              Acréscimo atual: {{ formatCurrency(sale.addition) }}
+            </p>
           </div>
         </div>
       </div>
@@ -153,7 +218,11 @@ const customerEmail = ref("");
 const cpfError = ref("");
 const emailError = ref("");
 
-const formatCurrency = (value: number): string => {
+// Discount and surcharge
+const discountInput = ref<number>(0);
+const surchargeInput = ref<number>(0);
+
+const _formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
@@ -161,7 +230,7 @@ const formatCurrency = (value: number): string => {
 };
 
 // CPF formatting and validation
-const formatCpf = (): void => {
+const _formatCpf = (): void => {
 	// Remove non-digits
 	let cpf = customerCpf.value.replace(/\D/g, "");
 
@@ -217,7 +286,7 @@ const validateEmail = (): void => {
 };
 
 // Save customer information
-const handleSaveCustomerInfo = async (): Promise<void> => {
+const _handleSaveCustomerInfo = async (): Promise<void> => {
 	validateCpf();
 	validateEmail();
 
@@ -225,7 +294,9 @@ const handleSaveCustomerInfo = async (): Promise<void> => {
 		return;
 	}
 
-	const cpfDigits = customerCpf.value ? customerCpf.value.replace(/\D/g, "") : undefined;
+	const cpfDigits = customerCpf.value
+		? customerCpf.value.replace(/\D/g, "")
+		: undefined;
 	const email = customerEmail.value || undefined;
 
 	const success = await salesStore.updateCustomerInfo(cpfDigits, email);
@@ -236,34 +307,52 @@ const handleSaveCustomerInfo = async (): Promise<void> => {
 	}
 };
 
-const handleBack = (): void => {
+const _handleBack = (): void => {
 	router.push("/pos");
 };
 
-const handleAddPayment = async (
+const _handleAddPayment = async (
 	paymentMethodCode: string,
 	amount: number,
 ): Promise<void> => {
 	await salesStore.addPayment(paymentMethodCode, amount);
 };
 
-const handleRemovePayment = async (index: number): Promise<void> => {
+const _handleRemovePayment = async (index: number): Promise<void> => {
 	await salesStore.removePayment(index);
 };
 
-const handleComplete = async (): Promise<void> => {
+const _handleApplyDiscount = async (): Promise<void> => {
+	if (discountInput.value > 0) {
+		const success = await salesStore.applyDiscount(discountInput.value);
+		if (success) {
+			discountInput.value = 0;
+		}
+	}
+};
+
+const _handleApplySurcharge = async (): Promise<void> => {
+	if (surchargeInput.value > 0) {
+		const success = await salesStore.applySurcharge(surchargeInput.value);
+		if (success) {
+			surchargeInput.value = 0;
+		}
+	}
+};
+
+const _handleComplete = async (): Promise<void> => {
 	const success = await salesStore.finalizeSale();
 	if (success) {
 		showSuccessModal.value = true;
 	}
 };
 
-const handlePrintReceipt = (): void => {
+const _handlePrintReceipt = (): void => {
 	// TODO: Implement receipt printing
 	window.print();
 };
 
-const handleNewSale = async (): Promise<void> => {
+const _handleNewSale = async (): Promise<void> => {
 	salesStore.clearSale();
 	await router.push("/pos");
 };
@@ -365,6 +454,7 @@ onMounted(async () => {
 }
 
 .sale-summary,
+.adjustment-section,
 .customer-section,
 .payment-section {
   background-color: #fff;
@@ -375,6 +465,7 @@ onMounted(async () => {
 }
 
 .sale-summary h2,
+.adjustment-section h2,
 .customer-section h2,
 .payment-section h2 {
   margin: 0 0 1.5rem 0;
@@ -502,12 +593,51 @@ onMounted(async () => {
   color: #f44336;
 }
 
+.total-line.addition {
+  color: #4caf50;
+}
+
 .total-line.total {
   margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 2px solid #333;
   font-size: 1.5rem;
   font-weight: bold;
+}
+
+/* Adjustment Section */
+.adjustment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.adjustment-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adjustment-group label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.input-with-button {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+.current-value {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  font-style: italic;
 }
 
 /* Success Modal */
