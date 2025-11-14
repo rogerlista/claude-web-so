@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { InventoryRepository } from "../../application/ports/inventory-repository";
 import type { SaleRepository } from "../../application/ports/sale-repository";
 import { createAddSaleItemUseCase } from "../../application/use-cases/add-sale-item";
 import { createAddSalePaymentUseCase } from "../../application/use-cases/add-sale-payment";
@@ -38,7 +39,8 @@ import { createSaleId } from "../../domain/sale/sale-id";
  */
 
 type SaleRoutesDeps = {
-	readonly repository: SaleRepository;
+	readonly saleRepository: SaleRepository;
+	readonly inventoryRepository: InventoryRepository;
 };
 
 /**
@@ -51,15 +53,23 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 	const app = new Hono();
 
 	// Inject dependencies into use cases
-	const createSale = createSaleUseCase(deps.repository);
-	const addSaleItem = createAddSaleItemUseCase(deps.repository);
-	const removeSaleItem = createRemoveSaleItemUseCase(deps.repository);
+	const createSale = createSaleUseCase(deps.saleRepository);
+	const addSaleItem = createAddSaleItemUseCase({
+		saleRepository: deps.saleRepository,
+		inventoryRepository: deps.inventoryRepository,
+	});
+	const removeSaleItem = createRemoveSaleItemUseCase(deps.saleRepository);
 	const updateSaleItemQuantity = createUpdateSaleItemQuantityUseCase(
-		deps.repository,
+		deps.saleRepository,
 	);
-	const applySaleDiscount = createApplySaleDiscountUseCase(deps.repository);
-	const addSalePayment = createAddSalePaymentUseCase(deps.repository);
-	const finalizeSale = createFinalizeSaleUseCase(deps.repository);
+	const applySaleDiscount = createApplySaleDiscountUseCase(
+		deps.saleRepository,
+	);
+	const addSalePayment = createAddSalePaymentUseCase(deps.saleRepository);
+	const finalizeSale = createFinalizeSaleUseCase({
+		saleRepository: deps.saleRepository,
+		inventoryRepository: deps.inventoryRepository,
+	});
 
 	/**
 	 * POST /api/vendas - Create sale
@@ -118,7 +128,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 		try {
 			const id = c.req.param("id");
 
-			const result = await deps.repository.findById(id as never);
+			const result = await deps.saleRepository.findById(id as never);
 
 			if (!result.ok) {
 				if (result.error.type === "NOT_FOUND") {
@@ -363,7 +373,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 			}
 
 			// Get current sale
-			const saleResult = await deps.repository.findById(saleIdResult.value);
+			const saleResult = await deps.saleRepository.findById(saleIdResult.value);
 			if (!saleResult.ok) {
 				return c.json({ error: "Sale not found" }, 404);
 			}
@@ -376,7 +386,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 			};
 
 			// Save updated sale
-			const saveResult = await deps.repository.save(updatedSale);
+			const saveResult = await deps.saleRepository.save(updatedSale);
 			if (!saveResult.ok) {
 				return c.json({ error: "Failed to update customer info" }, 500);
 			}
@@ -426,7 +436,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 	 */
 	app.get("/", async (c) => {
 		try {
-			const result = await deps.repository.findAll();
+			const result = await deps.saleRepository.findAll();
 
 			if (!result.ok) {
 				return c.json({ error: "Failed to fetch sales" }, 500);
@@ -469,7 +479,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 				return c.json({ error: "Invalid sale ID" }, 400);
 			}
 
-			const result = await deps.repository.delete(saleIdResult.value);
+			const result = await deps.saleRepository.delete(saleIdResult.value);
 
 			if (!result.ok) {
 				if (result.error.type === "NOT_FOUND") {

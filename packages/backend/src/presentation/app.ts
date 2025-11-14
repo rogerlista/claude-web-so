@@ -65,7 +65,10 @@ export const createApp = (deps: AppDeps): Hono => {
 	);
 	app.route(
 		"/api/vendas",
-		createSaleRoutes({ repository: deps.saleRepository }),
+		createSaleRoutes({
+			saleRepository: deps.saleRepository,
+			inventoryRepository: deps.inventoryRepository,
+		}),
 	);
 
 	// 404 handler

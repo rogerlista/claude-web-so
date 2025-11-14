@@ -257,7 +257,7 @@ describe("Promotional Price Value Object", () => {
 			}
 
 			const result = createPromotionalPrice({
-				regularPrice: null as unknown as number,
+				regularPrice: null as unknown as typeof promotionalPriceResult.value,
 				promotionalPrice: promotionalPriceResult.value,
 				startDate,
 				endDate,
@@ -277,7 +277,7 @@ describe("Promotional Price Value Object", () => {
 
 			const result = createPromotionalPrice({
 				regularPrice: regularPriceResult.value,
-				promotionalPrice: null as unknown as number,
+				promotionalPrice: null as unknown as typeof regularPriceResult.value,
 				startDate,
 				endDate,
 			});
