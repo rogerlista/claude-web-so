@@ -1,0 +1,19 @@
+# Tauri
+/src-tauri/target
+/src-tauri/WixTools
+
+# Dependencies
+node_modules
+.pnpm-debug.log*
+
+# Build output
+dist
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+
+# OS
+.DS_Store
+Thumbs.db
