@@ -143,6 +143,10 @@ describe("ProductListView - T026", () => {
 	});
 
 	it("should navigate to create page on button click", async () => {
+		// Push to initial route first
+		await mockRouter.push("/products");
+		await mockRouter.isReady();
+
 		const wrapper = mount(ProductListView, {
 			global: {
 				plugins: [mockRouter],
@@ -153,7 +157,7 @@ describe("ProductListView - T026", () => {
 		await button.trigger("click");
 		await mockRouter.isReady();
 
-		expect(mockRouter.currentRoute.value.name).toBe("product-create");
+		expect(mockRouter.currentRoute.value.path).toBe("/products/create");
 	});
 
 	it("should navigate to edit page on row click", async () => {

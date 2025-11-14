@@ -206,7 +206,7 @@ describe('ProductLookup - T028', () => {
                 ok: true,
                 json: async () => ({ data: [] }),
               }),
-            100
+            500 // Longer delay to catch loading state
           )
         })
     )
@@ -215,6 +215,9 @@ describe('ProductLookup - T028', () => {
     const input = wrapper.find('input[type="text"]')
 
     await input.setValue('test')
+
+    // Wait for debounce (300ms) + a bit more
+    await new Promise((resolve) => setTimeout(resolve, 350))
 
     expect(wrapper.find('[data-testid="loading-indicator"]').exists()).toBe(true)
   })
@@ -283,6 +286,7 @@ describe('ProductLookup - T028', () => {
     expect(wrapper.find('[data-testid="results-dropdown"]').exists()).toBe(true)
 
     await input.trigger('keydown.esc')
+    await wrapper.vm.$nextTick()
 
     expect(wrapper.find('[data-testid="results-dropdown"]').exists()).toBe(false)
   })

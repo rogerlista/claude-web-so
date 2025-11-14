@@ -177,10 +177,13 @@ describe('ProductFormView - T027', () => {
       },
     })
 
-    const saveButton = wrapper.find('[data-testid="save-button"]')
-    await saveButton.trigger('click')
+    const form = wrapper.find('form')
+    await form.trigger('submit')
+    await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('obrigatório')
+    // Check for validation error messages
+    const text = wrapper.text()
+    expect(text).toContain('SKU é obrigatório')
   })
 
   it('should submit form with valid data', async () => {
