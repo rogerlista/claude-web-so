@@ -17,6 +17,17 @@
       <p class="empty-hint">Use F1 para buscar produtos</p>
     </div>
 
+    <!-- Password Modal for Remove Item -->
+    <PasswordModal
+      v-model="showPasswordModal"
+      title="Cancelar Item"
+      message="Digite sua senha para cancelar este item da venda"
+      :loading="isValidatingPassword"
+      :error="passwordError"
+      @confirm="handlePasswordConfirm"
+      @cancel="handlePasswordCancel"
+    />
+
     <div v-else class="items-container">
       <div
         v-for="(item, index) in items"
@@ -85,6 +96,8 @@
  * Phase 6: T038 - Lista de itens no PDV
  */
 
+import { ref } from "vue";
+import { useAuthStore } from "../../../stores/auth";
 import type { SaleItem } from "../../../stores/sales";
 
 interface Props {
@@ -102,24 +115,32 @@ const emit = defineEmits<{
 	"remove-item": [productId: string];
 }>();
 
-const formatCurrency = (value: number): string => {
+// Password Modal State
+const showPasswordModal = ref(false);
+const isValidatingPassword = ref(false);
+const passwordError = ref("");
+const pendingRemoveItem = ref<SaleItem | null>(null);
+
+const authStore = useAuthStore();
+
+const _formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
 	}).format(value);
 };
 
-const handleIncreaseQuantity = (item: SaleItem): void => {
+const _handleIncreaseQuantity = (item: SaleItem): void => {
 	emit("update-quantity", item.productId, item.quantity + 1);
 };
 
-const handleDecreaseQuantity = (item: SaleItem): void => {
+const _handleDecreaseQuantity = (item: SaleItem): void => {
 	if (item.quantity > 1) {
 		emit("update-quantity", item.productId, item.quantity - 1);
 	}
 };
 
-const handleQuantityChange = (item: SaleItem, event: Event): void => {
+const _handleQuantityChange = (item: SaleItem, event: Event): void => {
 	const target = event.target as HTMLInputElement;
 	const newQuantity = Number.parseInt(target.value, 10);
 
@@ -131,10 +152,40 @@ const handleQuantityChange = (item: SaleItem, event: Event): void => {
 	}
 };
 
-const handleRemove = (item: SaleItem): void => {
-	if (confirm(`Remover "${item.productName || item.productId}" da venda?`)) {
-		emit("remove-item", item.productId);
+const _handleRemove = (item: SaleItem): void => {
+	pendingRemoveItem.value = item;
+	showPasswordModal.value = true;
+};
+
+const _handlePasswordConfirm = async (password: string): Promise<void> => {
+	if (!pendingRemoveItem.value) {
+		return;
 	}
+
+	isValidatingPassword.value = true;
+	passwordError.value = "";
+
+	try {
+		// Validate password with user's password
+		const isValid = await authStore.validatePassword(password);
+
+		if (isValid && pendingRemoveItem.value) {
+			emit("remove-item", pendingRemoveItem.value.productId);
+			showPasswordModal.value = false;
+			pendingRemoveItem.value = null;
+		} else {
+			passwordError.value = "Senha incorreta";
+		}
+	} catch (_error) {
+		passwordError.value = "Erro ao validar senha";
+	} finally {
+		isValidatingPassword.value = false;
+	}
+};
+
+const _handlePasswordCancel = (): void => {
+	pendingRemoveItem.value = null;
+	passwordError.value = "";
 };
 </script>
 
