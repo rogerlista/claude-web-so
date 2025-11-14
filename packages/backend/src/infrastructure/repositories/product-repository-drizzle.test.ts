@@ -209,7 +209,9 @@ describe("ProductRepository Drizzle Adapter", () => {
 				expect(result2.ok).toBe(false);
 				if (!result2.ok) {
 					expect(result2.error.type).toBe("DUPLICATE_SKU");
-					expect(result2.error.message).toContain("DUPLICATE-SKU");
+					if (result2.error.type === "DUPLICATE_SKU") {
+						expect(result2.error.message).toContain("DUPLICATE-SKU");
+					}
 				}
 			});
 
@@ -250,7 +252,9 @@ describe("ProductRepository Drizzle Adapter", () => {
 				expect(result2.ok).toBe(false);
 				if (!result2.ok) {
 					expect(result2.error.type).toBe("DUPLICATE_GTIN");
-					expect(result2.error.message).toContain("7898357417892");
+					if (result2.error.type === "DUPLICATE_GTIN") {
+						expect(result2.error.message).toContain("7898357417892");
+					}
 				}
 			});
 
