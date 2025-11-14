@@ -5,6 +5,7 @@ import { createProductId } from "../../domain/product/product-id";
 import { addItemToSale, type Sale } from "../../domain/sale/sale";
 import { createSaleId } from "../../domain/sale/sale-id";
 import { createSaleItem } from "../../domain/sale/sale-item";
+import type { InventoryRepository } from "../ports/inventory-repository";
 import type { RepositoryError, SaleRepository } from "../ports/sale-repository";
 
 /**
@@ -38,7 +39,13 @@ export type AddSaleItemUseCaseError =
 			readonly type: "REPOSITORY_ERROR";
 			readonly repositoryError: RepositoryError;
 	  }
-	| { readonly type: "SALE_NOT_FOUND"; readonly saleId: string };
+	| { readonly type: "SALE_NOT_FOUND"; readonly saleId: string }
+	| {
+			readonly type: "INSUFFICIENT_STOCK";
+			readonly available: number;
+			readonly requested: number;
+	  }
+	| { readonly type: "NO_STOCK"; readonly productId: string };
 
 /**
  * AddSaleItem use case function type
@@ -48,13 +55,21 @@ export type AddSaleItemUseCase = (
 ) => Promise<Result<Sale, AddSaleItemUseCaseError>>;
 
 /**
+ * Dependencies for AddSaleItem use case
+ */
+export type AddSaleItemDeps = {
+	readonly saleRepository: SaleRepository;
+	readonly inventoryRepository: InventoryRepository;
+};
+
+/**
  * Create the AddSaleItem use case
  *
- * @param repository - SaleRepository implementation
+ * @param deps - Dependencies (repositories)
  * @returns Use case function
  */
 export const createAddSaleItemUseCase =
-	(repository: SaleRepository): AddSaleItemUseCase =>
+	(deps: AddSaleItemDeps): AddSaleItemUseCase =>
 	async (
 		input: AddSaleItemInput,
 	): Promise<Result<Sale, AddSaleItemUseCaseError>> => {
@@ -68,7 +83,7 @@ export const createAddSaleItemUseCase =
 		}
 
 		// Step 2: Load existing sale
-		const findResult = await repository.findById(saleIdResult.value);
+		const findResult = await deps.saleRepository.findById(saleIdResult.value);
 		if (!findResult.ok) {
 			if (findResult.error.type === "NOT_FOUND") {
 				return ResultUtils.err({
@@ -93,7 +108,39 @@ export const createAddSaleItemUseCase =
 			});
 		}
 
-		// Step 4: Validate Price (unitPrice)
+		// Step 4: Check stock availability
+		const stockResult = await deps.inventoryRepository.getStock(
+			productIdResult.value,
+		);
+
+		if (!stockResult.ok) {
+			// If stock not found, product has no inventory record
+			if (stockResult.error.type === "NOT_FOUND") {
+				return ResultUtils.err({
+					type: "NO_STOCK",
+					productId: input.productId,
+				});
+			}
+			// Other repository errors
+			return ResultUtils.err({
+				type: "REPOSITORY_ERROR",
+				repositoryError: stockResult.error,
+			});
+		}
+
+		// Step 5: Validate sufficient stock
+		const currentStock = stockResult.value.currentQuantity;
+		const requestedQuantity = input.quantity;
+
+		if (currentStock < requestedQuantity) {
+			return ResultUtils.err({
+				type: "INSUFFICIENT_STOCK",
+				available: currentStock,
+				requested: requestedQuantity,
+			});
+		}
+
+		// Step 6: Validate Price (unitPrice)
 		const priceResult = createPrice(input.unitPrice);
 		if (!priceResult.ok) {
 			return ResultUtils.err({
@@ -102,7 +149,7 @@ export const createAddSaleItemUseCase =
 			});
 		}
 
-		// Step 5: Create SaleItem
+		// Step 7: Create SaleItem
 		const saleItemResult = createSaleItem({
 			productId: productIdResult.value,
 			quantity: input.quantity,
@@ -116,7 +163,7 @@ export const createAddSaleItemUseCase =
 			});
 		}
 
-		// Step 6: Add item to sale
+		// Step 8: Add item to sale
 		const updatedSaleResult = addItemToSale(sale, saleItemResult.value);
 		if (!updatedSaleResult.ok) {
 			return ResultUtils.err({
@@ -125,8 +172,8 @@ export const createAddSaleItemUseCase =
 			});
 		}
 
-		// Step 7: Save updated sale
-		const saveResult = await repository.save(updatedSaleResult.value);
+		// Step 9: Save updated sale
+		const saveResult = await deps.saleRepository.save(updatedSaleResult.value);
 		if (!saveResult.ok) {
 			return ResultUtils.err({
 				type: "REPOSITORY_ERROR",

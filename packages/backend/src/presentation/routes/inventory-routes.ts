@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { InventoryRepository } from "../../application/ports/inventory-repository";
 import { getStockUseCase } from "../../application/use-cases/get-stock";
+import { registerStockExitUseCase } from "../../application/use-cases/register-stock-exit";
 import { registerStockMovementUseCase } from "../../application/use-cases/register-stock-movement";
 import { createInventoryId } from "../../domain/inventory/inventory-id";
 import type { InventoryMovement } from "../../domain/inventory/inventory-movement";
@@ -34,23 +35,36 @@ export const createInventoryRoutes = (deps: InventoryRoutesDeps): Hono => {
 
 	// Inject dependencies into use cases
 	const registerMovement = registerStockMovementUseCase(deps.repository);
+	const registerStockExit = registerStockExitUseCase(deps.repository);
 	const getStock = getStockUseCase(deps.repository);
 
 	/**
 	 * POST /api/estoque/movimentos - Register stock movement
+	 *
+	 * For stock exits (type: "saida"), validates available stock before allowing the movement.
+	 * For stock entries (type: "entrada"), registers the movement without validation.
 	 */
 	app.post("/movimentos", async (c) => {
 		try {
 			const body = await c.req.json();
 
-			const result = await registerMovement({
-				id: body.id,
-				productId: body.productId,
-				quantity: body.quantity,
-				type: body.type,
-				date: new Date(body.date),
-				description: body.description,
-			});
+			// Use different use case based on movement type
+			const result =
+				body.type === "saida"
+					? await registerStockExit({
+							id: body.id,
+							productId: body.productId,
+							quantity: body.quantity,
+							description: body.description,
+						})
+					: await registerMovement({
+							id: body.id,
+							productId: body.productId,
+							quantity: body.quantity,
+							type: body.type,
+							date: new Date(body.date),
+							description: body.description,
+						});
 
 			if (!result.ok) {
 				return c.json({ error: result.error }, 400);
