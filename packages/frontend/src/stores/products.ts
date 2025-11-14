@@ -20,6 +20,13 @@ export interface Product {
 	readonly preco_promocional?: number;
 	readonly ncm?: string;
 	readonly cest?: string;
+	readonly dun14?: string;
+	readonly codigo_balanca?: string;
+	readonly origem_tributaria?: string;
+	readonly cst?: string;
+	readonly aliquota_icms?: number;
+	readonly preco_promocional_inicio?: string;
+	readonly preco_promocional_fim?: string;
 	readonly created_at?: string;
 	readonly updated_at?: string;
 }
@@ -35,6 +42,13 @@ export interface CreateProductInput {
 	readonly preco_promocional?: number;
 	readonly ncm?: string;
 	readonly cest?: string;
+	readonly dun14?: string;
+	readonly codigo_balanca?: string;
+	readonly origem_tributaria?: string;
+	readonly cst?: string;
+	readonly aliquota_icms?: number;
+	readonly preco_promocional_inicio?: string;
+	readonly preco_promocional_fim?: string;
 }
 
 export const useProductsStore = defineStore("products", () => {

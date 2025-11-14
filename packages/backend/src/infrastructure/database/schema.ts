@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 /**
  * Products Table Schema
@@ -13,44 +13,56 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
  * - gtin: Optional text field for barcode (GTIN-8/12/13/14)
  * - Timestamps for audit trail
  */
-export const products = sqliteTable("products", {
-	// Identificação
-	id: text("id").primaryKey().notNull(),
-	codigo: text("codigo"), // Código interno
-	sku: text("sku").unique(), // Stock Keeping Unit
-	gtin: text("gtin").unique(), // Código de barras (EAN)
-	dun14: text("dun14"), // Código DUN-14
-	codigoBalanca: text("codigo_balanca"), // Código para balança
+export const products = sqliteTable(
+	"products",
+	{
+		// Identificação
+		id: text("id").primaryKey().notNull(),
+		codigo: text("codigo"), // Código interno
+		sku: text("sku").unique(), // Stock Keeping Unit
+		gtin: text("gtin").unique(), // Código de barras (EAN)
+		dun14: text("dun14"), // Código DUN-14
+		codigoBalanca: text("codigo_balanca"), // Código para balança
 
-	// Status e informações básicas
-	status: text("status").default("ACTIVE"), // ACTIVE, INACTIVE
-	description: text("description").notNull(),
-	unidadeMedida: text("unidade_medida").default("UN"), // UN, KG, LT, etc
+		// Status e informações básicas
+		status: text("status").default("ACTIVE"), // ACTIVE, INACTIVE
+		description: text("description").notNull(),
+		unidadeMedida: text("unidade_medida").default("UN"), // UN, KG, LT, etc
 
-	// Preços (em centavos)
-	priceInCents: integer("price_in_cents").notNull(),
-	precoPromocionalInCents: integer("preco_promocional_in_cents"),
-	precoPromocionalInicio: integer("preco_promocional_inicio", {
-		mode: "timestamp",
+		// Preços (em centavos)
+		priceInCents: integer("price_in_cents").notNull(),
+		precoPromocionalInCents: integer("preco_promocional_in_cents"),
+		precoPromocionalInicio: integer("preco_promocional_inicio", {
+			mode: "timestamp",
+		}),
+		precoPromocionalFim: integer("preco_promocional_fim", {
+			mode: "timestamp",
+		}),
+
+		// Informações Fiscais/Tributárias (NFC-e)
+		origemTributaria: text("origem_tributaria"), // 0-8 conforme SEFAZ
+		ncm: text("ncm"), // Nomenclatura Comum do Mercosul (8 dígitos)
+		cest: text("cest"), // Código Especificador da Substituição Tributária
+		tributacao: text("tributacao"), // CST/CSOSN
+		aliquotaIcms: integer("aliquota_icms"), // % * 100 (ex: 18% = 1800)
+
+		// Auditoria
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.default(sql`(unixepoch())`),
+		updatedAt: integer("updated_at", { mode: "timestamp" })
+			.notNull()
+			.default(sql`(unixepoch())`),
+		deletedAt: integer("deleted_at", { mode: "timestamp" }), // Soft delete
+	},
+	(table) => ({
+		skuIdx: index("products_sku_idx").on(table.sku),
+		gtinIdx: index("products_gtin_idx").on(table.gtin),
+		descriptionIdx: index("products_description_idx").on(table.description),
+		dun14Idx: index("products_dun14_idx").on(table.dun14),
+		codigoBalancaIdx: index("products_balanca_idx").on(table.codigoBalanca),
 	}),
-	precoPromocionalFim: integer("preco_promocional_fim", { mode: "timestamp" }),
-
-	// Informações Fiscais/Tributárias (NFC-e)
-	origemTributaria: text("origem_tributaria"), // 0-8 conforme SEFAZ
-	ncm: text("ncm"), // Nomenclatura Comum do Mercosul (8 dígitos)
-	cest: text("cest"), // Código Especificador da Substituição Tributária
-	tributacao: text("tributacao"), // CST/CSOSN
-	aliquotaIcms: integer("aliquota_icms"), // % * 100 (ex: 18% = 1800)
-
-	// Auditoria
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.default(sql`(unixepoch())`),
-	updatedAt: integer("updated_at", { mode: "timestamp" })
-		.notNull()
-		.default(sql`(unixepoch())`),
-	deletedAt: integer("deleted_at", { mode: "timestamp" }), // Soft delete
-});
+);
 
 /**
  * TypeScript type inferred from the schema

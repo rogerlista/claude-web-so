@@ -318,6 +318,59 @@ export const useSalesStore = defineStore("sales", () => {
 	};
 
 	/**
+	 * Apply surcharge (addition) to sale
+	 */
+	const applySurcharge = async (surcharge: number): Promise<boolean> => {
+		if (!currentSale.value) {
+			error.value = "Nenhuma venda ativa";
+			return false;
+		}
+
+		loading.value = true;
+		error.value = null;
+
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/api/vendas/${currentSale.value.id}/surcharge`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ amount: surcharge }),
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error("Failed to apply surcharge");
+			}
+
+			const data = (await response.json()) as {
+				id: string;
+				addition: number;
+				grossTotal: number;
+				netTotal: number;
+			};
+
+			// Update current sale with new values
+			if (currentSale.value) {
+				currentSale.value = {
+					...currentSale.value,
+					addition: data.addition,
+					netTotal: data.netTotal,
+				};
+			}
+
+			return true;
+		} catch (_err) {
+			error.value = "Erro ao aplicar acréscimo";
+			return false;
+		} finally {
+			loading.value = false;
+		}
+	};
+
+	/**
 	 * Add payment to sale
 	 */
 	const addPayment = async (
@@ -357,6 +410,29 @@ export const useSalesStore = defineStore("sales", () => {
 		} finally {
 			loading.value = false;
 		}
+	};
+
+	/**
+	 * Remove payment from sale by index
+	 */
+	const removePayment = async (index: number): Promise<boolean> => {
+		if (!currentSale.value) {
+			error.value = "Nenhuma venda ativa";
+			return false;
+		}
+
+		if (index < 0 || index >= currentSale.value.payments.length) {
+			error.value = "Pagamento inválido";
+			return false;
+		}
+
+		// For now, update locally. TODO: Implement DELETE endpoint in backend
+		currentSale.value = {
+			...currentSale.value,
+			payments: currentSale.value.payments.filter((_, i) => i !== index),
+		};
+
+		return true;
 	};
 
 	/**
@@ -494,7 +570,9 @@ export const useSalesStore = defineStore("sales", () => {
 		removeItem,
 		updateItemQuantity,
 		applyDiscount,
+		applySurcharge,
 		addPayment,
+		removePayment,
 		updateCustomerInfo,
 		finalizeSale,
 		clearSale,

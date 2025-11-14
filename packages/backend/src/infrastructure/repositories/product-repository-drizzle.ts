@@ -380,6 +380,8 @@ export const createProductRepositoryDrizzle = (
 						like(products.description, searchPattern),
 						like(products.sku, searchPattern),
 						like(products.gtin, searchPattern),
+						like(products.dun14, searchPattern),
+						like(products.codigoBalanca, searchPattern),
 					),
 				);
 

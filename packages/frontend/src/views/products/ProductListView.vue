@@ -16,7 +16,11 @@ const productsStore = useProductsStore();
 const searchQuery = ref("");
 const statusFilter = ref<"todos" | "ativo" | "inativo">("todos");
 
-const columns: readonly Column[] = [
+// Pagination
+const currentPage = ref(1);
+const itemsPerPage = ref(20);
+
+const _columns: readonly Column[] = [
 	{ key: "sku", label: "SKU" },
 	{ key: "descricao", label: "Descrição" },
 	{ key: "preco_unitario", label: "Preço" },
@@ -34,12 +38,29 @@ const filteredProducts = computed(() => {
 	return products;
 });
 
-const handleRowClick = (row: Record<string, unknown>): void => {
+const totalPages = computed(() => {
+	return Math.ceil(filteredProducts.value.length / itemsPerPage.value);
+});
+
+const _paginatedProducts = computed(() => {
+	const start = (currentPage.value - 1) * itemsPerPage.value;
+	const end = start + itemsPerPage.value;
+	return filteredProducts.value.slice(start, end);
+});
+
+const _goToPage = (page: number): void => {
+	if (page >= 1 && page <= totalPages.value) {
+		currentPage.value = page;
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	}
+};
+
+const _handleRowClick = (row: Record<string, unknown>): void => {
 	const product = row as unknown as Product;
 	router.push(`/products/${product.id}/edit`);
 };
 
-const handleCreateProduct = (): void => {
+const _handleCreateProduct = (): void => {
 	router.push("/products/create");
 };
 
@@ -63,7 +84,12 @@ watch(searchQuery, () => {
 	}, 300);
 });
 
-const setStatusFilter = (status: "todos" | "ativo" | "inativo"): void => {
+// Reset to first page when filters change
+watch([searchQuery, statusFilter], () => {
+	currentPage.value = 1;
+});
+
+const _setStatusFilter = (status: "todos" | "ativo" | "inativo"): void => {
 	statusFilter.value = status;
 };
 
@@ -129,7 +155,7 @@ onMounted(() => {
 
       <BaseDataTable
         :columns="columns"
-        :rows="filteredProducts"
+        :rows="paginatedProducts"
         :loading="productsStore.loading"
         :striped="true"
         :hoverable="true"
@@ -148,6 +174,42 @@ onMounted(() => {
           </span>
         </template>
       </BaseDataTable>
+
+      <div v-if="filteredProducts.length > 0" class="pagination-controls">
+        <div class="pagination-info">
+          Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} a
+          {{ Math.min(currentPage * itemsPerPage, filteredProducts.length) }}
+          de {{ filteredProducts.length }} produtos
+        </div>
+        <div class="pagination-buttons">
+          <BaseButton
+            variant="secondary"
+            size="sm"
+            :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)"
+          >
+            ← Anterior
+          </BaseButton>
+          <div class="page-numbers">
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              :class="['page-button', { active: page === currentPage }]"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          </div>
+          <BaseButton
+            variant="secondary"
+            size="sm"
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            Próximo →
+          </BaseButton>
+        </div>
+      </div>
     </BaseCard>
   </div>
 </template>
@@ -253,6 +315,78 @@ h1 {
 
   .status-filters {
     flex-wrap: wrap;
+  }
+}
+
+/* Pagination Styles */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+  gap: var(--space-4);
+}
+
+.pagination-info {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page-numbers {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.page-button {
+  min-width: 36px;
+  height: 36px;
+  padding: var(--space-2);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.page-button:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary-500);
+}
+
+.page-button.active {
+  background: var(--primary-500);
+  color: white;
+  border-color: var(--primary-500);
+}
+
+@media (max-width: 768px) {
+  .pagination-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-info {
+    text-align: center;
+  }
+
+  .pagination-buttons {
+    justify-content: center;
+  }
+
+  .page-numbers {
+    overflow-x: auto;
+    max-width: 100%;
   }
 }
 </style>

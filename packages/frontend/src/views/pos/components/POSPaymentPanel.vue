@@ -28,6 +28,15 @@
       >
         <span class="payment-method">{{ payment.paymentMethod.description }}</span>
         <span class="payment-amount">{{ formatCurrency(payment.amount) }}</span>
+        <button
+          type="button"
+          class="btn-remove-payment"
+          aria-label="Remover pagamento"
+          title="Remover pagamento"
+          @click="handleRemovePayment(index)"
+        >
+          ✕
+        </button>
       </div>
     </div>
 
@@ -128,6 +137,7 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
 	"add-payment": [paymentMethodCode: string, amount: number];
+	"remove-payment": [index: number];
 	complete: [];
 }>();
 
@@ -183,6 +193,10 @@ const handleAddPayment = (): void => {
 		selectedPaymentMethod.value = "";
 		paymentAmount.value = 0;
 	}
+};
+
+const handleRemovePayment = (index: number): void => {
+	emit("remove-payment", index);
 };
 
 const handleComplete = (): void => {
@@ -279,6 +293,27 @@ const handleComplete = (): void => {
 .payment-amount {
   font-weight: 600;
   color: #4caf50;
+}
+
+.btn-remove-payment {
+  background: none;
+  border: none;
+  color: #ff5252;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s, transform 0.1s;
+  line-height: 1;
+}
+
+.btn-remove-payment:hover {
+  background-color: #ffebee;
+  transform: scale(1.1);
+}
+
+.btn-remove-payment:active {
+  transform: scale(0.95);
 }
 
 .add-payment-form {

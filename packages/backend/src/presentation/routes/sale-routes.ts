@@ -4,6 +4,7 @@ import type { SaleRepository } from "../../application/ports/sale-repository";
 import { createAddSaleItemUseCase } from "../../application/use-cases/add-sale-item";
 import { createAddSalePaymentUseCase } from "../../application/use-cases/add-sale-payment";
 import { createApplySaleDiscountUseCase } from "../../application/use-cases/apply-sale-discount";
+import { createApplySaleSurchargeUseCase } from "../../application/use-cases/apply-sale-surcharge";
 import { createSaleUseCase } from "../../application/use-cases/create-sale";
 import { createFinalizeSaleUseCase } from "../../application/use-cases/finalize-sale";
 import { createRemoveSaleItemUseCase } from "../../application/use-cases/remove-sale-item";
@@ -26,16 +27,9 @@ import { createSaleId } from "../../domain/sale/sale-id";
  * - DELETE /api/vendas/:id/items/:productId - Remove item from sale
  * - PUT /api/vendas/:id/items/:productId - Update item quantity
  * - POST /api/vendas/:id/discount - Apply discount to sale
+ * - POST /api/vendas/:id/surcharge - Apply surcharge to sale
  * - POST /api/vendas/:id/payments - Add payment to sale
  * - POST /api/vendas/:id/finalize - Finalize sale
- * REST API endpoints for sale management
- * Following Hexagonal Architecture - this is the HTTP Adapter
- *
- * Endpoints:
- * - POST /api/vendas - Create sale
- * - GET /api/vendas - List sales
- * - GET /api/vendas/:id - Get sale by ID
- * - DELETE /api/vendas/:id - Delete sale
  */
 
 type SaleRoutesDeps = {
@@ -63,6 +57,9 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 		deps.saleRepository,
 	);
 	const applySaleDiscount = createApplySaleDiscountUseCase(
+		deps.saleRepository,
+	);
+	const applySaleSurcharge = createApplySaleSurchargeUseCase(
 		deps.saleRepository,
 	);
 	const addSalePayment = createAddSalePaymentUseCase(deps.saleRepository);
@@ -294,6 +291,42 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 			return c.json({
 				id: result.value.id,
 				discount: result.value.discount,
+				grossTotal: result.value.grossTotal,
+				netTotal: result.value.netTotal,
+			});
+			/* c8 ignore next 3 */
+		} catch (_error) {
+			return c.json({ error: "Invalid request body" }, 400);
+		}
+	});
+
+	/**
+	 * POST /api/vendas/:id/surcharge - Apply surcharge to sale
+	 */
+	app.post("/:id/surcharge", async (c) => {
+		try {
+			const saleId = c.req.param("id");
+			const body = await c.req.json();
+
+			const result = await applySaleSurcharge({
+				saleId,
+				surcharge: body.amount || body.surcharge,
+			});
+
+			if (!result.ok) {
+				const error = result.error;
+				if (error.type === "VALIDATION_ERROR") {
+					return c.json({ error: error.message }, 400);
+				}
+				if (error.type === "SALE_NOT_FOUND") {
+					return c.json({ error: "Sale not found" }, 404);
+				}
+				return c.json({ error: "Failed to apply surcharge" }, 500);
+			}
+
+			return c.json({
+				id: result.value.id,
+				addition: result.value.addition,
 				grossTotal: result.value.grossTotal,
 				netTotal: result.value.netTotal,
 			});

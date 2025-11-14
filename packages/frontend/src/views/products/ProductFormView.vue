@@ -1,11 +1,12 @@
 <script setup lang="ts">
 /**
  * Product Form View - T027
- * TDD Phase: GREEN - Implementation to pass tests
+ * TDD Phase: GREEN - Implementation with all required fields
  */
 
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useToast } from "../../presentation/composables/useToast";
 import type { CreateProductInput } from "../../stores/products";
 import { useProductsStore } from "../../stores/products";
 
@@ -17,12 +18,35 @@ const props = defineProps<Props>();
 const route = useRoute();
 const router = useRouter();
 const productsStore = useProductsStore();
+const toast = useToast();
 
 // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
 const isEditMode = computed(() => !!props.id || !!route.params["id"]);
-const pageTitle = computed(() =>
+const _pageTitle = computed(() =>
 	isEditMode.value ? "Editar Produto" : "Novo Produto",
 );
+
+const _origemTributariaOptions = [
+	{ value: "0", label: "0 - Nacional" },
+	{ value: "1", label: "1 - Estrangeira - Importação direta" },
+	{ value: "2", label: "2 - Estrangeira - Adquirida no mercado interno" },
+	{ value: "3", label: "3 - Nacional com conteúdo de importação > 40%" },
+	{
+		value: "4",
+		label: "4 - Nacional produzida através de processos produtivos básicos",
+	},
+	{ value: "5", label: "5 - Nacional com conteúdo de importação <= 40%" },
+	{
+		value: "6",
+		label: "6 - Estrangeira - Importação direta sem similar nacional",
+	},
+	{
+		value: "7",
+		label:
+			"7 - Estrangeira - Adquirida no mercado interno sem similar nacional",
+	},
+	{ value: "8", label: "8 - Nacional com conteúdo de importação > 70%" },
+];
 
 // Form state
 const form = ref<CreateProductInput>({
@@ -35,6 +59,13 @@ const form = ref<CreateProductInput>({
 	unidade_medida: "UN",
 	ncm: "",
 	cest: "",
+	dun14: "",
+	codigo_balanca: "",
+	origem_tributaria: "",
+	cst: "",
+	aliquota_icms: 0,
+	preco_promocional_inicio: "",
+	preco_promocional_fim: "",
 });
 
 const errors = ref<Partial<Record<keyof CreateProductInput, string>>>({});
@@ -43,6 +74,7 @@ const isSubmitting = ref(false);
 const validateForm = (): boolean => {
 	errors.value = {};
 
+	// Basic validations
 	if (!form.value.sku.trim()) {
 		errors.value.sku = "SKU é obrigatório";
 	}
@@ -55,11 +87,72 @@ const validateForm = (): boolean => {
 		errors.value.preco_unitario = "Preço deve ser maior que zero";
 	}
 
+	// GTIN validation (8-13 digits)
+	if (form.value.gtin?.trim()) {
+		if (!/^\d{8,13}$/.test(form.value.gtin)) {
+			errors.value.gtin = "GTIN deve ter entre 8 e 13 dígitos";
+		}
+	}
+
+	// DUN-14 validation (14 digits)
+	if (form.value.dun14?.trim()) {
+		if (!/^\d{14}$/.test(form.value.dun14)) {
+			errors.value.dun14 = "DUN-14 deve ter exatamente 14 dígitos";
+		}
+	}
+
+	// NCM validation (exactly 8 digits)
+	if (form.value.ncm?.trim()) {
+		if (!/^\d{8}$/.test(form.value.ncm)) {
+			errors.value.ncm = "NCM deve ter exatamente 8 dígitos";
+		}
+	}
+
+	// CEST validation (exactly 7 digits)
+	if (form.value.cest?.trim()) {
+		if (!/^\d{7}$/.test(form.value.cest)) {
+			errors.value.cest = "CEST deve ter exatamente 7 dígitos";
+		}
+	}
+
+	// ICMS validation (0-100%)
+	if (
+		form.value.aliquota_icms !== undefined &&
+		form.value.aliquota_icms !== null
+	) {
+		if (form.value.aliquota_icms < 0 || form.value.aliquota_icms > 100) {
+			errors.value.aliquota_icms = "Alíquota ICMS deve estar entre 0 e 100";
+		}
+	}
+
+	// Promotional price validation
+	if (
+		form.value.preco_promocional !== undefined &&
+		form.value.preco_promocional !== null
+	) {
+		if (form.value.preco_promocional >= form.value.preco_unitario) {
+			errors.value.preco_promocional =
+				"Preço promocional deve ser menor que o preço normal";
+		}
+	}
+
+	// Promotional dates validation
+	if (form.value.preco_promocional_inicio && form.value.preco_promocional_fim) {
+		const inicio = new Date(form.value.preco_promocional_inicio);
+		const fim = new Date(form.value.preco_promocional_fim);
+
+		if (inicio >= fim) {
+			errors.value.preco_promocional_fim =
+				"Data fim deve ser posterior à data início";
+		}
+	}
+
 	return Object.keys(errors.value).length === 0;
 };
 
-const handleSubmit = async (): Promise<void> => {
+const _handleSubmit = async (): Promise<void> => {
 	if (!validateForm()) {
+		toast.error("Por favor, corrija os erros no formulário");
 		return;
 	}
 
@@ -70,19 +163,31 @@ const handleSubmit = async (): Promise<void> => {
 			// biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
 			const productId = props.id || (route.params["id"] as string);
 			await productsStore.updateProduct(productId, form.value);
+
+			if (!productsStore.error) {
+				toast.success("Produto atualizado com sucesso!");
+				await router.push("/products");
+			} else {
+				toast.error(productsStore.error || "Erro ao atualizar produto");
+			}
 		} else {
 			await productsStore.createProduct(form.value);
-		}
 
-		if (!productsStore.error) {
-			await router.push("/products");
+			if (!productsStore.error) {
+				toast.success("Produto criado com sucesso!");
+				await router.push("/products");
+			} else {
+				toast.error(productsStore.error || "Erro ao criar produto");
+			}
 		}
+	} catch (_error) {
+		toast.error("Erro ao salvar produto");
 	} finally {
 		isSubmitting.value = false;
 	}
 };
 
-const handleCancel = (): void => {
+const _handleCancel = (): void => {
 	router.back();
 };
 
@@ -108,6 +213,23 @@ const loadProduct = async (id: string): Promise<void> => {
 			}),
 			...(data.data.ncm && { ncm: data.data.ncm }),
 			...(data.data.cest && { cest: data.data.cest }),
+			...(data.data.dun14 && { dun14: data.data.dun14 }),
+			...(data.data.codigo_balanca && {
+				codigo_balanca: data.data.codigo_balanca,
+			}),
+			...(data.data.origem_tributaria && {
+				origem_tributaria: data.data.origem_tributaria,
+			}),
+			...(data.data.cst && { cst: data.data.cst }),
+			...(data.data.aliquota_icms !== undefined && {
+				aliquota_icms: data.data.aliquota_icms,
+			}),
+			...(data.data.preco_promocional_inicio && {
+				preco_promocional_inicio: data.data.preco_promocional_inicio,
+			}),
+			...(data.data.preco_promocional_fim && {
+				preco_promocional_fim: data.data.preco_promocional_fim,
+			}),
 		};
 	}
 };
@@ -211,7 +333,39 @@ onMounted(() => {
               step="0.01"
               min="0"
               placeholder="0.00"
+              :error="errors.preco_promocional"
             />
+            <span v-if="errors.preco_promocional" class="error-message">{{
+              errors.preco_promocional
+            }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="preco_promocional_inicio">Início da Promoção</label>
+            <BaseInput
+              id="preco_promocional_inicio"
+              v-model="form.preco_promocional_inicio"
+              name="preco_promocional_inicio"
+              type="date"
+              :error="errors.preco_promocional_inicio"
+            />
+            <span v-if="errors.preco_promocional_inicio" class="error-message">{{
+              errors.preco_promocional_inicio
+            }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="preco_promocional_fim">Fim da Promoção</label>
+            <BaseInput
+              id="preco_promocional_fim"
+              v-model="form.preco_promocional_fim"
+              name="preco_promocional_fim"
+              type="date"
+              :error="errors.preco_promocional_fim"
+            />
+            <span v-if="errors.preco_promocional_fim" class="error-message">{{
+              errors.preco_promocional_fim
+            }}</span>
           </div>
         </div>
       </BaseCard>
@@ -238,6 +392,34 @@ onMounted(() => {
               name="gtin"
               type="text"
               placeholder="Ex: 7891234567890"
+              maxlength="13"
+              :error="errors.gtin"
+            />
+            <span v-if="errors.gtin" class="error-message">{{ errors.gtin }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="dun14">DUN-14</label>
+            <BaseInput
+              id="dun14"
+              v-model="form.dun14"
+              name="dun14"
+              type="text"
+              placeholder="Digite o código DUN-14 (14 dígitos)"
+              maxlength="14"
+              :error="errors.dun14"
+            />
+            <span v-if="errors.dun14" class="error-message">{{ errors.dun14 }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="codigo_balanca">Código de Balança</label>
+            <BaseInput
+              id="codigo_balanca"
+              v-model="form.codigo_balanca"
+              name="codigo_balanca"
+              type="text"
+              placeholder="Digite o código de balança"
             />
           </div>
         </div>
@@ -254,7 +436,10 @@ onMounted(() => {
               name="ncm"
               type="text"
               placeholder="Ex: 12345678"
+              maxlength="8"
+              :error="errors.ncm"
             />
+            <span v-if="errors.ncm" class="error-message">{{ errors.ncm }}</span>
           </div>
 
           <div class="form-group">
@@ -265,7 +450,57 @@ onMounted(() => {
               name="cest"
               type="text"
               placeholder="Ex: 1234567"
+              maxlength="7"
+              :error="errors.cest"
             />
+            <span v-if="errors.cest" class="error-message">{{ errors.cest }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="origem_tributaria">Origem Tributária</label>
+            <select
+              id="origem_tributaria"
+              v-model="form.origem_tributaria"
+              name="origem_tributaria"
+            >
+              <option value="">Selecione...</option>
+              <option
+                v-for="option in origemTributariaOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cst">CST</label>
+            <BaseInput
+              id="cst"
+              v-model="form.cst"
+              name="cst"
+              type="text"
+              placeholder="Ex: 00"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="aliquota_icms">Alíquota ICMS (%)</label>
+            <BaseInput
+              id="aliquota_icms"
+              v-model.number="form.aliquota_icms"
+              name="aliquota_icms"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="0.00"
+              :error="errors.aliquota_icms"
+            />
+            <span v-if="errors.aliquota_icms" class="error-message">{{
+              errors.aliquota_icms
+            }}</span>
           </div>
         </div>
       </BaseCard>
