@@ -360,6 +360,29 @@ export const useSalesStore = defineStore("sales", () => {
 	};
 
 	/**
+	 * Remove payment from sale by index
+	 */
+	const removePayment = async (index: number): Promise<boolean> => {
+		if (!currentSale.value) {
+			error.value = "Nenhuma venda ativa";
+			return false;
+		}
+
+		if (index < 0 || index >= currentSale.value.payments.length) {
+			error.value = "Pagamento inválido";
+			return false;
+		}
+
+		// For now, update locally. TODO: Implement DELETE endpoint in backend
+		currentSale.value = {
+			...currentSale.value,
+			payments: currentSale.value.payments.filter((_, i) => i !== index),
+		};
+
+		return true;
+	};
+
+	/**
 	 * Update customer information (CPF and Email)
 	 */
 	const updateCustomerInfo = async (
@@ -495,6 +518,7 @@ export const useSalesStore = defineStore("sales", () => {
 		updateItemQuantity,
 		applyDiscount,
 		addPayment,
+		removePayment,
 		updateCustomerInfo,
 		finalizeSale,
 		clearSale,

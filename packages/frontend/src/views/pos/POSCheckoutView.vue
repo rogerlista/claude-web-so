@@ -102,6 +102,7 @@
           :payments="sale.payments"
           :total="sale.netTotal"
           @add-payment="handleAddPayment"
+          @remove-payment="handleRemovePayment"
           @complete="handleComplete"
         />
       </div>
@@ -244,6 +245,10 @@ const handleAddPayment = async (
 	amount: number,
 ): Promise<void> => {
 	await salesStore.addPayment(paymentMethodCode, amount);
+};
+
+const handleRemovePayment = async (index: number): Promise<void> => {
+	await salesStore.removePayment(index);
 };
 
 const handleComplete = async (): Promise<void> => {
