@@ -566,7 +566,9 @@ describe("POSPaymentPanel", () => {
 			});
 
 			expect(wrapper.text()).toContain("Finalizar Venda ✓");
-			expect(wrapper.text()).toContain("Pagamento completo! Clique para finalizar");
+			expect(wrapper.text()).toContain(
+				"Pagamento completo! Clique para finalizar",
+			);
 		});
 
 		it("should enable complete button when fully paid", () => {

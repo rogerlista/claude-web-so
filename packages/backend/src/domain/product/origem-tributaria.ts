@@ -39,41 +39,29 @@ export const createOrigemTributaria = (
 ): Result<OrigemTributaria, string> => {
 	// Validate input type
 	if (value === null) {
-		return ResultUtils.err(
-			"Origem tributária não pode ser null",
-		);
+		return ResultUtils.err("Origem tributária não pode ser null");
 	}
 
 	if (value === undefined) {
-		return ResultUtils.err(
-			"Origem tributária não pode ser undefined",
-		);
+		return ResultUtils.err("Origem tributária não pode ser undefined");
 	}
 
 	if (typeof value !== "number") {
-		return ResultUtils.err(
-			"Origem tributária deve ser um number",
-		);
+		return ResultUtils.err("Origem tributária deve ser um number");
 	}
 
 	if (Number.isNaN(value)) {
-		return ResultUtils.err(
-			"Origem tributária não pode ser NaN",
-		);
+		return ResultUtils.err("Origem tributária não pode ser NaN");
 	}
 
 	// Validate integer
 	if (!Number.isInteger(value)) {
-		return ResultUtils.err(
-			"Origem tributária deve ser um número inteiro",
-		);
+		return ResultUtils.err("Origem tributária deve ser um número inteiro");
 	}
 
 	// Validate range (0-8)
 	if (value < 0 || value > 8) {
-		return ResultUtils.err(
-			"Origem tributária deve estar entre 0 e 8",
-		);
+		return ResultUtils.err("Origem tributária deve estar entre 0 e 8");
 	}
 
 	return ResultUtils.ok(value as OrigemTributaria);

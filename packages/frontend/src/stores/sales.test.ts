@@ -5,7 +5,7 @@
 
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useSalesStore, type Sale } from "./sales";
+import { type Sale, useSalesStore } from "./sales";
 
 describe("Sales Store", () => {
 	beforeEach(() => {
@@ -440,7 +440,10 @@ describe("Sales Store", () => {
 				json: async () => ({ data: mockSale }),
 			});
 
-			const result = await store.updateCustomerInfo("12345678901", "test@example.com");
+			const result = await store.updateCustomerInfo(
+				"12345678901",
+				"test@example.com",
+			);
 
 			expect(result).toBe(true);
 			expect(store.error).toBeNull();

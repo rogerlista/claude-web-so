@@ -82,7 +82,9 @@ export const createFinalizeSaleUseCase =
 		}
 
 		// Save finalized sale
-		const saveResult = await deps.saleRepository.save(finalizedSaleResult.value);
+		const saveResult = await deps.saleRepository.save(
+			finalizedSaleResult.value,
+		);
 		if (!saveResult.ok) {
 			return ResultUtils.err({
 				type: "REPOSITORY_ERROR",
@@ -107,9 +109,10 @@ export const createFinalizeSaleUseCase =
 					description: `Venda #${finalizedSaleResult.value.id} finalizada`,
 				});
 
-			if (movementResult && movementResult.ok) {
-				const exitResult =
-					await deps.inventoryRepository.saveMovement(movementResult.value);
+			if (movementResult?.ok) {
+				const exitResult = await deps.inventoryRepository.saveMovement(
+					movementResult.value,
+				);
 
 				if (!exitResult.ok) {
 					// Log error but don't block sale completion

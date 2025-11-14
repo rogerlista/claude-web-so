@@ -6,9 +6,9 @@
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createRouter, createMemoryHistory } from "vue-router";
-import POSCheckoutView from "./POSCheckoutView.vue";
+import { createMemoryHistory, createRouter } from "vue-router";
 import { useSalesStore } from "../../stores/sales";
+import POSCheckoutView from "./POSCheckoutView.vue";
 
 describe("POSCheckoutView", () => {
 	let router: ReturnType<typeof createRouter>;
@@ -97,7 +97,9 @@ describe("POSCheckoutView", () => {
 				},
 			});
 
-			expect(wrapper.find(".checkout-header h1").text()).toBe("Finalizar Venda");
+			expect(wrapper.find(".checkout-header h1").text()).toBe(
+				"Finalizar Venda",
+			);
 		});
 
 		it("should display sale ID", async () => {

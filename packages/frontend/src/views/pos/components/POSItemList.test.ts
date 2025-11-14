@@ -373,9 +373,7 @@ describe("POSItemList", () => {
 			const removeButton = wrapper.find(".remove-button");
 			await removeButton.trigger("click");
 
-			expect(confirmSpy).toHaveBeenCalledWith(
-				'Remover "Product 1" da venda?',
-			);
+			expect(confirmSpy).toHaveBeenCalledWith('Remover "Product 1" da venda?');
 		});
 
 		it("should emit remove-item when confirmed", async () => {
