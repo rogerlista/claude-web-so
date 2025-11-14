@@ -20,6 +20,8 @@ import type { ProductId } from "../../domain/product/product-id";
 export type RepositoryError =
 	| { readonly type: "NOT_FOUND"; readonly id: string }
 	| { readonly type: "DUPLICATE"; readonly id: string }
+	| { readonly type: "DUPLICATE_SKU"; readonly message: string }
+	| { readonly type: "DUPLICATE_GTIN"; readonly message: string }
 	| { readonly type: "DATABASE_ERROR"; readonly message: string }
 	| { readonly type: "UNKNOWN"; readonly message: string };
 

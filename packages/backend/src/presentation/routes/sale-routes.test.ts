@@ -1,5 +1,6 @@
 import { ResultUtils } from "@pos-nfce/shared";
 import { describe, expect, it } from "vitest";
+import type { InventoryRepository } from "../../application/ports/inventory-repository";
 import type { SaleRepository } from "../../application/ports/sale-repository";
 import { createCustomerId } from "../../domain/customer/customer-id";
 import { createPrice } from "../../domain/product/price";
@@ -18,6 +19,16 @@ describe("Sale Routes", () => {
 		delete: async () => ResultUtils.ok(undefined),
 		findByCustomerId: async () => ResultUtils.ok([]),
 		findByStatus: async () => ResultUtils.ok([]),
+	});
+
+	const createMockInventoryRepository = (): InventoryRepository => ({
+		saveMovement: async () =>
+			ResultUtils.err({ type: "UNKNOWN", message: "Not implemented" }),
+		getStock: async () =>
+			ResultUtils.err({ type: "UNKNOWN", message: "Not implemented" }),
+		listMovements: async () => ResultUtils.ok([]),
+		findById: async () =>
+			ResultUtils.err({ type: "NOT_FOUND", id: "inventory-1" }),
 	});
 
 	describe("POST /", () => {
@@ -56,7 +67,7 @@ describe("Sale Routes", () => {
 				save: async () => ResultUtils.ok(testSale.value),
 			};
 
-			const app = createSaleRoutes({ repository: mockRepo });
+			const app = createSaleRoutes({ saleRepository: mockRepo, inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/", {
 				method: "POST",
@@ -81,7 +92,7 @@ describe("Sale Routes", () => {
 		});
 
 		it("should return error for invalid sale data", async () => {
-			const app = createSaleRoutes({ repository: createMockRepository() });
+			const app = createSaleRoutes({ saleRepository: createMockRepository(), inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/", {
 				method: "POST",
@@ -97,7 +108,7 @@ describe("Sale Routes", () => {
 		});
 
 		it("should handle invalid JSON", async () => {
-			const app = createSaleRoutes({ repository: createMockRepository() });
+			const app = createSaleRoutes({ saleRepository: createMockRepository(), inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/", {
 				method: "POST",
@@ -116,7 +127,7 @@ describe("Sale Routes", () => {
 				findAll: async () => ResultUtils.ok([]),
 			};
 
-			const app = createSaleRoutes({ repository: mockRepo });
+			const app = createSaleRoutes({ saleRepository: mockRepo, inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/", { method: "GET" });
 
@@ -162,7 +173,7 @@ describe("Sale Routes", () => {
 				findById: async () => ResultUtils.ok(testSale.value),
 			};
 
-			const app = createSaleRoutes({ repository: mockRepo });
+			const app = createSaleRoutes({ saleRepository: mockRepo, inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request(`/${saleId.value}`, { method: "GET" });
 
@@ -178,7 +189,7 @@ describe("Sale Routes", () => {
 					ResultUtils.err({ type: "NOT_FOUND", id: "non-existent" }),
 			};
 
-			const app = createSaleRoutes({ repository: mockRepo });
+			const app = createSaleRoutes({ saleRepository: mockRepo, inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/non-existent", { method: "GET" });
 
@@ -193,7 +204,7 @@ describe("Sale Routes", () => {
 				delete: async () => ResultUtils.ok(undefined),
 			};
 
-			const app = createSaleRoutes({ repository: mockRepo });
+			const app = createSaleRoutes({ saleRepository: mockRepo, inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/550e8400-e29b-41d4-a716-446655440000", {
 				method: "DELETE",
@@ -209,7 +220,7 @@ describe("Sale Routes", () => {
 					ResultUtils.err({ type: "NOT_FOUND", id: "non-existent" }),
 			};
 
-			const app = createSaleRoutes({ repository: mockRepo });
+			const app = createSaleRoutes({ saleRepository: mockRepo, inventoryRepository: createMockInventoryRepository() });
 
 			const res = await app.request("/non-existent", { method: "DELETE" });
 

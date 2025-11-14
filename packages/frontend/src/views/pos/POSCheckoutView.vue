@@ -52,6 +52,50 @@
         </div>
       </div>
 
+      <!-- Customer Information Section -->
+      <div class="customer-section">
+        <h2>Informações do Cliente</h2>
+        <p class="section-description">Opcional - Para emissão de NFC-e</p>
+
+        <form class="customer-form" @submit.prevent="handleSaveCustomerInfo">
+          <div class="form-group">
+            <label for="cpf">CPF</label>
+            <input
+              id="cpf"
+              v-model="customerCpf"
+              type="text"
+              placeholder="000.000.000-00"
+              maxlength="14"
+              class="form-input"
+              @input="formatCpf"
+              @blur="validateCpf"
+            />
+            <span v-if="cpfError" class="field-error">{{ cpfError }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input
+              id="email"
+              v-model="customerEmail"
+              type="email"
+              placeholder="cliente@exemplo.com"
+              class="form-input"
+              @blur="validateEmail"
+            />
+            <span v-if="emailError" class="field-error">{{ emailError }}</span>
+          </div>
+
+          <BaseButton
+            type="submit"
+            variant="secondary"
+            :disabled="salesStore.loading || (!!cpfError && !!customerCpf) || (!!emailError && !!customerEmail)"
+          >
+            Salvar Informações
+          </BaseButton>
+        </form>
+      </div>
+
       <!-- Payment Section -->
       <div class="payment-section">
         <POSPaymentPanel
@@ -102,11 +146,93 @@ const saleId = computed(() => route.params.id as string);
 const sale = computed(() => salesStore.currentSale);
 const showSuccessModal = ref(false);
 
+// Customer information
+const customerCpf = ref("");
+const customerEmail = ref("");
+const cpfError = ref("");
+const emailError = ref("");
+
 const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
 	}).format(value);
+};
+
+// CPF formatting and validation
+const formatCpf = (): void => {
+	// Remove non-digits
+	let cpf = customerCpf.value.replace(/\D/g, "");
+
+	// Apply mask: 000.000.000-00
+	if (cpf.length > 9) {
+		cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+	} else if (cpf.length > 6) {
+		cpf = cpf.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+	} else if (cpf.length > 3) {
+		cpf = cpf.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+	}
+
+	customerCpf.value = cpf;
+	cpfError.value = "";
+};
+
+const validateCpf = (): void => {
+	if (!customerCpf.value) {
+		cpfError.value = "";
+		return;
+	}
+
+	const cpfDigits = customerCpf.value.replace(/\D/g, "");
+
+	if (cpfDigits.length !== 11) {
+		cpfError.value = "CPF deve ter 11 dígitos";
+		return;
+	}
+
+	// Check if all digits are the same
+	if (/^(\d)\1+$/.test(cpfDigits)) {
+		cpfError.value = "CPF inválido";
+		return;
+	}
+
+	cpfError.value = "";
+};
+
+// Email validation
+const validateEmail = (): void => {
+	if (!customerEmail.value) {
+		emailError.value = "";
+		return;
+	}
+
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	if (!emailRegex.test(customerEmail.value)) {
+		emailError.value = "E-mail inválido";
+		return;
+	}
+
+	emailError.value = "";
+};
+
+// Save customer information
+const handleSaveCustomerInfo = async (): Promise<void> => {
+	validateCpf();
+	validateEmail();
+
+	if (cpfError.value || emailError.value) {
+		return;
+	}
+
+	const cpfDigits = customerCpf.value ? customerCpf.value.replace(/\D/g, "") : undefined;
+	const email = customerEmail.value || undefined;
+
+	const success = await salesStore.updateCustomerInfo(cpfDigits, email);
+	if (success) {
+		// Show success feedback
+		cpfError.value = "";
+		emailError.value = "";
+	}
 };
 
 const handleBack = (): void => {
@@ -141,6 +267,21 @@ onMounted(async () => {
 	// Load sale if not in store
 	if (!sale.value || sale.value.id !== saleId.value) {
 		await salesStore.getSale(saleId.value);
+	}
+
+	// Load existing customer info if available
+	if (sale.value) {
+		if (sale.value.customerCpf) {
+			// Format CPF for display
+			const cpf = sale.value.customerCpf;
+			customerCpf.value = cpf.replace(
+				/(\d{3})(\d{3})(\d{3})(\d{2})/,
+				"$1.$2.$3-$4",
+			);
+		}
+		if (sale.value.customerEmail) {
+			customerEmail.value = sale.value.customerEmail;
+		}
 	}
 });
 </script>
@@ -219,6 +360,7 @@ onMounted(async () => {
 }
 
 .sale-summary,
+.customer-section,
 .payment-section {
   background-color: #fff;
   border-radius: 8px;
@@ -228,10 +370,59 @@ onMounted(async () => {
 }
 
 .sale-summary h2,
+.customer-section h2,
 .payment-section h2 {
   margin: 0 0 1.5rem 0;
   font-size: 1.2rem;
   color: #333;
+}
+
+.section-description {
+  margin: -0.75rem 0 1.5rem 0;
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+}
+
+.customer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+.form-input::placeholder {
+  color: #999;
+}
+
+.field-error {
+  color: #f44336;
+  font-size: 0.85rem;
+  margin-top: -0.25rem;
 }
 
 .summary-section {
@@ -385,6 +576,7 @@ onMounted(async () => {
 @media print {
   .checkout-header,
   .error-message,
+  .customer-section,
   .payment-section {
     display: none;
   }

@@ -1,6 +1,8 @@
 import type { Result } from "@pos-nfce/shared";
 import { describe, expect, it } from "vitest";
+import { createCPF } from "../customer/cpf";
 import { createCustomerId } from "../customer/customer-id";
+import { createEmail } from "../customer/email";
 import { createPrice } from "../product/price";
 import { createProductId } from "../product/product-id";
 import { createPaymentMethod } from "./payment-method";
@@ -1051,6 +1053,99 @@ describe("Sale Entity", () => {
 			expect(result.ok).toBe(false);
 			if (!result.ok) {
 				expect(result.error).toContain("remaining amount");
+			}
+		});
+	});
+
+	describe("Customer Information (CPF/Email)", () => {
+		it("should create sale with customer CPF", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const cpfResult = createCPF("11144477735"); // Valid CPF for testing
+
+			if (!saleIdResult.ok || !customerIdResult.ok || !cpfResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const result = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				customerCpf: cpfResult.value,
+			});
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.customerCpf).toBe("11144477735");
+			}
+		});
+
+		it("should create sale with customer email", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const emailResult = createEmail("customer@example.com");
+
+			if (!saleIdResult.ok || !customerIdResult.ok || !emailResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const result = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				customerEmail: emailResult.value,
+			});
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.customerEmail).toBe("customer@example.com");
+			}
+		});
+
+		it("should create sale with both CPF and email", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const cpfResult = createCPF("11144477735"); // Valid CPF for testing
+			const emailResult = createEmail("customer@example.com");
+
+			if (
+				!saleIdResult.ok ||
+				!customerIdResult.ok ||
+				!cpfResult.ok ||
+				!emailResult.ok
+			) {
+				throw new Error("Test setup failed");
+			}
+
+			const result = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				customerCpf: cpfResult.value,
+				customerEmail: emailResult.value,
+			});
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.customerCpf).toBe("11144477735");
+				expect(result.value.customerEmail).toBe("customer@example.com");
+			}
+		});
+
+		it("should create sale without CPF and email (optional fields)", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+
+			if (!saleIdResult.ok || !customerIdResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const result = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+			});
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.customerCpf).toBeUndefined();
+				expect(result.value.customerEmail).toBeUndefined();
 			}
 		});
 	});
