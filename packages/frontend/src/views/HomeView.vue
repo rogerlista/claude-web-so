@@ -1,8 +1,5 @@
 <script setup lang="ts">
-/**
- * Home/Dashboard View
- */
-import BaseCard from '../components/base/BaseCard.vue'
+
 </script>
 
 <template>

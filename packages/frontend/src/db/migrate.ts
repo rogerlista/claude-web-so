@@ -5,9 +5,9 @@
  * Sincroniza schema entre backend e frontend
  */
 
-import { sql } from 'drizzle-orm'
-import type { SQLJsDatabase } from 'drizzle-orm/sql-js'
-import type * as schema from './schema'
+import { sql } from "drizzle-orm";
+import type { SQLJsDatabase } from "drizzle-orm/sql-js";
+import type * as schema from "./schema";
 
 /**
  * Aplica todas as migrations pendentes
@@ -15,76 +15,88 @@ import type * as schema from './schema'
  * Como estamos reutilizando os schemas do backend, vamos criar
  * as tabelas diretamente usando o SQL da migration do backend
  */
-export async function runMigrations(db: SQLJsDatabase<typeof schema>): Promise<void> {
-  console.info('[DB] Running migrations...')
+export async function runMigrations(
+	db: SQLJsDatabase<typeof schema>,
+): Promise<void> {
+	console.info("[DB] Running migrations...");
 
-  try {
-    // Verifica se já existe a tabela de controle de migrations
-    const hasMigrationsTable = await checkMigrationsTableExists(db)
+	try {
+		// Verifica se já existe a tabela de controle de migrations
+		const hasMigrationsTable = await checkMigrationsTableExists(db);
 
-    if (!hasMigrationsTable) {
-      await createMigrationsTable(db)
-    }
+		if (!hasMigrationsTable) {
+			await createMigrationsTable(db);
+		}
 
-    // Aplica a migration do backend (0000_whole_triathlon.sql)
-    // Copiamos o SQL diretamente da migration gerada pelo Drizzle Kit
-    await applyInitialMigration(db)
+		// Aplica a migration do backend (0000_whole_triathlon.sql)
+		// Copiamos o SQL diretamente da migration gerada pelo Drizzle Kit
+		await applyInitialMigration(db);
 
-    console.info('[DB] Migrations completed successfully')
-  } catch (error) {
-    console.error('[DB] Migration failed:', error)
-    throw error
-  }
+		console.info("[DB] Migrations completed successfully");
+	} catch (error) {
+		console.error("[DB] Migration failed:", error);
+		throw error;
+	}
 }
 
 /**
  * Verifica se a tabela de controle de migrations existe
  */
-async function checkMigrationsTableExists(db: SQLJsDatabase<typeof schema>): Promise<boolean> {
-  try {
-    const result = await db.all(
-      sql.raw("SELECT name FROM sqlite_master WHERE type='table' AND name='__drizzle_migrations'")
-    )
-    return result.length > 0
-  } catch {
-    return false
-  }
+async function checkMigrationsTableExists(
+	db: SQLJsDatabase<typeof schema>,
+): Promise<boolean> {
+	try {
+		const result = await db.all(
+			sql.raw(
+				"SELECT name FROM sqlite_master WHERE type='table' AND name='__drizzle_migrations'",
+			),
+		);
+		return result.length > 0;
+	} catch {
+		return false;
+	}
 }
 
 /**
  * Cria a tabela de controle de migrations
  */
-async function createMigrationsTable(db: SQLJsDatabase<typeof schema>): Promise<void> {
-  await db.run(
-    sql.raw(`
+async function createMigrationsTable(
+	db: SQLJsDatabase<typeof schema>,
+): Promise<void> {
+	await db.run(
+		sql.raw(`
     CREATE TABLE IF NOT EXISTS __drizzle_migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       hash TEXT NOT NULL,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
     )
-  `)
-  )
+  `),
+	);
 }
 
 /**
  * Aplica a migration inicial (0000_whole_triathlon.sql)
  */
-async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<void> {
-  // Verifica se já foi aplicada
-  const result = await db.all(
-    sql.raw("SELECT * FROM __drizzle_migrations WHERE hash='0000_whole_triathlon'")
-  )
+async function applyInitialMigration(
+	db: SQLJsDatabase<typeof schema>,
+): Promise<void> {
+	// Verifica se já foi aplicada
+	const result = await db.all(
+		sql.raw(
+			"SELECT * FROM __drizzle_migrations WHERE hash='0000_whole_triathlon'",
+		),
+	);
 
-  if (result.length > 0) {
-    console.debug('[DB] Initial migration already applied')
-    return
-  }
+	if (result.length > 0) {
+		console.debug("[DB] Initial migration already applied");
+		return;
+	}
 
-  // SQL da migration gerada pelo Drizzle Kit
-  // Copiado de packages/backend/drizzle/0000_whole_triathlon.sql
-  // Aplicamos cada statement separadamente pois SQL.js não suporta múltiplos statements
-  const migrationStatements = [
-    `CREATE TABLE IF NOT EXISTS audit (
+	// SQL da migration gerada pelo Drizzle Kit
+	// Copiado de packages/backend/drizzle/0000_whole_triathlon.sql
+	// Aplicamos cada statement separadamente pois SQL.js não suporta múltiplos statements
+	const migrationStatements = [
+		`CREATE TABLE IF NOT EXISTS audit (
       id TEXT PRIMARY KEY NOT NULL,
       user_id TEXT NOT NULL,
       table_name TEXT NOT NULL,
@@ -95,7 +107,7 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE no action ON DELETE no action
     )`,
-    `CREATE TABLE IF NOT EXISTS cash_movements (
+		`CREATE TABLE IF NOT EXISTS cash_movements (
       id TEXT PRIMARY KEY NOT NULL,
       user_id TEXT NOT NULL,
       opening_date INTEGER NOT NULL,
@@ -115,7 +127,7 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       updated_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE no action ON DELETE no action
     )`,
-    `CREATE TABLE IF NOT EXISTS cash_transactions (
+		`CREATE TABLE IF NOT EXISTS cash_transactions (
       id TEXT PRIMARY KEY NOT NULL,
       cash_movement_id TEXT NOT NULL,
       type TEXT NOT NULL,
@@ -127,7 +139,7 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       FOREIGN KEY (cash_movement_id) REFERENCES cash_movements(id) ON UPDATE no action ON DELETE no action,
       FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE no action ON DELETE no action
     )`,
-    `CREATE TABLE IF NOT EXISTS customers (
+		`CREATE TABLE IF NOT EXISTS customers (
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
       cpf TEXT NOT NULL,
@@ -136,9 +148,9 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
     )`,
-    'CREATE UNIQUE INDEX IF NOT EXISTS customers_cpf_unique ON customers (cpf)',
-    'CREATE UNIQUE INDEX IF NOT EXISTS customers_email_unique ON customers (email)',
-    `CREATE TABLE IF NOT EXISTS inventory (
+		"CREATE UNIQUE INDEX IF NOT EXISTS customers_cpf_unique ON customers (cpf)",
+		"CREATE UNIQUE INDEX IF NOT EXISTS customers_email_unique ON customers (email)",
+		`CREATE TABLE IF NOT EXISTS inventory (
       id TEXT PRIMARY KEY NOT NULL,
       product_id TEXT NOT NULL,
       quantity INTEGER NOT NULL,
@@ -147,7 +159,7 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE no action ON DELETE no action
     )`,
-    `CREATE TABLE IF NOT EXISTS products (
+		`CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY NOT NULL,
       codigo TEXT,
       sku TEXT,
@@ -170,9 +182,9 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       updated_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       deleted_at INTEGER
     )`,
-    'CREATE UNIQUE INDEX IF NOT EXISTS products_sku_unique ON products (sku)',
-    'CREATE UNIQUE INDEX IF NOT EXISTS products_gtin_unique ON products (gtin)',
-    `CREATE TABLE IF NOT EXISTS sale_items (
+		"CREATE UNIQUE INDEX IF NOT EXISTS products_sku_unique ON products (sku)",
+		"CREATE UNIQUE INDEX IF NOT EXISTS products_gtin_unique ON products (gtin)",
+		`CREATE TABLE IF NOT EXISTS sale_items (
       id TEXT PRIMARY KEY NOT NULL,
       sale_id TEXT NOT NULL,
       product_id TEXT NOT NULL,
@@ -188,7 +200,7 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       FOREIGN KEY (sale_id) REFERENCES sales(id) ON UPDATE no action ON DELETE cascade,
       FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE no action ON DELETE no action
     )`,
-    `CREATE TABLE IF NOT EXISTS sale_payments (
+		`CREATE TABLE IF NOT EXISTS sale_payments (
       id TEXT PRIMARY KEY NOT NULL,
       sale_id TEXT NOT NULL,
       payment_method TEXT NOT NULL,
@@ -197,7 +209,7 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       FOREIGN KEY (sale_id) REFERENCES sales(id) ON UPDATE no action ON DELETE cascade
     )`,
-    `CREATE TABLE IF NOT EXISTS sales (
+		`CREATE TABLE IF NOT EXISTS sales (
       id TEXT PRIMARY KEY NOT NULL,
       numero_venda INTEGER,
       data_hora INTEGER DEFAULT (unixepoch()),
@@ -220,9 +232,9 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE no action ON DELETE no action,
       FOREIGN KEY (customer_id) REFERENCES customers(id) ON UPDATE no action ON DELETE no action
     )`,
-    'CREATE UNIQUE INDEX IF NOT EXISTS sales_numero_venda_unique ON sales (numero_venda)',
-    'CREATE UNIQUE INDEX IF NOT EXISTS sales_chave_nfce_unique ON sales (chave_nfce)',
-    `CREATE TABLE IF NOT EXISTS users (
+		"CREATE UNIQUE INDEX IF NOT EXISTS sales_numero_venda_unique ON sales (numero_venda)",
+		"CREATE UNIQUE INDEX IF NOT EXISTS sales_chave_nfce_unique ON sales (chave_nfce)",
+		`CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
       login TEXT NOT NULL,
@@ -232,20 +244,20 @@ async function applyInitialMigration(db: SQLJsDatabase<typeof schema>): Promise<
       created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
       updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
     )`,
-    'CREATE UNIQUE INDEX IF NOT EXISTS users_login_unique ON users (login)',
-  ]
+		"CREATE UNIQUE INDEX IF NOT EXISTS users_login_unique ON users (login)",
+	];
 
-  // Executa cada statement
-  for (const statement of migrationStatements) {
-    await db.run(sql.raw(statement))
-  }
+	// Executa cada statement
+	for (const statement of migrationStatements) {
+		await db.run(sql.raw(statement));
+	}
 
-  // Registra a migration como aplicada
-  await db.run(
-    sql.raw(
-      "INSERT INTO __drizzle_migrations (hash, created_at) VALUES ('0000_whole_triathlon', unixepoch())"
-    )
-  )
+	// Registra a migration como aplicada
+	await db.run(
+		sql.raw(
+			"INSERT INTO __drizzle_migrations (hash, created_at) VALUES ('0000_whole_triathlon', unixepoch())",
+		),
+	);
 
-  console.info('[DB] Initial migration applied successfully')
+	console.info("[DB] Initial migration applied successfully");
 }

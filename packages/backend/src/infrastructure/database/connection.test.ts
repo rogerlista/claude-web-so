@@ -1,17 +1,17 @@
-import { describe, expect, it } from 'vitest'
-import { createInMemoryDatabase } from './connection'
+import { describe, expect, it } from "vitest";
+import { createInMemoryDatabase } from "./connection";
 
-describe('Database Connection', () => {
-  it('should create in-memory database', () => {
-    const db = createInMemoryDatabase()
+describe("Database Connection", () => {
+	it("should create in-memory database", () => {
+		const db = createInMemoryDatabase();
 
-    expect(db).toBeDefined()
-  })
+		expect(db).toBeDefined();
+	});
 
-  it('should have schema defined', () => {
-    const db = createInMemoryDatabase()
+	it("should have schema defined", () => {
+		const db = createInMemoryDatabase();
 
-    // Verify that the database connection works by checking the schema
-    expect(db._.schema).toBeDefined()
-  })
-})
+		// Verify that the database connection works by checking the schema
+		expect(db._.schema).toBeDefined();
+	});
+});

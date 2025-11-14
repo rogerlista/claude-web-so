@@ -154,29 +154,20 @@
 	},
 	"files": {
 		"includes": [
-			"**/packages/**/*.ts",
-			"**/packages/**/*.tsx",
-			"**/packages/**/*.js",
-			"**/packages/**/*.jsx",
-			"**/packages/**/*.vue",
-			"**/packages/**/*.json",
-			"**/scripts/**/*.ts",
-			"**/*.json",
-			"**/*.ts",
-			"!**/node_modules",
-			"!**/dist",
-			"!**/build",
-			"!**/coverage",
-			"!**/.git",
-			"!**/*.min.js",
-			"!**/*.d.ts",
-			"!**/pnpm-lock.yaml",
-			"!**/package-lock.json",
-			"!**/yarn.lock",
-			"!**/migrations",
-			"!**/.vite",
-			"!**/public"
-		]
+			"packages/**/src/**/*.ts",
+			"packages/**/src/**/*.tsx",
+			"packages/**/src/**/*.js",
+			"packages/**/src/**/*.jsx",
+			"packages/**/src/**/*.vue",
+			"packages/**/tests/**/*.ts",
+			"packages/**/*.config.ts",
+			"packages/**/*.config.js",
+			"packages/**/package.json",
+			"scripts/**/*.ts",
+			"*.json",
+			"*.ts"
+		],
+		"ignoreUnknown": true
 	},
 	"overrides": [
 		{
@@ -187,7 +178,8 @@
 						"useConst": "off"
 					},
 					"correctness": {
-						"noUnusedVariables": "off"
+						"noUnusedVariables": "off",
+						"noUnusedImports": "off"
 					},
 					"complexity": {
 						"useLiteralKeys": "off"

@@ -1,5 +1,5 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
 
 /**
  * SaleStatus type
@@ -10,12 +10,16 @@ import { ResultUtils } from '@pos-nfce/shared'
  * - COMPLETED: Sale successfully completed
  * - CANCELLED: Sale cancelled
  */
-export type SaleStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED'
+export type SaleStatus = "PENDING" | "COMPLETED" | "CANCELLED";
 
 /**
  * Valid sale status values
  */
-const VALID_STATUSES: readonly SaleStatus[] = ['PENDING', 'COMPLETED', 'CANCELLED']
+const VALID_STATUSES: readonly SaleStatus[] = [
+	"PENDING",
+	"COMPLETED",
+	"CANCELLED",
+];
 
 /**
  * Type guard to check if a string is a valid SaleStatus
@@ -24,8 +28,8 @@ const VALID_STATUSES: readonly SaleStatus[] = ['PENDING', 'COMPLETED', 'CANCELLE
  * @returns true if value is a valid SaleStatus
  */
 export const isSaleStatus = (value: string): value is SaleStatus => {
-  return VALID_STATUSES.includes(value as SaleStatus)
-}
+	return VALID_STATUSES.includes(value as SaleStatus);
+};
 
 /**
  * Create a SaleStatus from a string
@@ -34,13 +38,13 @@ export const isSaleStatus = (value: string): value is SaleStatus => {
  * @returns Result with SaleStatus or error message
  */
 export const createSaleStatus = (value: string): Result<SaleStatus, string> => {
-  const normalized = value.trim().toUpperCase()
+	const normalized = value.trim().toUpperCase();
 
-  if (!isSaleStatus(normalized)) {
-    return ResultUtils.err(
-      `Invalid sale status: ${value}. Must be one of: ${VALID_STATUSES.join(', ')}`
-    )
-  }
+	if (!isSaleStatus(normalized)) {
+		return ResultUtils.err(
+			`Invalid sale status: ${value}. Must be one of: ${VALID_STATUSES.join(", ")}`,
+		);
+	}
 
-  return ResultUtils.ok(normalized)
-}
+	return ResultUtils.ok(normalized);
+};

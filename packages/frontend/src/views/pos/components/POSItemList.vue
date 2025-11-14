@@ -85,57 +85,57 @@
  * Phase 6: T038 - Lista de itens no PDV
  */
 
-import type { SaleItem } from '../../../stores/sales'
+import type { SaleItem } from "../../../stores/sales";
 
 interface Props {
-  items: readonly SaleItem[]
-  loading?: boolean
+	items: readonly SaleItem[];
+	loading?: boolean;
 }
 
 // Props are used in template by Vue
 withDefaults(defineProps<Props>(), {
-  loading: false,
-})
+	loading: false,
+});
 
 const emit = defineEmits<{
-  'update-quantity': [productId: string, quantity: number]
-  'remove-item': [productId: string]
-}>()
+	"update-quantity": [productId: string, quantity: number];
+	"remove-item": [productId: string];
+}>();
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+};
 
 const handleIncreaseQuantity = (item: SaleItem): void => {
-  emit('update-quantity', item.productId, item.quantity + 1)
-}
+	emit("update-quantity", item.productId, item.quantity + 1);
+};
 
 const handleDecreaseQuantity = (item: SaleItem): void => {
-  if (item.quantity > 1) {
-    emit('update-quantity', item.productId, item.quantity - 1)
-  }
-}
+	if (item.quantity > 1) {
+		emit("update-quantity", item.productId, item.quantity - 1);
+	}
+};
 
 const handleQuantityChange = (item: SaleItem, event: Event): void => {
-  const target = event.target as HTMLInputElement
-  const newQuantity = Number.parseInt(target.value, 10)
+	const target = event.target as HTMLInputElement;
+	const newQuantity = Number.parseInt(target.value, 10);
 
-  if (newQuantity > 0 && newQuantity !== item.quantity) {
-    emit('update-quantity', item.productId, newQuantity)
-  } else {
-    // Reset to current quantity if invalid
-    target.value = item.quantity.toString()
-  }
-}
+	if (newQuantity > 0 && newQuantity !== item.quantity) {
+		emit("update-quantity", item.productId, newQuantity);
+	} else {
+		// Reset to current quantity if invalid
+		target.value = item.quantity.toString();
+	}
+};
 
 const handleRemove = (item: SaleItem): void => {
-  if (confirm(`Remover "${item.productName || item.productId}" da venda?`)) {
-    emit('remove-item', item.productId)
-  }
-}
+	if (confirm(`Remover "${item.productName || item.productId}" da venda?`)) {
+		emit("remove-item", item.productId);
+	}
+};
 </script>
 
 <style scoped>

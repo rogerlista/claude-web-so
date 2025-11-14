@@ -16,103 +16,103 @@
  * ```
  */
 
-import { computed } from 'vue'
+import { computed } from "vue";
 
 export interface BaseInputProps {
-  /** Input value (v-model) */
-  modelValue?: string | number | undefined
-  /** Input label text */
-  label?: string
-  /** Input type */
-  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search'
-  /** Placeholder text */
-  placeholder?: string
-  /** Disabled state */
-  disabled?: boolean
-  /** Readonly state */
-  readonly?: boolean
-  /** Required field */
-  required?: boolean
-  /** Error message */
-  error?: string | undefined
-  /** Helper text (shown below input when no error) */
-  helperText?: string
-  /** Maximum character length */
-  maxLength?: number
-  /** Input ID (auto-generated if not provided) */
-  id?: string
-  /** Input name attribute */
-  name?: string
-  /** Step value for number inputs */
-  step?: string
-  /** Minimum value for number inputs */
-  min?: string
-  /** ARIA label for accessibility */
-  ariaLabel?: string
+	/** Input value (v-model) */
+	modelValue?: string | number | undefined;
+	/** Input label text */
+	label?: string;
+	/** Input type */
+	type?: "text" | "email" | "password" | "number" | "tel" | "url" | "search";
+	/** Placeholder text */
+	placeholder?: string;
+	/** Disabled state */
+	disabled?: boolean;
+	/** Readonly state */
+	readonly?: boolean;
+	/** Required field */
+	required?: boolean;
+	/** Error message */
+	error?: string | undefined;
+	/** Helper text (shown below input when no error) */
+	helperText?: string;
+	/** Maximum character length */
+	maxLength?: number;
+	/** Input ID (auto-generated if not provided) */
+	id?: string;
+	/** Input name attribute */
+	name?: string;
+	/** Step value for number inputs */
+	step?: string;
+	/** Minimum value for number inputs */
+	min?: string;
+	/** ARIA label for accessibility */
+	ariaLabel?: string;
 }
 
 const props = withDefaults(defineProps<BaseInputProps>(), {
-  modelValue: '',
-  type: 'text',
-  disabled: false,
-  readonly: false,
-  required: false,
-})
+	modelValue: "",
+	type: "text",
+	disabled: false,
+	readonly: false,
+	required: false,
+});
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | number]
-  input: [event: Event]
-  focus: [event: FocusEvent]
-  blur: [event: FocusEvent]
-  keydown: [event: KeyboardEvent]
-  keyup: [event: KeyboardEvent]
-}>()
+	"update:modelValue": [value: string | number];
+	input: [event: Event];
+	focus: [event: FocusEvent];
+	blur: [event: FocusEvent];
+	keydown: [event: KeyboardEvent];
+	keyup: [event: KeyboardEvent];
+}>();
 
 // Generate unique ID if not provided
 const inputId = computed(
-  () => props.id || `base-input-${Math.random().toString(36).substring(2, 9)}`
-)
+	() => props.id || `base-input-${Math.random().toString(36).substring(2, 9)}`,
+);
 
 // Compute helper/error ID for aria-describedby
 const describedById = computed(() => {
-  if (props.error) {
-    return `${inputId.value}-error`
-  }
-  if (props.helperText) {
-    return `${inputId.value}-helper`
-  }
-  return undefined
-})
+	if (props.error) {
+		return `${inputId.value}-error`;
+	}
+	if (props.helperText) {
+		return `${inputId.value}-helper`;
+	}
+	return undefined;
+});
 
 // Character count for maxLength
 const characterCount = computed(() => {
-  const value = String(props.modelValue || '')
-  return value.length
-})
+	const value = String(props.modelValue || "");
+	return value.length;
+});
 
 // Event handlers
 const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const value = props.type === 'number' ? Number(target.value) : target.value
-  emit('update:modelValue', value)
-  emit('input', event)
-}
+	const target = event.target as HTMLInputElement;
+	const value = props.type === "number" ? Number(target.value) : target.value;
+	emit("update:modelValue", value);
+	emit("input", event);
+};
 
 const handleFocus = (event: FocusEvent) => {
-  emit('focus', event)
-}
+	emit("focus", event);
+};
 
 const handleBlur = (event: FocusEvent) => {
-  emit('blur', event)
-}
+	emit("blur", event);
+};
 
 const handleKeydown = (event: KeyboardEvent) => {
-  emit('keydown', event)
-}
+	emit("keydown", event);
+};
 
 const handleKeyup = (event: KeyboardEvent) => {
-  emit('keyup', event)
-}
+	emit("keyup", event);
+};
 </script>
 
 <template>

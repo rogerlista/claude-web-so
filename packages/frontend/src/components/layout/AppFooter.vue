@@ -19,21 +19,21 @@
  * ```
  */
 
-import { computed } from 'vue'
+import { computed } from "vue";
 
 export interface AppFooterProps {
-  /** Company name for copyright */
-  companyName?: string
-  /** Application version */
-  version?: string
+	/** Company name for copyright */
+	companyName?: string;
+	/** Application version */
+	version?: string;
 }
 
 withDefaults(defineProps<AppFooterProps>(), {
-  companyName: 'POS NFC-e',
-})
+	companyName: "POS NFC-e",
+});
 
 // Current year for copyright
-const currentYear = computed(() => new Date().getFullYear())
+const currentYear = computed(() => new Date().getFullYear());
 </script>
 
 <template>

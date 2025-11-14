@@ -4,134 +4,134 @@
  * Tela de inventário/contagem de estoque
  */
 
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import BaseButton from '../../components/base/BaseButton.vue'
-import BaseCard from '../../components/base/BaseCard.vue'
-import BaseInput from '../../components/base/BaseInput.vue'
-import { useInventoryStore } from '../../stores/inventory'
-import { useProductsStore } from '../../stores/products'
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useInventoryStore } from "../../stores/inventory";
+import { useProductsStore } from "../../stores/products";
 
-const router = useRouter()
-const inventoryStore = useInventoryStore()
-const productsStore = useProductsStore()
+const router = useRouter();
+const inventoryStore = useInventoryStore();
+const productsStore = useProductsStore();
 
 interface ProductCount {
-  id: string
-  descricao: string
-  sku: string
-  systemQuantity: number | null
-  countedQuantity: number
-  difference: number
-  needsAdjustment: boolean
+	id: string;
+	descricao: string;
+	sku: string;
+	systemQuantity: number | null;
+	countedQuantity: number;
+	difference: number;
+	needsAdjustment: boolean;
 }
 
-const productCounts = ref<ProductCount[]>([])
-const loading = ref(false)
-const error = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
-const isProcessing = ref(false)
+const productCounts = ref<ProductCount[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const successMessage = ref<string | null>(null);
+const isProcessing = ref(false);
 
 const loadProducts = async (): Promise<void> => {
-  loading.value = true
-  error.value = null
+	loading.value = true;
+	error.value = null;
 
-  try {
-    await productsStore.fetchProducts()
+	try {
+		await productsStore.fetchProducts();
 
-    if (productsStore.products.length === 0) {
-      error.value = 'Nenhum produto encontrado'
-      return
-    }
+		if (productsStore.products.length === 0) {
+			error.value = "Nenhum produto encontrado";
+			return;
+		}
 
-    // Initialize count for each product
-    productCounts.value = await Promise.all(
-      productsStore.products.map(async (product) => {
-        // Fetch current stock
-        await inventoryStore.fetchStock(product.id)
-        const systemQuantity = inventoryStore.stock?.currentQuantity ?? null
+		// Initialize count for each product
+		productCounts.value = await Promise.all(
+			productsStore.products.map(async (product) => {
+				// Fetch current stock
+				await inventoryStore.fetchStock(product.id);
+				const systemQuantity = inventoryStore.stock?.currentQuantity ?? null;
 
-        return {
-          id: product.id,
-          descricao: product.descricao,
-          sku: product.sku,
-          systemQuantity,
-          countedQuantity: systemQuantity ?? 0,
-          difference: 0,
-          needsAdjustment: false,
-        }
-      })
-    )
-  } catch (err) {
-    error.value = 'Erro ao carregar produtos'
-  } finally {
-    loading.value = false
-  }
-}
+				return {
+					id: product.id,
+					descricao: product.descricao,
+					sku: product.sku,
+					systemQuantity,
+					countedQuantity: systemQuantity ?? 0,
+					difference: 0,
+					needsAdjustment: false,
+				};
+			}),
+		);
+	} catch (_err) {
+		error.value = "Erro ao carregar produtos";
+	} finally {
+		loading.value = false;
+	}
+};
 
 const updateDifference = (product: ProductCount): void => {
-  if (product.systemQuantity === null) {
-    product.difference = product.countedQuantity
-    product.needsAdjustment = product.countedQuantity !== 0
-  } else {
-    product.difference = product.countedQuantity - product.systemQuantity
-    product.needsAdjustment = product.difference !== 0
-  }
-}
+	if (product.systemQuantity === null) {
+		product.difference = product.countedQuantity;
+		product.needsAdjustment = product.countedQuantity !== 0;
+	} else {
+		product.difference = product.countedQuantity - product.systemQuantity;
+		product.needsAdjustment = product.difference !== 0;
+	}
+};
 
 const handleCountChange = (product: ProductCount): void => {
-  updateDifference(product)
-}
+	updateDifference(product);
+};
 
-const adjustmentsNeeded = ref<ProductCount[]>([])
+const adjustmentsNeeded = ref<ProductCount[]>([]);
 
 const processAdjustments = async (): Promise<void> => {
-  adjustmentsNeeded.value = productCounts.value.filter((p) => p.needsAdjustment)
+	adjustmentsNeeded.value = productCounts.value.filter(
+		(p) => p.needsAdjustment,
+	);
 
-  if (adjustmentsNeeded.value.length === 0) {
-    successMessage.value = 'Nenhum ajuste necessário. Estoque está correto!'
-    return
-  }
+	if (adjustmentsNeeded.value.length === 0) {
+		successMessage.value = "Nenhum ajuste necessário. Estoque está correto!";
+		return;
+	}
 
-  isProcessing.value = true
-  error.value = null
-  successMessage.value = null
+	isProcessing.value = true;
+	error.value = null;
+	successMessage.value = null;
 
-  try {
-    // Register adjustments for products with differences
-    for (const product of adjustmentsNeeded.value) {
-      await inventoryStore.registerMovement({
-        productId: product.id,
-        quantity: product.countedQuantity,
-        type: 'ajuste',
-        description: `Ajuste de inventário. Diferença: ${product.difference > 0 ? '+' : ''}${product.difference}`,
-      })
+	try {
+		// Register adjustments for products with differences
+		for (const product of adjustmentsNeeded.value) {
+			await inventoryStore.registerMovement({
+				productId: product.id,
+				quantity: product.countedQuantity,
+				type: "ajuste",
+				description: `Ajuste de inventário. Diferença: ${product.difference > 0 ? "+" : ""}${product.difference}`,
+			});
 
-      if (inventoryStore.error) {
-        throw new Error(`Erro ao ajustar ${product.descricao}`)
-      }
-    }
+			if (inventoryStore.error) {
+				throw new Error(`Erro ao ajustar ${product.descricao}`);
+			}
+		}
 
-    successMessage.value = `Inventário processado com sucesso! ${adjustmentsNeeded.value.length} ajuste(s) realizado(s).`
+		successMessage.value = `Inventário processado com sucesso! ${adjustmentsNeeded.value.length} ajuste(s) realizado(s).`;
 
-    // Reload products after adjustments
-    setTimeout(() => {
-      loadProducts()
-    }, 2000)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Erro ao processar ajustes'
-  } finally {
-    isProcessing.value = false
-  }
-}
+		// Reload products after adjustments
+		setTimeout(() => {
+			loadProducts();
+		}, 2000);
+	} catch (err) {
+		error.value =
+			err instanceof Error ? err.message : "Erro ao processar ajustes";
+	} finally {
+		isProcessing.value = false;
+	}
+};
 
 const handleCancel = (): void => {
-  router.push('/inventory')
-}
+	router.push("/inventory");
+};
 
 onMounted(() => {
-  loadProducts()
-})
+	loadProducts();
+});
 </script>
 
 <template>

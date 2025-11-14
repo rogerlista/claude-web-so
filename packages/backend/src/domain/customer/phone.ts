@@ -1,5 +1,5 @@
-import type { Brand, Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
+import type { Brand, Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
 
 /**
  * Phone - Brazilian phone number branded type
@@ -14,7 +14,7 @@ import { ResultUtils } from '@pos-nfce/shared'
  *
  * Formats accepted: (11) 98765-4321, 11987654321, +55 11 98765-4321
  */
-export type Phone = Brand<string, 'Phone'>
+export type Phone = Brand<string, "Phone">;
 
 /**
  * Create a Phone from a string
@@ -23,20 +23,22 @@ export type Phone = Brand<string, 'Phone'>
  * @returns Result with Phone or error message
  */
 export const createPhone = (value: string): Result<Phone, string> => {
-  // Trim and remove all non-digit characters
-  const trimmed = value.trim()
-  const digitsOnly = trimmed.replace(/\D/g, '')
+	// Trim and remove all non-digit characters
+	const trimmed = value.trim();
+	const digitsOnly = trimmed.replace(/\D/g, "");
 
-  // Validate non-empty
-  if (digitsOnly.length === 0) {
-    return ResultUtils.err('Phone cannot be empty')
-  }
+	// Validate non-empty
+	if (digitsOnly.length === 0) {
+		return ResultUtils.err("Phone cannot be empty");
+	}
 
-  // Validate length (10-13 digits for Brazilian phones)
-  const validLengths = [10, 11, 12, 13]
-  if (!validLengths.includes(digitsOnly.length)) {
-    return ResultUtils.err('Phone must have 10, 11, 12, or 13 digits (Brazilian format)')
-  }
+	// Validate length (10-13 digits for Brazilian phones)
+	const validLengths = [10, 11, 12, 13];
+	if (!validLengths.includes(digitsOnly.length)) {
+		return ResultUtils.err(
+			"Phone must have 10, 11, 12, or 13 digits (Brazilian format)",
+		);
+	}
 
-  return ResultUtils.ok(digitsOnly as Phone)
-}
+	return ResultUtils.ok(digitsOnly as Phone);
+};

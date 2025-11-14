@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest'
-import { createProductId } from '../product/product-id'
-import { createInventoryId } from './inventory-id'
-import { createInventoryMovement } from './inventory-movement'
-import { createQuantity } from './quantity'
+import { describe, expect, it } from "vitest";
+import { createProductId } from "../product/product-id";
+import { createInventoryId } from "./inventory-id";
+import { createInventoryMovement } from "./inventory-movement";
+import { createQuantity } from "./quantity";
 
 /**
  * TDD - RED Phase
@@ -16,175 +16,175 @@ import { createQuantity } from './quantity'
  * - All fields are immutable
  */
 
-describe('InventoryMovement Entity', () => {
-  describe('createInventoryMovement', () => {
-    it('should create movement with required fields only', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+describe("InventoryMovement Entity", () => {
+	describe("createInventoryMovement", () => {
+		it("should create movement with required fields only", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'entrada',
-        date: new Date('2024-01-01'),
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "entrada",
+				date: new Date("2024-01-01"),
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.id).toBe(idResult.value)
-        expect(result.value.productId).toBe(productIdResult.value)
-        expect(result.value.quantity).toBe(quantityResult.value)
-        expect(result.value.type).toBe('entrada')
-        expect(result.value.date).toEqual(new Date('2024-01-01'))
-        expect(result.value.description).toBeUndefined()
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.id).toBe(idResult.value);
+				expect(result.value.productId).toBe(productIdResult.value);
+				expect(result.value.quantity).toBe(quantityResult.value);
+				expect(result.value.type).toBe("entrada");
+				expect(result.value.date).toEqual(new Date("2024-01-01"));
+				expect(result.value.description).toBeUndefined();
+			}
+		});
 
-    it('should create movement with optional description', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+		it("should create movement with optional description", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'entrada',
-        date: new Date('2024-01-01'),
-        description: 'Compra de produtos',
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "entrada",
+				date: new Date("2024-01-01"),
+				description: "Compra de produtos",
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.description).toBe('Compra de produtos')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.description).toBe("Compra de produtos");
+			}
+		});
 
-    it('should accept entrada type', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+		it("should accept entrada type", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'entrada',
-        date: new Date(),
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "entrada",
+				date: new Date(),
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.type).toBe('entrada')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.type).toBe("entrada");
+			}
+		});
 
-    it('should accept saida type', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+		it("should accept saida type", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'saida',
-        date: new Date(),
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "saida",
+				date: new Date(),
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.type).toBe('saida')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.type).toBe("saida");
+			}
+		});
 
-    it('should accept ajuste type', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+		it("should accept ajuste type", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'ajuste',
-        date: new Date(),
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "ajuste",
+				date: new Date(),
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.type).toBe('ajuste')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.type).toBe("ajuste");
+			}
+		});
 
-    it('should trim description whitespace', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+		it("should trim description whitespace", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'entrada',
-        date: new Date(),
-        description: '  Test description  ',
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "entrada",
+				date: new Date(),
+				description: "  Test description  ",
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.description).toBe('Test description')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.description).toBe("Test description");
+			}
+		});
 
-    it('should treat empty description as undefined', () => {
-      const idResult = createInventoryId('inv-001')
-      const productIdResult = createProductId('prod-001')
-      const quantityResult = createQuantity(10)
+		it("should treat empty description as undefined", () => {
+			const idResult = createInventoryId("inv-001");
+			const productIdResult = createProductId("prod-001");
+			const quantityResult = createQuantity(10);
 
-      if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
-        throw new Error('Setup failed')
-      }
+			if (!idResult.ok || !productIdResult.ok || !quantityResult.ok) {
+				throw new Error("Setup failed");
+			}
 
-      const result = createInventoryMovement({
-        id: idResult.value,
-        productId: productIdResult.value,
-        quantity: quantityResult.value,
-        type: 'entrada',
-        date: new Date(),
-        description: '   ',
-      })
+			const result = createInventoryMovement({
+				id: idResult.value,
+				productId: productIdResult.value,
+				quantity: quantityResult.value,
+				type: "entrada",
+				date: new Date(),
+				description: "   ",
+			});
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.description).toBeUndefined()
-      }
-    })
-  })
-})
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.description).toBeUndefined();
+			}
+		});
+	});
+});

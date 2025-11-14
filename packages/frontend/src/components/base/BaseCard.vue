@@ -17,43 +17,43 @@
  */
 
 export interface BaseCardProps {
-  /** Card title (alternative to header slot) */
-  title?: string
-  /** Card subtitle */
-  subtitle?: string
-  /** Remove default padding */
-  noPadding?: boolean
-  /** Shadow elevation level */
-  elevation?: 'none' | 'sm' | 'md' | 'lg'
-  /** Make card clickable (adds hover effects) */
-  clickable?: boolean
-  /** Add border instead of shadow */
-  bordered?: boolean
+	/** Card title (alternative to header slot) */
+	title?: string;
+	/** Card subtitle */
+	subtitle?: string;
+	/** Remove default padding */
+	noPadding?: boolean;
+	/** Shadow elevation level */
+	elevation?: "none" | "sm" | "md" | "lg";
+	/** Make card clickable (adds hover effects) */
+	clickable?: boolean;
+	/** Add border instead of shadow */
+	bordered?: boolean;
 }
 
 const props = withDefaults(defineProps<BaseCardProps>(), {
-  noPadding: false,
-  elevation: 'sm',
-  clickable: false,
-  bordered: false,
-})
+	noPadding: false,
+	elevation: "sm",
+	clickable: false,
+	bordered: false,
+});
 
 const emit = defineEmits<{
-  click: [event: MouseEvent | KeyboardEvent]
-}>()
+	click: [event: MouseEvent | KeyboardEvent];
+}>();
 
 const handleClick = (event: MouseEvent) => {
-  if (props.clickable) {
-    emit('click', event)
-  }
-}
+	if (props.clickable) {
+		emit("click", event);
+	}
+};
 
 const handleKeydown = (event: KeyboardEvent) => {
-  if (props.clickable && (event.key === 'Enter' || event.key === ' ')) {
-    event.preventDefault()
-    emit('click', event)
-  }
-}
+	if (props.clickable && (event.key === "Enter" || event.key === " ")) {
+		event.preventDefault();
+		emit("click", event);
+	}
+};
 </script>
 
 <template>

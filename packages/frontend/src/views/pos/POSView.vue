@@ -117,105 +117,104 @@
  * Phase 6: T036-T037 - Tela PDV componente principal
  */
 
-import { onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import BaseButton from '../../components/base/BaseButton.vue'
-import { useSalesStore } from '../../stores/sales'
-import POSDiscountModal from './components/POSDiscountModal.vue'
-import POSItemList from './components/POSItemList.vue'
-import POSProductSearch from './components/POSProductSearch.vue'
+import { onMounted, onUnmounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useSalesStore } from "../../stores/sales";
 
-const router = useRouter()
-const salesStore = useSalesStore()
-const showDiscountModal = ref(false)
+const router = useRouter();
+const salesStore = useSalesStore();
+const showDiscountModal = ref(false);
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+};
 
 const handleNewSale = async (): Promise<void> => {
-  await salesStore.createSale()
-}
+	await salesStore.createSale();
+};
 
 const handleAddProduct = async (product: {
-  id: string
-  price: number
-  quantity: number
+	id: string;
+	price: number;
+	quantity: number;
 }): Promise<void> => {
-  await salesStore.addItem({
-    productId: product.id,
-    quantity: product.quantity,
-    unitPrice: product.price,
-  })
-}
+	await salesStore.addItem({
+		productId: product.id,
+		quantity: product.quantity,
+		unitPrice: product.price,
+	});
+};
 
-const handleUpdateQuantity = async (productId: string, quantity: number): Promise<void> => {
-  await salesStore.updateItemQuantity(productId, quantity)
-}
+const handleUpdateQuantity = async (
+	productId: string,
+	quantity: number,
+): Promise<void> => {
+	await salesStore.updateItemQuantity(productId, quantity);
+};
 
 const handleRemoveItem = async (productId: string): Promise<void> => {
-  await salesStore.removeItem(productId)
-}
+	await salesStore.removeItem(productId);
+};
 
 const handleApplyDiscount = (): void => {
-  showDiscountModal.value = true
-}
+	showDiscountModal.value = true;
+};
 
 const handleDiscountApply = async (discount: number): Promise<void> => {
-  const success = await salesStore.applyDiscount(discount)
-  if (success) {
-    showDiscountModal.value = false
-  }
-}
+	const success = await salesStore.applyDiscount(discount);
+	if (success) {
+		showDiscountModal.value = false;
+	}
+};
 
 const handleCheckout = (): void => {
-  if (salesStore.currentSale) {
-    router.push(`/pos/checkout/${salesStore.currentSale.id}`)
-  }
-}
+	if (salesStore.currentSale) {
+		router.push(`/pos/checkout/${salesStore.currentSale.id}`);
+	}
+};
 
 const handleCancelSale = (): void => {
-  if (confirm('Tem certeza que deseja cancelar esta venda?')) {
-    salesStore.clearSale()
-  }
-}
+	if (confirm("Tem certeza que deseja cancelar esta venda?")) {
+		salesStore.clearSale();
+	}
+};
 
 // Keyboard shortcuts
 const handleKeyPress = (event: KeyboardEvent): void => {
-  // F2 - Finalizar venda
-  if (event.key === 'F2' && salesStore.hasItems && !salesStore.loading) {
-    event.preventDefault()
-    handleCheckout()
-  }
+	// F2 - Finalizar venda
+	if (event.key === "F2" && salesStore.hasItems && !salesStore.loading) {
+		event.preventDefault();
+		handleCheckout();
+	}
 
-  // F3 - Nova venda
-  if (event.key === 'F3' && !salesStore.currentSale) {
-    event.preventDefault()
-    handleNewSale()
-  }
+	// F3 - Nova venda
+	if (event.key === "F3" && !salesStore.currentSale) {
+		event.preventDefault();
+		handleNewSale();
+	}
 
-  // F4 - Desconto
-  if (event.key === 'F4' && salesStore.hasItems && !salesStore.loading) {
-    event.preventDefault()
-    handleApplyDiscount()
-  }
-}
+	// F4 - Desconto
+	if (event.key === "F4" && salesStore.hasItems && !salesStore.loading) {
+		event.preventDefault();
+		handleApplyDiscount();
+	}
+};
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyPress)
+	window.addEventListener("keydown", handleKeyPress);
 
-  // If there's no current sale, create one automatically
-  if (!salesStore.currentSale) {
-    handleNewSale()
-  }
-})
+	// If there's no current sale, create one automatically
+	if (!salesStore.currentSale) {
+		handleNewSale();
+	}
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyPress)
-})
+	window.removeEventListener("keydown", handleKeyPress);
+});
 </script>
 
 <style scoped>

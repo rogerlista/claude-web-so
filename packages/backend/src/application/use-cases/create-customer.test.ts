@@ -1,17 +1,20 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
-import { describe, expect, it } from 'vitest'
-import { createCPF } from '../../domain/customer/cpf'
-import type { Customer } from '../../domain/customer/customer'
-import { createCustomerId } from '../../domain/customer/customer-id'
-import { createEmail } from '../../domain/customer/email'
-import { createPhone } from '../../domain/customer/phone'
-import type { CustomerRepository, RepositoryError } from '../ports/customer-repository'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
+import { describe, expect, it } from "vitest";
+import { createCPF } from "../../domain/customer/cpf";
+import type { Customer } from "../../domain/customer/customer";
+import { createCustomerId } from "../../domain/customer/customer-id";
+import { createEmail } from "../../domain/customer/email";
+import { createPhone } from "../../domain/customer/phone";
+import type {
+	CustomerRepository,
+	RepositoryError,
+} from "../ports/customer-repository";
 import {
-  type CreateCustomerInput,
-  type CreateCustomerUseCaseError,
-  createCustomerUseCase,
-} from './create-customer'
+	type CreateCustomerInput,
+	type CreateCustomerUseCaseError,
+	createCustomerUseCase,
+} from "./create-customer";
 
 /**
  * TDD - RED Phase
@@ -29,268 +32,305 @@ import {
  * Helper to create a mock Customer for testing
  */
 const createMockCustomer = (data: {
-  id: string
-  name: string
-  cpf: string
-  email?: string
-  phone?: string
+	id: string;
+	name: string;
+	cpf: string;
+	email?: string;
+	phone?: string;
 }): Customer => {
-  const idResult = createCustomerId(data.id)
-  const cpfResult = createCPF(data.cpf)
+	const idResult = createCustomerId(data.id);
+	const cpfResult = createCPF(data.cpf);
 
-  if (!idResult.ok || !cpfResult.ok) {
-    throw new Error('Invalid mock customer data')
-  }
+	if (!idResult.ok || !cpfResult.ok) {
+		throw new Error("Invalid mock customer data");
+	}
 
-  const customer: Customer = {
-    id: idResult.value,
-    name: data.name,
-    cpf: cpfResult.value,
-  }
+	const customer: Customer = {
+		id: idResult.value,
+		name: data.name,
+		cpf: cpfResult.value,
+	};
 
-  if (data.email) {
-    const emailResult = createEmail(data.email)
-    if (emailResult.ok) {
-      Object.assign(customer, { email: emailResult.value })
-    }
-  }
+	if (data.email) {
+		const emailResult = createEmail(data.email);
+		if (emailResult.ok) {
+			Object.assign(customer, { email: emailResult.value });
+		}
+	}
 
-  if (data.phone) {
-    const phoneResult = createPhone(data.phone)
-    if (phoneResult.ok) {
-      Object.assign(customer, { phone: phoneResult.value })
-    }
-  }
+	if (data.phone) {
+		const phoneResult = createPhone(data.phone);
+		if (phoneResult.ok) {
+			Object.assign(customer, { phone: phoneResult.value });
+		}
+	}
 
-  return customer
-}
+	return customer;
+};
 
 /**
  * Mock CustomerRepository for testing
  */
 const createMockRepository = (
-  saveResult: Result<Customer, RepositoryError>
+	saveResult: Result<Customer, RepositoryError>,
 ): CustomerRepository => ({
-  save: async () => saveResult,
-  findById: async () => ResultUtils.err({ type: 'NOT_FOUND' as const, id: 'test' }),
-  findAll: async () => ResultUtils.ok([]),
-  delete: async () => ResultUtils.ok(undefined),
-  findByCPF: async () => ResultUtils.err({ type: 'NOT_FOUND' as const, id: 'test' }),
-  findByEmail: async () => ResultUtils.err({ type: 'NOT_FOUND' as const, id: 'test' }),
-})
+	save: async () => saveResult,
+	findById: async () =>
+		ResultUtils.err({ type: "NOT_FOUND" as const, id: "test" }),
+	findAll: async () => ResultUtils.ok([]),
+	delete: async () => ResultUtils.ok(undefined),
+	findByCPF: async () =>
+		ResultUtils.err({ type: "NOT_FOUND" as const, id: "test" }),
+	findByEmail: async () =>
+		ResultUtils.err({ type: "NOT_FOUND" as const, id: "test" }),
+});
 
-describe('CreateCustomer Use Case', () => {
-  describe('createCustomerUseCase', () => {
-    it('should create a customer with valid data', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(
-          createMockCustomer({
-            id: 'customer-123',
-            name: 'João Silva',
-            cpf: '12345678909',
-          })
-        )
-      )
+describe("CreateCustomer Use Case", () => {
+	describe("createCustomerUseCase", () => {
+		it("should create a customer with valid data", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "João Silva",
+						cpf: "12345678909",
+					}),
+				),
+			);
 
-      const useCase = createCustomerUseCase(mockRepo)
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+			};
 
-      const result: Result<Customer, CreateCustomerUseCaseError> = await useCase(input)
+			const result: Result<Customer, CreateCustomerUseCaseError> =
+				await useCase(input);
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.id).toBe('customer-123')
-        expect(result.value.name).toBe('João Silva')
-        expect(result.value.cpf).toBe('12345678909')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.id).toBe("customer-123");
+				expect(result.value.name).toBe("João Silva");
+				expect(result.value.cpf).toBe("12345678909");
+			}
+		});
 
-    it('should create a customer with email and phone', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(
-          createMockCustomer({
-            id: 'customer-123',
-            name: 'João Silva',
-            cpf: '12345678909',
-            email: 'joao@example.com',
-            phone: '11987654321',
-          })
-        )
-      )
+		it("should create a customer with email and phone", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "João Silva",
+						cpf: "12345678909",
+						email: "joao@example.com",
+						phone: "11987654321",
+					}),
+				),
+			);
 
-      const useCase = createCustomerUseCase(mockRepo)
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-        email: 'joao@example.com',
-        phone: '(11) 98765-4321',
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+				email: "joao@example.com",
+				phone: "(11) 98765-4321",
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(true)
-      if (result.ok) {
-        expect(result.value.email).toBe('joao@example.com')
-        expect(result.value.phone).toBe('11987654321')
-      }
-    })
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.email).toBe("joao@example.com");
+				expect(result.value.phone).toBe("11987654321");
+			}
+		});
 
-    it('should reject invalid customer ID', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
-      )
-      const useCase = createCustomerUseCase(mockRepo)
+		it("should reject invalid customer ID", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "Test",
+						cpf: "12345678909",
+					}),
+				),
+			);
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: '',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-      }
+			const input: CreateCustomerInput = {
+				id: "",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'VALIDATION_ERROR') {
-        expect(result.error.type).toBe('VALIDATION_ERROR')
-        expect(result.error.message).toContain('CustomerId')
-      }
-    })
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "VALIDATION_ERROR") {
+				expect(result.error.type).toBe("VALIDATION_ERROR");
+				expect(result.error.message).toContain("CustomerId");
+			}
+		});
 
-    it('should reject invalid CPF', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
-      )
-      const useCase = createCustomerUseCase(mockRepo)
+		it("should reject invalid CPF", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "Test",
+						cpf: "12345678909",
+					}),
+				),
+			);
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-00', // Invalid check digit
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-00", // Invalid check digit
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'VALIDATION_ERROR') {
-        expect(result.error.type).toBe('VALIDATION_ERROR')
-        expect(result.error.message).toContain('CPF')
-      }
-    })
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "VALIDATION_ERROR") {
+				expect(result.error.type).toBe("VALIDATION_ERROR");
+				expect(result.error.message).toContain("CPF");
+			}
+		});
 
-    it('should reject empty name', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
-      )
-      const useCase = createCustomerUseCase(mockRepo)
+		it("should reject empty name", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "Test",
+						cpf: "12345678909",
+					}),
+				),
+			);
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: '',
-        cpf: '123.456.789-09',
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "",
+				cpf: "123.456.789-09",
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'VALIDATION_ERROR') {
-        expect(result.error.type).toBe('VALIDATION_ERROR')
-        expect(result.error.message).toContain('Name')
-      }
-    })
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "VALIDATION_ERROR") {
+				expect(result.error.type).toBe("VALIDATION_ERROR");
+				expect(result.error.message).toContain("Name");
+			}
+		});
 
-    it('should reject invalid email', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
-      )
-      const useCase = createCustomerUseCase(mockRepo)
+		it("should reject invalid email", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "Test",
+						cpf: "12345678909",
+					}),
+				),
+			);
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-        email: 'invalid-email',
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+				email: "invalid-email",
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'VALIDATION_ERROR') {
-        expect(result.error.type).toBe('VALIDATION_ERROR')
-        expect(result.error.message).toContain('Email')
-      }
-    })
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "VALIDATION_ERROR") {
+				expect(result.error.type).toBe("VALIDATION_ERROR");
+				expect(result.error.message).toContain("Email");
+			}
+		});
 
-    it('should reject invalid phone', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.ok(createMockCustomer({ id: 'customer-123', name: 'Test', cpf: '12345678909' }))
-      )
-      const useCase = createCustomerUseCase(mockRepo)
+		it("should reject invalid phone", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.ok(
+					createMockCustomer({
+						id: "customer-123",
+						name: "Test",
+						cpf: "12345678909",
+					}),
+				),
+			);
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-        phone: '123', // Too short
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+				phone: "123", // Too short
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'VALIDATION_ERROR') {
-        expect(result.error.type).toBe('VALIDATION_ERROR')
-        expect(result.error.message).toContain('Phone')
-      }
-    })
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "VALIDATION_ERROR") {
+				expect(result.error.type).toBe("VALIDATION_ERROR");
+				expect(result.error.message).toContain("Phone");
+			}
+		});
 
-    it('should handle repository errors', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.err({ type: 'DATABASE_ERROR' as const, message: 'Connection failed' })
-      )
+		it("should handle repository errors", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.err({
+					type: "DATABASE_ERROR" as const,
+					message: "Connection failed",
+				}),
+			);
 
-      const useCase = createCustomerUseCase(mockRepo)
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'REPOSITORY_ERROR') {
-        expect(result.error.type).toBe('REPOSITORY_ERROR')
-        expect(result.error.repositoryError.type).toBe('DATABASE_ERROR')
-      }
-    })
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "REPOSITORY_ERROR") {
+				expect(result.error.type).toBe("REPOSITORY_ERROR");
+				expect(result.error.repositoryError.type).toBe("DATABASE_ERROR");
+			}
+		});
 
-    it('should handle duplicate customer error', async () => {
-      const mockRepo = createMockRepository(
-        ResultUtils.err({ type: 'DUPLICATE' as const, id: 'customer-123' })
-      )
+		it("should handle duplicate customer error", async () => {
+			const mockRepo = createMockRepository(
+				ResultUtils.err({ type: "DUPLICATE" as const, id: "customer-123" }),
+			);
 
-      const useCase = createCustomerUseCase(mockRepo)
+			const useCase = createCustomerUseCase(mockRepo);
 
-      const input: CreateCustomerInput = {
-        id: 'customer-123',
-        name: 'João Silva',
-        cpf: '123.456.789-09',
-      }
+			const input: CreateCustomerInput = {
+				id: "customer-123",
+				name: "João Silva",
+				cpf: "123.456.789-09",
+			};
 
-      const result = await useCase(input)
+			const result = await useCase(input);
 
-      expect(result.ok).toBe(false)
-      if (!result.ok && result.error.type === 'REPOSITORY_ERROR') {
-        expect(result.error.type).toBe('REPOSITORY_ERROR')
-        expect(result.error.repositoryError.type).toBe('DUPLICATE')
-      }
-    })
-  })
-})
+			expect(result.ok).toBe(false);
+			if (!result.ok && result.error.type === "REPOSITORY_ERROR") {
+				expect(result.error.type).toBe("REPOSITORY_ERROR");
+				expect(result.error.repositoryError.type).toBe("DUPLICATE");
+			}
+		});
+	});
+});

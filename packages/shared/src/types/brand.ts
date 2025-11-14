@@ -14,4 +14,4 @@
  * // ❌ Type error: UserId is not assignable to ProductId
  * const id: ProductId = userId
  */
-export type Brand<K, T> = K & { readonly __brand: T }
+export type Brand<K, T> = K & { readonly __brand: T };

@@ -13,4 +13,6 @@
  *   return { some: true, value: user }
  * }
  */
-export type Option<T> = { readonly some: true; readonly value: T } | { readonly some: false }
+export type Option<T> =
+	| { readonly some: true; readonly value: T }
+	| { readonly some: false };

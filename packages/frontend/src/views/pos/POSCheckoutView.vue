@@ -90,58 +90,59 @@
  * Phase 6: T041-T042 - Tela de finalização de venda
  */
 
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import BaseButton from '../../components/base/BaseButton.vue'
-import { useSalesStore } from '../../stores/sales'
-import POSPaymentPanel from './components/POSPaymentPanel.vue'
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useSalesStore } from "../../stores/sales";
 
-const route = useRoute()
-const router = useRouter()
-const salesStore = useSalesStore()
+const route = useRoute();
+const router = useRouter();
+const salesStore = useSalesStore();
 
-const saleId = computed(() => route.params.id as string)
-const sale = computed(() => salesStore.currentSale)
-const showSuccessModal = ref(false)
+const saleId = computed(() => route.params.id as string);
+const sale = computed(() => salesStore.currentSale);
+const showSuccessModal = ref(false);
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value);
+};
 
 const handleBack = (): void => {
-  router.push('/pos')
-}
+	router.push("/pos");
+};
 
-const handleAddPayment = async (paymentMethodCode: string, amount: number): Promise<void> => {
-  await salesStore.addPayment(paymentMethodCode, amount)
-}
+const handleAddPayment = async (
+	paymentMethodCode: string,
+	amount: number,
+): Promise<void> => {
+	await salesStore.addPayment(paymentMethodCode, amount);
+};
 
 const handleComplete = async (): Promise<void> => {
-  const success = await salesStore.finalizeSale()
-  if (success) {
-    showSuccessModal.value = true
-  }
-}
+	const success = await salesStore.finalizeSale();
+	if (success) {
+		showSuccessModal.value = true;
+	}
+};
 
 const handlePrintReceipt = (): void => {
-  // TODO: Implement receipt printing
-  window.print()
-}
+	// TODO: Implement receipt printing
+	window.print();
+};
 
 const handleNewSale = async (): Promise<void> => {
-  salesStore.clearSale()
-  await router.push('/pos')
-}
+	salesStore.clearSale();
+	await router.push("/pos");
+};
 
 onMounted(async () => {
-  // Load sale if not in store
-  if (!sale.value || sale.value.id !== saleId.value) {
-    await salesStore.getSale(saleId.value)
-  }
-})
+	// Load sale if not in store
+	if (!sale.value || sale.value.id !== saleId.value) {
+		await salesStore.getSale(saleId.value);
+	}
+});
 </script>
 
 <style scoped>

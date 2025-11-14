@@ -1,7 +1,7 @@
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
-import * as schema from './schema'
+import Database from "better-sqlite3";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import * as schema from "./schema";
 
 /**
  * Database Connection
@@ -24,31 +24,33 @@ import * as schema from './schema'
  */
 /* c8 ignore next 11 */
 export const createDatabase = (
-  dbPath = 'data/pos-nfce.db'
+	dbPath = "data/pos-nfce.db",
 ): BetterSQLite3Database<typeof schema> => {
-  const sqlite = new Database(dbPath)
+	const sqlite = new Database(dbPath);
 
-  // Enable WAL mode for better concurrency
-  sqlite.pragma('journal_mode = WAL')
+	// Enable WAL mode for better concurrency
+	sqlite.pragma("journal_mode = WAL");
 
-  // Enable foreign keys
-  sqlite.pragma('foreign_keys = ON')
+	// Enable foreign keys
+	sqlite.pragma("foreign_keys = ON");
 
-  const db = drizzle(sqlite, { schema })
+	const db = drizzle(sqlite, { schema });
 
-  return db
-}
+	return db;
+};
 
 /**
  * Creates an in-memory database (for testing)
  *
  * @returns Drizzle database instance
  */
-export const createInMemoryDatabase = (): BetterSQLite3Database<typeof schema> => {
-  const sqlite = new Database(':memory:')
-  sqlite.pragma('foreign_keys = ON')
+export const createInMemoryDatabase = (): BetterSQLite3Database<
+	typeof schema
+> => {
+	const sqlite = new Database(":memory:");
+	sqlite.pragma("foreign_keys = ON");
 
-  const db = drizzle(sqlite, { schema })
+	const db = drizzle(sqlite, { schema });
 
-  return db
-}
+	return db;
+};

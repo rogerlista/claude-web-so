@@ -1,5 +1,5 @@
-import type { Brand, Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
+import type { Brand, Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
 
 /**
  * SaleId branded type
@@ -9,7 +9,7 @@ import { ResultUtils } from '@pos-nfce/shared'
  * - Whitespace trimmed
  * - Supports any ID format (UUID, nanoid, sequential, etc.)
  */
-export type SaleId = Brand<string, 'SaleId'>
+export type SaleId = Brand<string, "SaleId">;
 
 /**
  * Create a SaleId from a string
@@ -18,11 +18,11 @@ export type SaleId = Brand<string, 'SaleId'>
  * @returns Result with SaleId or error message
  */
 export const createSaleId = (value: string): Result<SaleId, string> => {
-  const trimmed = value.trim()
+	const trimmed = value.trim();
 
-  if (trimmed.length === 0) {
-    return ResultUtils.err('SaleId cannot be empty')
-  }
+	if (trimmed.length === 0) {
+		return ResultUtils.err("SaleId cannot be empty");
+	}
 
-  return ResultUtils.ok(trimmed as SaleId)
-}
+	return ResultUtils.ok(trimmed as SaleId);
+};

@@ -1,10 +1,10 @@
-import type { Brand, Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
+import type { Brand, Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
 
 /**
  * Surcharge Type - Percentage or Amount
  */
-export type SurchargeType = 'PERCENTAGE' | 'AMOUNT'
+export type SurchargeType = "PERCENTAGE" | "AMOUNT";
 
 /**
  * Surcharge Value Object
@@ -19,20 +19,20 @@ export type SurchargeType = 'PERCENTAGE' | 'AMOUNT'
  * - Value must be non-negative
  */
 export type Surcharge = Brand<
-  {
-    readonly type: SurchargeType
-    readonly value: number
-  },
-  'Surcharge'
->
+	{
+		readonly type: SurchargeType;
+		readonly value: number;
+	},
+	"Surcharge"
+>;
 
 /**
  * Input for creating a Surcharge
  */
 export type CreateSurchargeInput = {
-  readonly type: SurchargeType
-  readonly value: number
-}
+	readonly type: SurchargeType;
+	readonly value: number;
+};
 
 /**
  * Create a Surcharge value object
@@ -40,25 +40,27 @@ export type CreateSurchargeInput = {
  * @param input - Surcharge data
  * @returns Result with Surcharge or error message
  */
-export const createSurcharge = (input: CreateSurchargeInput): Result<Surcharge, string> => {
-  // Validate value is a valid number
-  if (Number.isNaN(input.value) || !Number.isFinite(input.value)) {
-    return ResultUtils.err('Surcharge value must be a valid number')
-  }
+export const createSurcharge = (
+	input: CreateSurchargeInput,
+): Result<Surcharge, string> => {
+	// Validate value is a valid number
+	if (Number.isNaN(input.value) || !Number.isFinite(input.value)) {
+		return ResultUtils.err("Surcharge value must be a valid number");
+	}
 
-  // Validate value is non-negative
-  if (input.value < 0) {
-    if (input.type === 'PERCENTAGE') {
-      return ResultUtils.err('Surcharge percentage cannot be negative')
-    }
-    return ResultUtils.err('Surcharge amount cannot be negative')
-  }
+	// Validate value is non-negative
+	if (input.value < 0) {
+		if (input.type === "PERCENTAGE") {
+			return ResultUtils.err("Surcharge percentage cannot be negative");
+		}
+		return ResultUtils.err("Surcharge amount cannot be negative");
+	}
 
-  // Create immutable surcharge
-  const surcharge = Object.freeze({
-    type: input.type,
-    value: input.value,
-  }) as Surcharge
+	// Create immutable surcharge
+	const surcharge = Object.freeze({
+		type: input.type,
+		value: input.value,
+	}) as Surcharge;
 
-  return ResultUtils.ok(surcharge)
-}
+	return ResultUtils.ok(surcharge);
+};

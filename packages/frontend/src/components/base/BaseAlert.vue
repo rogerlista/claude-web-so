@@ -17,66 +17,66 @@
  * ```
  */
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch } from "vue";
 
 export interface BaseAlertProps {
-  /** Alert variant/type */
-  variant?: 'info' | 'success' | 'warning' | 'error'
-  /** Alert title */
-  title?: string
-  /** Alert message */
-  message?: string
-  /** Show close button */
-  dismissible?: boolean
-  /** Control visibility with v-model */
-  modelValue?: boolean
-  /** Show icon */
-  showIcon?: boolean
-  /** Add border instead of background */
-  bordered?: boolean
-  /** ARIA role */
-  role?: 'alert' | 'status'
-  /** Close button aria-label */
-  closeLabel?: string
+	/** Alert variant/type */
+	variant?: "info" | "success" | "warning" | "error";
+	/** Alert title */
+	title?: string;
+	/** Alert message */
+	message?: string;
+	/** Show close button */
+	dismissible?: boolean;
+	/** Control visibility with v-model */
+	modelValue?: boolean;
+	/** Show icon */
+	showIcon?: boolean;
+	/** Add border instead of background */
+	bordered?: boolean;
+	/** ARIA role */
+	role?: "alert" | "status";
+	/** Close button aria-label */
+	closeLabel?: string;
 }
 
 const props = withDefaults(defineProps<BaseAlertProps>(), {
-  variant: 'info',
-  dismissible: false,
-  modelValue: true,
-  showIcon: false,
-  bordered: false,
-  role: 'alert',
-  closeLabel: 'Fechar alerta',
-})
+	variant: "info",
+	dismissible: false,
+	modelValue: true,
+	showIcon: false,
+	bordered: false,
+	role: "alert",
+	closeLabel: "Fechar alerta",
+});
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  close: []
-}>()
+	"update:modelValue": [value: boolean];
+	close: [];
+}>();
 
 // Internal visibility state
-const isVisible = ref(props.modelValue)
+const isVisible = ref(props.modelValue);
 
 // Watch for external modelValue changes
 watch(
-  () => props.modelValue,
-  (newValue) => {
-    isVisible.value = newValue
-  }
-)
+	() => props.modelValue,
+	(newValue) => {
+		isVisible.value = newValue;
+	},
+);
 
 // Compute aria-live based on variant
 const ariaLive = computed(() => {
-  return props.variant === 'error' ? 'assertive' : 'polite'
-})
+	return props.variant === "error" ? "assertive" : "polite";
+});
 
 // Handle close
 const handleClose = () => {
-  isVisible.value = false
-  emit('update:modelValue', false)
-  emit('close')
-}
+	isVisible.value = false;
+	emit("update:modelValue", false);
+	emit("close");
+};
 </script>
 
 <template>

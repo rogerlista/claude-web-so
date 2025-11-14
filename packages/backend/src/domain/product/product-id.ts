@@ -1,5 +1,5 @@
-import type { Brand, Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
+import type { Brand, Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
 
 /**
  * ProductId - Branded type for Product identifiers
@@ -7,7 +7,7 @@ import { ResultUtils } from '@pos-nfce/shared'
  * Domain Rule: ProductId must be a non-empty string
  * Prevents mixing product IDs with other string identifiers
  */
-export type ProductId = Brand<string, 'ProductId'>
+export type ProductId = Brand<string, "ProductId">;
 
 /**
  * Create a ProductId from a string
@@ -16,11 +16,11 @@ export type ProductId = Brand<string, 'ProductId'>
  * @returns Result with ProductId or error message
  */
 export const createProductId = (value: string): Result<ProductId, string> => {
-  const trimmed = value.trim()
+	const trimmed = value.trim();
 
-  if (trimmed.length === 0) {
-    return ResultUtils.err('ProductId cannot be empty')
-  }
+	if (trimmed.length === 0) {
+		return ResultUtils.err("ProductId cannot be empty");
+	}
 
-  return ResultUtils.ok(trimmed as ProductId)
-}
+	return ResultUtils.ok(trimmed as ProductId);
+};

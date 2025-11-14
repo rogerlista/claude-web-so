@@ -1,8 +1,8 @@
-import type { Result } from '@pos-nfce/shared'
-import { ResultUtils } from '@pos-nfce/shared'
-import type { Price } from '../product/price'
-import { createPrice } from '../product/price'
-import type { PaymentMethod } from './payment-method'
+import type { Result } from "@pos-nfce/shared";
+import { ResultUtils } from "@pos-nfce/shared";
+import type { Price } from "../product/price";
+import { createPrice } from "../product/price";
+import type { PaymentMethod } from "./payment-method";
 
 /**
  * SalePayment value object
@@ -15,17 +15,17 @@ import type { PaymentMethod } from './payment-method'
  * - All fields are immutable
  */
 export type SalePayment = {
-  readonly paymentMethod: PaymentMethod
-  readonly amount: Price
-}
+	readonly paymentMethod: PaymentMethod;
+	readonly amount: Price;
+};
 
 /**
  * Input for creating a SalePayment
  */
 export type CreateSalePaymentInput = {
-  readonly paymentMethod: PaymentMethod
-  readonly amount: number
-}
+	readonly paymentMethod: PaymentMethod;
+	readonly amount: number;
+};
 
 /**
  * Create a SalePayment
@@ -33,18 +33,22 @@ export type CreateSalePaymentInput = {
  * @param input - SalePayment data
  * @returns Result with SalePayment or error message
  */
-export const createSalePayment = (input: CreateSalePaymentInput): Result<SalePayment, string> => {
-  // Validate amount is positive using Price validation
-  const amountResult = createPrice(input.amount)
-  if (!amountResult.ok) {
-    return ResultUtils.err(`Payment amount validation failed: ${amountResult.error}`)
-  }
+export const createSalePayment = (
+	input: CreateSalePaymentInput,
+): Result<SalePayment, string> => {
+	// Validate amount is positive using Price validation
+	const amountResult = createPrice(input.amount);
+	if (!amountResult.ok) {
+		return ResultUtils.err(
+			`Payment amount validation failed: ${amountResult.error}`,
+		);
+	}
 
-  // Create immutable sale payment
-  const salePayment: SalePayment = {
-    paymentMethod: input.paymentMethod,
-    amount: amountResult.value,
-  }
+	// Create immutable sale payment
+	const salePayment: SalePayment = {
+		paymentMethod: input.paymentMethod,
+		amount: amountResult.value,
+	};
 
-  return ResultUtils.ok(salePayment)
-}
+	return ResultUtils.ok(salePayment);
+};

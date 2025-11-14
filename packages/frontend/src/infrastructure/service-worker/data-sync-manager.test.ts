@@ -2,648 +2,697 @@
  * Data Synchronization Manager Tests
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import * as backgroundSync from './background-sync'
-import * as dataSyncManager from './data-sync-manager'
-import * as onlineStatus from './online-status'
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as backgroundSync from "./background-sync";
+import * as dataSyncManager from "./data-sync-manager";
+import * as onlineStatus from "./online-status";
+
+describe("Data Sync Manager", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		vi.clearAllMocks();
+		vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
+		vi.spyOn(onlineStatus, "onConnectionChange").mockReturnValue(() => {
+			// empty unsubscribe
+		});
+	});
+
+	afterEach(() => {
+		localStorage.clear();
+		dataSyncManager.stopDataSync();
+	});
+
+	describe("initDataSync", () => {
+		it("should initialize with default config", () => {
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
+
+			dataSyncManager.initDataSync();
+
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[DataSync] Data sync manager initialized",
+				expect.objectContaining({
+					conflictStrategy: "last-write-wins",
+					maxRetries: 5,
+				}),
+			);
+
+			consoleInfoSpy.mockRestore();
+		});
+
+		it("should initialize with custom config", () => {
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
+
+			dataSyncManager.initDataSync({
+				conflictStrategy: "server-wins",
+				maxRetries: 3,
+				batchSize: 10,
+			});
+
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[DataSync] Data sync manager initialized",
+				expect.objectContaining({
+					conflictStrategy: "server-wins",
+					maxRetries: 3,
+					batchSize: 10,
+				}),
+			);
+
+			consoleInfoSpy.mockRestore();
+		});
+
+		it("should set up connection change listener", () => {
+			const onConnectionChangeSpy = vi.spyOn(
+				onlineStatus,
+				"onConnectionChange",
+			);
+
+			dataSyncManager.initDataSync();
+
+			expect(onConnectionChangeSpy).toHaveBeenCalledWith(expect.any(Function));
+		});
+
+		it("should set up periodic sync when configured", () => {
+			vi.useFakeTimers();
+
+			dataSyncManager.initDataSync({ syncIntervalMs: 5000 });
+
+			expect(vi.getTimerCount()).toBeGreaterThan(0);
+
+			vi.useRealTimers();
+		});
+
+		it("should not set up periodic sync when interval is 0", () => {
+			vi.useFakeTimers();
+
+			dataSyncManager.initDataSync({ syncIntervalMs: 0 });
+
+			expect(vi.getTimerCount()).toBe(0);
+
+			vi.useRealTimers();
+		});
+	});
+
+	describe("stopDataSync", () => {
+		it("should clear sync interval", () => {
+			vi.useFakeTimers();
 
-describe('Data Sync Manager', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    vi.clearAllMocks()
-    vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
-    vi.spyOn(onlineStatus, 'onConnectionChange').mockReturnValue(() => {
-      // empty unsubscribe
-    })
-  })
+			dataSyncManager.initDataSync({ syncIntervalMs: 5000 });
 
-  afterEach(() => {
-    localStorage.clear()
-    dataSyncManager.stopDataSync()
-  })
+			const timerCount = vi.getTimerCount();
+			expect(timerCount).toBeGreaterThan(0);
 
-  describe('initDataSync', () => {
-    it('should initialize with default config', () => {
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+			dataSyncManager.stopDataSync();
 
-      dataSyncManager.initDataSync()
+			expect(vi.getTimerCount()).toBeLessThan(timerCount);
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        '[DataSync] Data sync manager initialized',
-        expect.objectContaining({
-          conflictStrategy: 'last-write-wins',
-          maxRetries: 5,
-        })
-      )
+			vi.useRealTimers();
+		});
 
-      consoleInfoSpy.mockRestore()
-    })
+		it("should log when stopped", () => {
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-    it('should initialize with custom config', () => {
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+			dataSyncManager.stopDataSync();
 
-      dataSyncManager.initDataSync({
-        conflictStrategy: 'server-wins',
-        maxRetries: 3,
-        batchSize: 10,
-      })
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[DataSync] Data sync manager stopped",
+			);
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        '[DataSync] Data sync manager initialized',
-        expect.objectContaining({
-          conflictStrategy: 'server-wins',
-          maxRetries: 3,
-          batchSize: 10,
-        })
-      )
+			consoleInfoSpy.mockRestore();
+		});
+	});
 
-      consoleInfoSpy.mockRestore()
-    })
+	describe("trackChange", () => {
+		it("should track INSERT operation", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
 
-    it('should set up connection change listener', () => {
-      const onConnectionChangeSpy = vi.spyOn(onlineStatus, 'onConnectionChange')
+			dataSyncManager.initDataSync();
 
-      dataSyncManager.initDataSync()
+			const id = await dataSyncManager.trackChange("products", "INSERT", {
+				id: 1,
+				name: "Product 1",
+			});
 
-      expect(onConnectionChangeSpy).toHaveBeenCalledWith(expect.any(Function))
-    })
+			expect(id).toBeTruthy();
 
-    it('should set up periodic sync when configured', () => {
-      vi.useFakeTimers()
+			const operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations).toHaveLength(1);
+			expect(operations[0]).toMatchObject({
+				entity: "products",
+				operation: "INSERT",
+				localData: { id: 1, name: "Product 1" },
+				status: "pending",
+			});
+		});
 
-      dataSyncManager.initDataSync({ syncIntervalMs: 5000 })
+		it("should track UPDATE operation", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
 
-      expect(vi.getTimerCount()).toBeGreaterThan(0)
+			dataSyncManager.initDataSync();
 
-      vi.useRealTimers()
-    })
+			await dataSyncManager.trackChange(
+				"products",
+				"UPDATE",
+				{ id: 1, name: "Updated Product" },
+				2,
+			);
 
-    it('should not set up periodic sync when interval is 0', () => {
-      vi.useFakeTimers()
+			const operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations).toHaveLength(1);
+			expect(operations[0]).toMatchObject({
+				entity: "products",
+				operation: "UPDATE",
+				version: 2,
+			});
+		});
 
-      dataSyncManager.initDataSync({ syncIntervalMs: 0 })
+		it("should track DELETE operation", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
 
-      expect(vi.getTimerCount()).toBe(0)
+			dataSyncManager.initDataSync();
 
-      vi.useRealTimers()
-    })
-  })
+			await dataSyncManager.trackChange("products", "DELETE", { id: 1 });
 
-  describe('stopDataSync', () => {
-    it('should clear sync interval', () => {
-      vi.useFakeTimers()
+			const operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations).toHaveLength(1);
+			expect(operations[0]).toMatchObject({
+				entity: "products",
+				operation: "DELETE",
+			});
+		});
 
-      dataSyncManager.initDataSync({ syncIntervalMs: 5000 })
+		it("should trigger sync when online", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
 
-      const timerCount = vi.getTimerCount()
-      expect(timerCount).toBeGreaterThan(0)
+			dataSyncManager.initDataSync();
 
-      dataSyncManager.stopDataSync()
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      expect(vi.getTimerCount()).toBeLessThan(timerCount)
+			// Wait for async operations
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
-      vi.useRealTimers()
-    })
+			expect(backgroundSync.queueRequestForSync).toHaveBeenCalled();
+		});
 
-    it('should log when stopped', () => {
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+		it("should not trigger sync when offline", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
 
-      dataSyncManager.stopDataSync()
+			dataSyncManager.initDataSync();
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith('[DataSync] Data sync manager stopped')
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      consoleInfoSpy.mockRestore()
-    })
-  })
+			// Wait for async operations
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
-  describe('trackChange', () => {
-    it('should track INSERT operation', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
+			expect(backgroundSync.processSync).not.toHaveBeenCalled();
+		});
+	});
 
-      dataSyncManager.initDataSync()
+	describe("syncPendingOperations", () => {
+		it("should do nothing when no pending operations", async () => {
+			dataSyncManager.initDataSync();
 
-      const id = await dataSyncManager.trackChange('products', 'INSERT', {
-        id: 1,
-        name: 'Product 1',
-      })
+			const consoleDebugSpy = vi
+				.spyOn(console, "debug")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      expect(id).toBeTruthy()
+			await dataSyncManager.syncPendingOperations();
 
-      const operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations).toHaveLength(1)
-      expect(operations[0]).toMatchObject({
-        entity: 'products',
-        operation: 'INSERT',
-        localData: { id: 1, name: 'Product 1' },
-        status: 'pending',
-      })
-    })
+			expect(consoleDebugSpy).toHaveBeenCalledWith(
+				"[DataSync] No pending operations to sync",
+			);
 
-    it('should track UPDATE operation', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
+			consoleDebugSpy.mockRestore();
+		});
 
-      dataSyncManager.initDataSync()
+		it("should sync pending operations when online", async () => {
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				status: 404,
+				json: async () => ({}),
+			});
 
-      await dataSyncManager.trackChange('products', 'UPDATE', { id: 1, name: 'Updated Product' }, 2)
+			dataSyncManager.initDataSync();
 
-      const operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations).toHaveLength(1)
-      expect(operations[0]).toMatchObject({
-        entity: 'products',
-        operation: 'UPDATE',
-        version: 2,
-      })
-    })
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-    it('should track DELETE operation', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
+			// Clear previous calls
+			vi.clearAllMocks();
 
-      dataSyncManager.initDataSync()
+			await dataSyncManager.syncPendingOperations();
 
-      await dataSyncManager.trackChange('products', 'DELETE', { id: 1 })
+			expect(backgroundSync.queueRequestForSync).toHaveBeenCalled();
+		});
 
-      const operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations).toHaveLength(1)
-      expect(operations[0]).toMatchObject({
-        entity: 'products',
-        operation: 'DELETE',
-      })
-    })
+		it("should handle sync errors and retry", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockRejectedValue(
+				new Error("Network error"),
+			);
 
-    it('should trigger sync when online', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
+			dataSyncManager.initDataSync({ maxRetries: 2 });
 
-      dataSyncManager.initDataSync()
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
 
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 100))
+			const consoleErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      expect(backgroundSync.queueRequestForSync).toHaveBeenCalled()
-    })
+			await dataSyncManager.syncPendingOperations();
 
-    it('should not trigger sync when offline', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
+			const operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations[0]?.status).toBe("error");
+			expect(operations[0]?.retryCount).toBe(1);
+			expect(consoleErrorSpy).toHaveBeenCalled();
 
-      dataSyncManager.initDataSync()
+			consoleErrorSpy.mockRestore();
+		});
 
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
+		it("should call onSyncError when max retries exceeded", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockRejectedValue(
+				new Error("Network error"),
+			);
 
-      // Wait for async operations
-      await new Promise((resolve) => setTimeout(resolve, 100))
+			const onSyncError = vi.fn();
 
-      expect(backgroundSync.processSync).not.toHaveBeenCalled()
-    })
-  })
+			dataSyncManager.initDataSync({ maxRetries: 1, onSyncError });
 
-  describe('syncPendingOperations', () => {
-    it('should do nothing when no pending operations', async () => {
-      dataSyncManager.initDataSync()
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      const consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {
-        // empty mock
-      })
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
 
-      await dataSyncManager.syncPendingOperations()
+			const consoleErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith('[DataSync] No pending operations to sync')
+			await dataSyncManager.syncPendingOperations();
 
-      consoleDebugSpy.mockRestore()
-    })
+			expect(onSyncError).toHaveBeenCalledWith(
+				expect.any(Error),
+				expect.any(Object),
+			);
 
-    it('should sync pending operations when online', async () => {
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 404,
-        json: async () => ({}),
-      })
+			consoleErrorSpy.mockRestore();
+		});
 
-      dataSyncManager.initDataSync()
+		it("should call onSyncComplete when operations synced successfully", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				status: 404,
+				json: async () => ({}),
+			});
 
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
+			const onSyncComplete = vi.fn();
 
-      // Clear previous calls
-      vi.clearAllMocks()
+			dataSyncManager.initDataSync({ onSyncComplete });
 
-      await dataSyncManager.syncPendingOperations()
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      expect(backgroundSync.queueRequestForSync).toHaveBeenCalled()
-    })
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
 
-    it('should handle sync errors and retry', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockRejectedValue(new Error('Network error'))
+			await dataSyncManager.syncPendingOperations();
 
-      dataSyncManager.initDataSync({ maxRetries: 2 })
+			expect(onSyncComplete).toHaveBeenCalledWith(expect.any(Array));
+		});
 
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
+		it("should process operations in batches", async () => {
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				status: 404,
+				json: async () => ({}),
+			});
 
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
+			dataSyncManager.initDataSync({ batchSize: 2 });
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-        // empty mock
-      })
+			// Track 3 operations
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
+			await dataSyncManager.trackChange("products", "INSERT", { id: 2 });
+			await dataSyncManager.trackChange("products", "INSERT", { id: 3 });
 
-      await dataSyncManager.syncPendingOperations()
+			await dataSyncManager.syncPendingOperations();
 
-      const operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations[0]?.status).toBe('error')
-      expect(operations[0]?.retryCount).toBe(1)
-      expect(consoleErrorSpy).toHaveBeenCalled()
+			// Should be called 3 times (one for each operation)
+			expect(backgroundSync.queueRequestForSync).toHaveBeenCalledTimes(3);
+		});
+	});
 
-      consoleErrorSpy.mockRestore()
-    })
+	describe("conflict resolution", () => {
+		it("should resolve conflict using server-wins strategy", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({
+					id: 1,
+					name: "Server Product",
+					version: 2,
+				}),
+			});
 
-    it('should call onSyncError when max retries exceeded', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockRejectedValue(new Error('Network error'))
+			dataSyncManager.initDataSync({ conflictStrategy: "server-wins" });
 
-      const onSyncError = vi.fn()
+			await dataSyncManager.trackChange("products", "UPDATE", {
+				id: 1,
+				name: "Local Product",
+			});
 
-      dataSyncManager.initDataSync({ maxRetries: 1, onSyncError })
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
 
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
+			const consoleWarnSpy = vi
+				.spyOn(console, "warn")
+				.mockImplementation(() => {
+					// empty mock
+				});
+
+			await dataSyncManager.syncPendingOperations();
+
+			expect(consoleWarnSpy).toHaveBeenCalledWith(
+				"[DataSync] Conflict detected",
+				expect.any(Object),
+			);
+
+			consoleWarnSpy.mockRestore();
+		});
+
+		it("should resolve conflict using client-wins strategy", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({
+					id: 1,
+					name: "Server Product",
+					version: 2,
+				}),
+			});
+
+			dataSyncManager.initDataSync({ conflictStrategy: "client-wins" });
+
+			await dataSyncManager.trackChange("products", "UPDATE", {
+				id: 1,
+				name: "Local Product",
+			});
+
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
+
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
+
+			await dataSyncManager.syncPendingOperations();
+
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[DataSync] Resolving conflict: client-wins",
+			);
+
+			consoleInfoSpy.mockRestore();
+		});
+
+		it("should resolve conflict using last-write-wins strategy", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+
+			const now = Date.now();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({
+					id: 1,
+					name: "Server Product",
+					version: 2,
+					updated_at: now - 1000,
+				}),
+			});
+
+			dataSyncManager.initDataSync({ conflictStrategy: "last-write-wins" });
+
+			await dataSyncManager.trackChange("products", "UPDATE", {
+				id: 1,
+				name: "Local Product",
+				updated_at: now,
+			});
+
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
+
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
+
+			await dataSyncManager.syncPendingOperations();
+
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[DataSync] Resolving conflict: last-write-wins",
+			);
+
+			consoleInfoSpy.mockRestore();
+		});
+
+		it("should resolve conflict using manual strategy with callback", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({
+					id: 1,
+					name: "Server Product",
+					version: 2,
+				}),
+			});
+
+			const onConflict = vi.fn().mockResolvedValue({
+				id: 1,
+				name: "Merged Product",
+			});
+
+			dataSyncManager.initDataSync({ conflictStrategy: "manual", onConflict });
+
+			await dataSyncManager.trackChange("products", "UPDATE", {
+				id: 1,
+				name: "Local Product",
+			});
+
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
+
+			await dataSyncManager.syncPendingOperations();
+
+			expect(onConflict).toHaveBeenCalledWith(
+				expect.objectContaining({
+					entity: "products",
+					localData: expect.objectContaining({ name: "Local Product" }),
+					remoteData: expect.objectContaining({ name: "Server Product" }),
+				}),
+			);
+		});
+
+		it("should fallback to server-wins when manual strategy has no callback", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({
+					id: 1,
+					name: "Server Product",
+					version: 2,
+				}),
+			});
+
+			dataSyncManager.initDataSync({ conflictStrategy: "manual" });
+
+			await dataSyncManager.trackChange("products", "UPDATE", {
+				id: 1,
+				name: "Local Product",
+			});
+
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
+
+			const consoleWarnSpy = vi
+				.spyOn(console, "warn")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
+			await dataSyncManager.syncPendingOperations();
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-        // empty mock
-      })
+			expect(consoleWarnSpy).toHaveBeenCalledWith(
+				"[DataSync] No manual conflict resolver provided, falling back to server-wins",
+			);
 
-      await dataSyncManager.syncPendingOperations()
+			consoleWarnSpy.mockRestore();
+		});
+	});
+
+	describe("clearSyncOperations", () => {
+		it("should clear all sync operations", async () => {
+			dataSyncManager.initDataSync();
 
-      expect(onSyncError).toHaveBeenCalledWith(expect.any(Error), expect.any(Object))
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
+			await dataSyncManager.trackChange("products", "INSERT", { id: 2 });
 
-      consoleErrorSpy.mockRestore()
-    })
+			let operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations).toHaveLength(2);
 
-    it('should call onSyncComplete when operations synced successfully', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 404,
-        json: async () => ({}),
-      })
+			await dataSyncManager.clearSyncOperations();
 
-      const onSyncComplete = vi.fn()
+			operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations).toHaveLength(0);
+		});
 
-      dataSyncManager.initDataSync({ onSyncComplete })
+		it("should handle clearing when no operations exist", async () => {
+			await dataSyncManager.clearSyncOperations();
 
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
+			const operations = await dataSyncManager.getAllSyncOperations();
+			expect(operations).toHaveLength(0);
+		});
 
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
+		it("should throw when localStorage.removeItem fails", async () => {
+			const original = localStorage.removeItem;
+			Object.defineProperty(localStorage, "removeItem", {
+				value: () => {
+					throw new Error("StorageError");
+				},
+				writable: true,
+				configurable: true,
+			});
 
-      await dataSyncManager.syncPendingOperations()
+			await expect(dataSyncManager.clearSyncOperations()).rejects.toThrow(
+				"StorageError",
+			);
 
-      expect(onSyncComplete).toHaveBeenCalledWith(expect.any(Array))
-    })
+			Object.defineProperty(localStorage, "removeItem", {
+				value: original,
+				writable: true,
+				configurable: true,
+			});
+		});
+	});
 
-    it('should process operations in batches', async () => {
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 404,
-        json: async () => ({}),
-      })
+	describe("getPendingOperationsCount", () => {
+		it("should return 0 when no pending operations", async () => {
+			const count = await dataSyncManager.getPendingOperationsCount();
 
-      dataSyncManager.initDataSync({ batchSize: 2 })
+			expect(count).toBe(0);
+		});
 
-      // Track 3 operations
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 2 })
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 3 })
+		it("should return count of pending operations", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
 
-      await dataSyncManager.syncPendingOperations()
+			dataSyncManager.initDataSync();
 
-      // Should be called 3 times (one for each operation)
-      expect(backgroundSync.queueRequestForSync).toHaveBeenCalledTimes(3)
-    })
-  })
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
+			await dataSyncManager.trackChange("products", "INSERT", { id: 2 });
 
-  describe('conflict resolution', () => {
-    it('should resolve conflict using server-wins strategy', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          name: 'Server Product',
-          version: 2,
-        }),
-      })
+			const count = await dataSyncManager.getPendingOperationsCount();
 
-      dataSyncManager.initDataSync({ conflictStrategy: 'server-wins' })
+			expect(count).toBe(2);
+		});
 
-      await dataSyncManager.trackChange('products', 'UPDATE', {
-        id: 1,
-        name: 'Local Product',
-      })
+		it("should include error operations in count", async () => {
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(false);
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockRejectedValue(
+				new Error("Network error"),
+			);
 
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
+			dataSyncManager.initDataSync();
 
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
-        // empty mock
-      })
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      await dataSyncManager.syncPendingOperations()
+			vi.spyOn(onlineStatus, "isOnline").mockReturnValue(true);
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[DataSync] Conflict detected',
-        expect.any(Object)
-      )
+			const consoleErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      consoleWarnSpy.mockRestore()
-    })
+			await dataSyncManager.syncPendingOperations();
 
-    it('should resolve conflict using client-wins strategy', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          name: 'Server Product',
-          version: 2,
-        }),
-      })
+			const count = await dataSyncManager.getPendingOperationsCount();
 
-      dataSyncManager.initDataSync({ conflictStrategy: 'client-wins' })
+			expect(count).toBe(1);
 
-      await dataSyncManager.trackChange('products', 'UPDATE', {
-        id: 1,
-        name: 'Local Product',
-      })
+			consoleErrorSpy.mockRestore();
+		});
 
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
+		it("should not include synced operations in count", async () => {
+			vi.spyOn(backgroundSync, "queueRequestForSync").mockResolvedValue();
+			vi.spyOn(backgroundSync, "processSync").mockResolvedValue();
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				status: 404,
+				json: async () => ({}),
+			});
 
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+			dataSyncManager.initDataSync();
 
-      await dataSyncManager.syncPendingOperations()
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith('[DataSync] Resolving conflict: client-wins')
+			await dataSyncManager.syncPendingOperations();
 
-      consoleInfoSpy.mockRestore()
-    })
+			const count = await dataSyncManager.getPendingOperationsCount();
 
-    it('should resolve conflict using last-write-wins strategy', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
+			expect(count).toBe(0);
+		});
+	});
 
-      const now = Date.now()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          name: 'Server Product',
-          version: 2,
-          updated_at: now - 1000,
-        }),
-      })
+	describe("getAllSyncOperations", () => {
+		it("should return empty array when no operations", async () => {
+			const operations = await dataSyncManager.getAllSyncOperations();
 
-      dataSyncManager.initDataSync({ conflictStrategy: 'last-write-wins' })
+			expect(operations).toEqual([]);
+		});
 
-      await dataSyncManager.trackChange('products', 'UPDATE', {
-        id: 1,
-        name: 'Local Product',
-        updated_at: now,
-      })
+		it("should return all tracked operations", async () => {
+			dataSyncManager.initDataSync();
 
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
+			await dataSyncManager.trackChange("products", "INSERT", { id: 1 });
+			await dataSyncManager.trackChange("products", "UPDATE", { id: 2 });
 
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+			const operations = await dataSyncManager.getAllSyncOperations();
 
-      await dataSyncManager.syncPendingOperations()
-
-      expect(consoleInfoSpy).toHaveBeenCalledWith('[DataSync] Resolving conflict: last-write-wins')
-
-      consoleInfoSpy.mockRestore()
-    })
-
-    it('should resolve conflict using manual strategy with callback', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          name: 'Server Product',
-          version: 2,
-        }),
-      })
-
-      const onConflict = vi.fn().mockResolvedValue({
-        id: 1,
-        name: 'Merged Product',
-      })
-
-      dataSyncManager.initDataSync({ conflictStrategy: 'manual', onConflict })
-
-      await dataSyncManager.trackChange('products', 'UPDATE', {
-        id: 1,
-        name: 'Local Product',
-      })
-
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
-
-      await dataSyncManager.syncPendingOperations()
-
-      expect(onConflict).toHaveBeenCalledWith(
-        expect.objectContaining({
-          entity: 'products',
-          localData: expect.objectContaining({ name: 'Local Product' }),
-          remoteData: expect.objectContaining({ name: 'Server Product' }),
-        })
-      )
-    })
-
-    it('should fallback to server-wins when manual strategy has no callback', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          name: 'Server Product',
-          version: 2,
-        }),
-      })
-
-      dataSyncManager.initDataSync({ conflictStrategy: 'manual' })
-
-      await dataSyncManager.trackChange('products', 'UPDATE', {
-        id: 1,
-        name: 'Local Product',
-      })
-
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
-
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
-        // empty mock
-      })
-
-      await dataSyncManager.syncPendingOperations()
-
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[DataSync] No manual conflict resolver provided, falling back to server-wins'
-      )
-
-      consoleWarnSpy.mockRestore()
-    })
-  })
-
-  describe('clearSyncOperations', () => {
-    it('should clear all sync operations', async () => {
-      dataSyncManager.initDataSync()
-
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 2 })
-
-      let operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations).toHaveLength(2)
-
-      await dataSyncManager.clearSyncOperations()
-
-      operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations).toHaveLength(0)
-    })
-
-    it('should handle clearing when no operations exist', async () => {
-      await dataSyncManager.clearSyncOperations()
-
-      const operations = await dataSyncManager.getAllSyncOperations()
-      expect(operations).toHaveLength(0)
-    })
-
-    it('should throw when localStorage.removeItem fails', async () => {
-      const original = localStorage.removeItem
-      Object.defineProperty(localStorage, 'removeItem', {
-        value: () => {
-          throw new Error('StorageError')
-        },
-        writable: true,
-        configurable: true,
-      })
-
-      await expect(dataSyncManager.clearSyncOperations()).rejects.toThrow('StorageError')
-
-      Object.defineProperty(localStorage, 'removeItem', {
-        value: original,
-        writable: true,
-        configurable: true,
-      })
-    })
-  })
-
-  describe('getPendingOperationsCount', () => {
-    it('should return 0 when no pending operations', async () => {
-      const count = await dataSyncManager.getPendingOperationsCount()
-
-      expect(count).toBe(0)
-    })
-
-    it('should return count of pending operations', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-
-      dataSyncManager.initDataSync()
-
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 2 })
-
-      const count = await dataSyncManager.getPendingOperationsCount()
-
-      expect(count).toBe(2)
-    })
-
-    it('should include error operations in count', async () => {
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(false)
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockRejectedValue(new Error('Network error'))
-
-      dataSyncManager.initDataSync()
-
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
-
-      vi.spyOn(onlineStatus, 'isOnline').mockReturnValue(true)
-
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-        // empty mock
-      })
-
-      await dataSyncManager.syncPendingOperations()
-
-      const count = await dataSyncManager.getPendingOperationsCount()
-
-      expect(count).toBe(1)
-
-      consoleErrorSpy.mockRestore()
-    })
-
-    it('should not include synced operations in count', async () => {
-      vi.spyOn(backgroundSync, 'queueRequestForSync').mockResolvedValue()
-      vi.spyOn(backgroundSync, 'processSync').mockResolvedValue()
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 404,
-        json: async () => ({}),
-      })
-
-      dataSyncManager.initDataSync()
-
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
-
-      await dataSyncManager.syncPendingOperations()
-
-      const count = await dataSyncManager.getPendingOperationsCount()
-
-      expect(count).toBe(0)
-    })
-  })
-
-  describe('getAllSyncOperations', () => {
-    it('should return empty array when no operations', async () => {
-      const operations = await dataSyncManager.getAllSyncOperations()
-
-      expect(operations).toEqual([])
-    })
-
-    it('should return all tracked operations', async () => {
-      dataSyncManager.initDataSync()
-
-      await dataSyncManager.trackChange('products', 'INSERT', { id: 1 })
-      await dataSyncManager.trackChange('products', 'UPDATE', { id: 2 })
-
-      const operations = await dataSyncManager.getAllSyncOperations()
-
-      expect(operations).toHaveLength(2)
-      expect(operations[0]?.operation).toBe('INSERT')
-      expect(operations[1]?.operation).toBe('UPDATE')
-    })
-  })
-})
+			expect(operations).toHaveLength(2);
+			expect(operations[0]?.operation).toBe("INSERT");
+			expect(operations[1]?.operation).toBe("UPDATE");
+		});
+	});
+});

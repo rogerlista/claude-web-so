@@ -5,289 +5,310 @@
  * virtual:pwa-register is mocked and its internal behavior is tested via E2E tests.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock virtual:pwa-register module
-vi.mock('virtual:pwa-register', () => {
-  const mockUpdateSW = vi.fn()
-  const mockRegisterSW = vi.fn(() => mockUpdateSW)
-  return {
-    registerSW: mockRegisterSW,
-    __mockUpdateSW: mockUpdateSW,
-  }
-})
+vi.mock("virtual:pwa-register", () => {
+	const mockUpdateSW = vi.fn();
+	const mockRegisterSW = vi.fn(() => mockUpdateSW);
+	return {
+		registerSW: mockRegisterSW,
+		__mockUpdateSW: mockUpdateSW,
+	};
+});
 
-import { registerSW } from 'virtual:pwa-register'
+import { registerSW } from "virtual:pwa-register";
 import {
-  getServiceWorkerRegistration,
-  isServiceWorkerSupported,
-  registerServiceWorker,
-  unregisterServiceWorker,
-  updateServiceWorker,
-} from './sw-manager'
+	getServiceWorkerRegistration,
+	isServiceWorkerSupported,
+	registerServiceWorker,
+	unregisterServiceWorker,
+	updateServiceWorker,
+} from "./sw-manager";
+
+describe("Service Worker Manager", () => {
+	const mockRegisterSW = vi.mocked(registerSW);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		const mockUpdateSW = vi.fn().mockResolvedValue(undefined);
+		mockRegisterSW.mockReturnValue(mockUpdateSW);
+	});
 
-describe('Service Worker Manager', () => {
-  const mockRegisterSW = vi.mocked(registerSW)
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    const mockUpdateSW = vi.fn().mockResolvedValue(undefined)
-    mockRegisterSW.mockReturnValue(mockUpdateSW)
-  })
+	describe("isServiceWorkerSupported", () => {
+		it("should return true when service worker is supported", () => {
+			vi.stubGlobal("navigator", {
+				serviceWorker: {},
+			});
+
+			expect(isServiceWorkerSupported()).toBe(true);
+		});
 
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
+		it("should return false when service worker is not supported", () => {
+			vi.stubGlobal("navigator", {});
 
-  describe('isServiceWorkerSupported', () => {
-    it('should return true when service worker is supported', () => {
-      vi.stubGlobal('navigator', {
-        serviceWorker: {},
-      })
+			expect(isServiceWorkerSupported()).toBe(false);
+		});
+	});
 
-      expect(isServiceWorkerSupported()).toBe(true)
-    })
+	describe("registerServiceWorker", () => {
+		it("should call registerSW with correct options structure", () => {
+			registerServiceWorker();
+
+			expect(mockRegisterSW).toHaveBeenCalledWith(
+				expect.objectContaining({
+					immediate: true,
+					onNeedRefresh: expect.any(Function),
+					onOfflineReady: expect.any(Function),
+					onRegistered: expect.any(Function),
+					onRegisterError: expect.any(Function),
+				}),
+			);
+		});
+
+		it("should call custom onUpdateAvailable callback when onNeedRefresh is triggered", () => {
+			const onUpdateAvailable = vi.fn();
+
+			registerServiceWorker({ onUpdateAvailable });
 
-    it('should return false when service worker is not supported', () => {
-      vi.stubGlobal('navigator', {})
+			// Get the options passed to registerSW
+			const options = mockRegisterSW.mock.calls[0]?.[0];
 
-      expect(isServiceWorkerSupported()).toBe(false)
-    })
-  })
+			// Trigger onNeedRefresh
+			options?.onNeedRefresh?.();
+
+			expect(onUpdateAvailable).toHaveBeenCalled();
+		});
 
-  describe('registerServiceWorker', () => {
-    it('should call registerSW with correct options structure', () => {
-      registerServiceWorker()
+		it("should call custom onOfflineReady callback when triggered", () => {
+			const onOfflineReady = vi.fn();
 
-      expect(mockRegisterSW).toHaveBeenCalledWith(
-        expect.objectContaining({
-          immediate: true,
-          onNeedRefresh: expect.any(Function),
-          onOfflineReady: expect.any(Function),
-          onRegistered: expect.any(Function),
-          onRegisterError: expect.any(Function),
-        })
-      )
-    })
+			registerServiceWorker({ onOfflineReady });
+
+			const options = mockRegisterSW.mock.calls[0]?.[0];
+			options?.onOfflineReady?.();
 
-    it('should call custom onUpdateAvailable callback when onNeedRefresh is triggered', () => {
-      const onUpdateAvailable = vi.fn()
+			expect(onOfflineReady).toHaveBeenCalled();
+		});
 
-      registerServiceWorker({ onUpdateAvailable })
+		it("should call custom onError callback when onRegisterError is triggered", () => {
+			const onError = vi.fn();
+			const error = new Error("Registration failed");
 
-      // Get the options passed to registerSW
-      const options = mockRegisterSW.mock.calls[0]?.[0]
+			registerServiceWorker({ onError });
 
-      // Trigger onNeedRefresh
-      options?.onNeedRefresh?.()
+			const options = mockRegisterSW.mock.calls[0]?.[0];
+			options?.onRegisterError?.(error);
 
-      expect(onUpdateAvailable).toHaveBeenCalled()
-    })
+			expect(onError).toHaveBeenCalledWith(error);
+		});
 
-    it('should call custom onOfflineReady callback when triggered', () => {
-      const onOfflineReady = vi.fn()
+		it("should log when service worker is registered", () => {
+			const mockRegistration = {
+				active: true,
+			} as unknown as ServiceWorkerRegistration;
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      registerServiceWorker({ onOfflineReady })
+			registerServiceWorker();
 
-      const options = mockRegisterSW.mock.calls[0]?.[0]
-      options?.onOfflineReady?.()
+			const options = mockRegisterSW.mock.calls[0]?.[0];
+			options?.onRegistered?.(mockRegistration);
 
-      expect(onOfflineReady).toHaveBeenCalled()
-    })
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[SW] Service Worker registered",
+				mockRegistration,
+			);
 
-    it('should call custom onError callback when onRegisterError is triggered', () => {
-      const onError = vi.fn()
-      const error = new Error('Registration failed')
+			consoleInfoSpy.mockRestore();
+		});
 
-      registerServiceWorker({ onError })
+		it("should handle registerSW throwing an error", () => {
+			const onError = vi.fn();
+			const error = new Error("Registration error");
 
-      const options = mockRegisterSW.mock.calls[0]?.[0]
-      options?.onRegisterError?.(error)
+			mockRegisterSW.mockImplementationOnce(() => {
+				throw error;
+			});
 
-      expect(onError).toHaveBeenCalledWith(error)
-    })
+			const consoleErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-    it('should log when service worker is registered', () => {
-      const mockRegistration = { active: true } as unknown as ServiceWorkerRegistration
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+			registerServiceWorker({ onError });
 
-      registerServiceWorker()
+			expect(consoleErrorSpy).toHaveBeenCalled();
+			expect(onError).toHaveBeenCalledWith(error);
 
-      const options = mockRegisterSW.mock.calls[0]?.[0]
-      options?.onRegistered?.(mockRegistration)
+			consoleErrorSpy.mockRestore();
+		});
+	});
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        '[SW] Service Worker registered',
-        mockRegistration
-      )
+	describe("updateServiceWorker", () => {
+		it("should warn when updateSW is not available", async () => {
+			const consoleWarnSpy = vi
+				.spyOn(console, "warn")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-      consoleInfoSpy.mockRestore()
-    })
+			// Reset modules to ensure updateSW is undefined
+			vi.resetModules();
 
-    it('should handle registerSW throwing an error', () => {
-      const onError = vi.fn()
-      const error = new Error('Registration error')
+			// Re-import the module
+			const { updateServiceWorker: updateSW } = await import("./sw-manager");
 
-      mockRegisterSW.mockImplementationOnce(() => {
-        throw error
-      })
+			// Call without registering
+			await updateSW();
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-        // empty mock
-      })
+			expect(consoleWarnSpy).toHaveBeenCalledWith(
+				"[SW] No update function available",
+			);
 
-      registerServiceWorker({ onError })
+			consoleWarnSpy.mockRestore();
+		});
+
+		it("should call updateSW with reloadPage=true by default after registration", async () => {
+			const mockUpdateSW = vi.fn().mockResolvedValue(undefined);
+			mockRegisterSW.mockReturnValue(mockUpdateSW);
 
-      expect(consoleErrorSpy).toHaveBeenCalled()
-      expect(onError).toHaveBeenCalledWith(error)
+			registerServiceWorker();
 
-      consoleErrorSpy.mockRestore()
-    })
-  })
+			const consoleInfoSpy = vi
+				.spyOn(console, "info")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-  describe('updateServiceWorker', () => {
-    it('should warn when updateSW is not available', async () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
-        // empty mock
-      })
+			await updateServiceWorker();
 
-      // Reset modules to ensure updateSW is undefined
-      vi.resetModules()
+			expect(mockUpdateSW).toHaveBeenCalledWith(true);
+			expect(consoleInfoSpy).toHaveBeenCalledWith(
+				"[SW] Service Worker updated successfully",
+			);
 
-      // Re-import the module
-      const { updateServiceWorker: updateSW } = await import('./sw-manager')
+			consoleInfoSpy.mockRestore();
+		});
 
-      // Call without registering
-      await updateSW()
+		it("should call updateSW with reloadPage=false when specified", async () => {
+			const mockUpdateSW = vi.fn().mockResolvedValue(undefined);
+			mockRegisterSW.mockReturnValue(mockUpdateSW);
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith('[SW] No update function available')
+			registerServiceWorker();
 
-      consoleWarnSpy.mockRestore()
-    })
+			await updateServiceWorker(false);
 
-    it('should call updateSW with reloadPage=true by default after registration', async () => {
-      const mockUpdateSW = vi.fn().mockResolvedValue(undefined)
-      mockRegisterSW.mockReturnValue(mockUpdateSW)
+			expect(mockUpdateSW).toHaveBeenCalledWith(false);
+		});
 
-      registerServiceWorker()
+		it("should throw error when update fails", async () => {
+			const error = new Error("Update failed");
+			const mockUpdateSW = vi.fn().mockRejectedValue(error);
+			mockRegisterSW.mockReturnValue(mockUpdateSW);
 
-      const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {
-        // empty mock
-      })
+			registerServiceWorker();
 
-      await updateServiceWorker()
+			await expect(updateServiceWorker()).rejects.toThrow("Update failed");
+		});
+	});
 
-      expect(mockUpdateSW).toHaveBeenCalledWith(true)
-      expect(consoleInfoSpy).toHaveBeenCalledWith('[SW] Service Worker updated successfully')
+	describe("unregisterServiceWorker", () => {
+		it("should unregister all service workers", async () => {
+			const mockUnregister1 = vi.fn().mockResolvedValue(true);
+			const mockUnregister2 = vi.fn().mockResolvedValue(true);
 
-      consoleInfoSpy.mockRestore()
-    })
+			vi.stubGlobal("navigator", {
+				serviceWorker: {
+					getRegistrations: vi
+						.fn()
+						.mockResolvedValue([
+							{ unregister: mockUnregister1 },
+							{ unregister: mockUnregister2 },
+						]),
+				},
+			});
 
-    it('should call updateSW with reloadPage=false when specified', async () => {
-      const mockUpdateSW = vi.fn().mockResolvedValue(undefined)
-      mockRegisterSW.mockReturnValue(mockUpdateSW)
+			await unregisterServiceWorker();
 
-      registerServiceWorker()
+			expect(mockUnregister1).toHaveBeenCalled();
+			expect(mockUnregister2).toHaveBeenCalled();
+		});
 
-      await updateServiceWorker(false)
+		it("should do nothing when service worker is not supported", async () => {
+			vi.stubGlobal("navigator", {});
 
-      expect(mockUpdateSW).toHaveBeenCalledWith(false)
-    })
+			await unregisterServiceWorker();
 
-    it('should throw error when update fails', async () => {
-      const error = new Error('Update failed')
-      const mockUpdateSW = vi.fn().mockRejectedValue(error)
-      mockRegisterSW.mockReturnValue(mockUpdateSW)
+			// Should complete without errors
+			expect(true).toBe(true);
+		});
 
-      registerServiceWorker()
+		it("should throw error when unregistration fails", async () => {
+			const error = new Error("Unregister failed");
 
-      await expect(updateServiceWorker()).rejects.toThrow('Update failed')
-    })
-  })
+			vi.stubGlobal("navigator", {
+				serviceWorker: {
+					getRegistrations: vi.fn().mockRejectedValue(error),
+				},
+			});
 
-  describe('unregisterServiceWorker', () => {
-    it('should unregister all service workers', async () => {
-      const mockUnregister1 = vi.fn().mockResolvedValue(true)
-      const mockUnregister2 = vi.fn().mockResolvedValue(true)
+			await expect(unregisterServiceWorker()).rejects.toThrow(
+				"Unregister failed",
+			);
+		});
+	});
 
-      vi.stubGlobal('navigator', {
-        serviceWorker: {
-          getRegistrations: vi
-            .fn()
-            .mockResolvedValue([{ unregister: mockUnregister1 }, { unregister: mockUnregister2 }]),
-        },
-      })
+	describe("getServiceWorkerRegistration", () => {
+		it("should return registration when service worker is supported", async () => {
+			const mockRegistration = { active: true };
 
-      await unregisterServiceWorker()
+			vi.stubGlobal("navigator", {
+				serviceWorker: {
+					ready: Promise.resolve(mockRegistration),
+				},
+			});
 
-      expect(mockUnregister1).toHaveBeenCalled()
-      expect(mockUnregister2).toHaveBeenCalled()
-    })
+			const registration = await getServiceWorkerRegistration();
 
-    it('should do nothing when service worker is not supported', async () => {
-      vi.stubGlobal('navigator', {})
+			expect(registration).toBe(mockRegistration);
+		});
 
-      await unregisterServiceWorker()
+		it("should return null when service worker is not supported", async () => {
+			vi.stubGlobal("navigator", {});
 
-      // Should complete without errors
-      expect(true).toBe(true)
-    })
+			const registration = await getServiceWorkerRegistration();
 
-    it('should throw error when unregistration fails', async () => {
-      const error = new Error('Unregister failed')
+			expect(registration).toBeNull();
+		});
 
-      vi.stubGlobal('navigator', {
-        serviceWorker: {
-          getRegistrations: vi.fn().mockRejectedValue(error),
-        },
-      })
+		it("should return null when getting registration fails", async () => {
+			vi.stubGlobal("navigator", {
+				serviceWorker: {
+					ready: Promise.reject(new Error("Failed")),
+				},
+			});
 
-      await expect(unregisterServiceWorker()).rejects.toThrow('Unregister failed')
-    })
-  })
+			const consoleErrorSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {
+					// empty mock
+				});
 
-  describe('getServiceWorkerRegistration', () => {
-    it('should return registration when service worker is supported', async () => {
-      const mockRegistration = { active: true }
+			const registration = await getServiceWorkerRegistration();
 
-      vi.stubGlobal('navigator', {
-        serviceWorker: {
-          ready: Promise.resolve(mockRegistration),
-        },
-      })
+			expect(registration).toBeNull();
+			expect(consoleErrorSpy).toHaveBeenCalled();
 
-      const registration = await getServiceWorkerRegistration()
-
-      expect(registration).toBe(mockRegistration)
-    })
-
-    it('should return null when service worker is not supported', async () => {
-      vi.stubGlobal('navigator', {})
-
-      const registration = await getServiceWorkerRegistration()
-
-      expect(registration).toBeNull()
-    })
-
-    it('should return null when getting registration fails', async () => {
-      vi.stubGlobal('navigator', {
-        serviceWorker: {
-          ready: Promise.reject(new Error('Failed')),
-        },
-      })
-
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-        // empty mock
-      })
-
-      const registration = await getServiceWorkerRegistration()
-
-      expect(registration).toBeNull()
-      expect(consoleErrorSpy).toHaveBeenCalled()
-
-      consoleErrorSpy.mockRestore()
-    })
-  })
-})
+			consoleErrorSpy.mockRestore();
+		});
+	});
+});

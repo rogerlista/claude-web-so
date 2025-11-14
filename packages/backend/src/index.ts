@@ -8,12 +8,12 @@
  * - All dependencies injected via function parameters (currying)
  */
 
-import { serve } from '@hono/node-server'
-import { createDatabase } from './infrastructure/database/connection'
-import { createInventoryRepositoryDrizzle } from './infrastructure/repositories/inventory-repository-drizzle'
-import { createProductRepositoryDrizzle } from './infrastructure/repositories/product-repository-drizzle'
-import { createSaleRepositoryDrizzle } from './infrastructure/repositories/sale-repository-drizzle'
-import { createApp } from './presentation/app'
+import { serve } from "@hono/node-server";
+import { createDatabase } from "./infrastructure/database/connection";
+import { createInventoryRepositoryDrizzle } from "./infrastructure/repositories/inventory-repository-drizzle";
+import { createProductRepositoryDrizzle } from "./infrastructure/repositories/product-repository-drizzle";
+import { createSaleRepositoryDrizzle } from "./infrastructure/repositories/sale-repository-drizzle";
+import { createApp } from "./presentation/app";
 
 /**
  * Application Bootstrap
@@ -22,34 +22,34 @@ import { createApp } from './presentation/app'
  * Pure functional approach - no classes, no OOP
  */
 const bootstrap = () => {
-  // Create database connection
-  const db = createDatabase()
+	// Create database connection
+	const db = createDatabase();
 
-  // Create repository adapters
-  const productRepository = createProductRepositoryDrizzle(db)
-  const inventoryRepository = createInventoryRepositoryDrizzle(db)
-  const saleRepository = createSaleRepositoryDrizzle(db)
+	// Create repository adapters
+	const productRepository = createProductRepositoryDrizzle(db);
+	const inventoryRepository = createInventoryRepositoryDrizzle(db);
+	const saleRepository = createSaleRepositoryDrizzle(db);
 
-  // Create app with injected dependencies
-  const app = createApp({
-    productRepository,
-    inventoryRepository,
-    saleRepository,
-  })
+	// Create app with injected dependencies
+	const app = createApp({
+		productRepository,
+		inventoryRepository,
+		saleRepository,
+	});
 
-  // Start server
-  const port = Number.parseInt(process.env['PORT'] ?? '3000', 10)
+	// Start server
+	const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 
-  serve({
-    fetch: app.fetch,
-    port,
-  })
-}
+	serve({
+		fetch: app.fetch,
+		port,
+	});
+};
 
 // Start application if running as main module
 if (import.meta.url === `file://${process.argv[1]}`) {
-  bootstrap()
+	bootstrap();
 }
 
-export const version = '0.0.0'
-export const status = 'Phase 6: Sales Management System with Payments'
+export const version = "0.0.0";
+export const status = "Phase 6: Sales Management System with Payments";
