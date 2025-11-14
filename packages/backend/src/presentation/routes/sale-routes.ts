@@ -7,6 +7,9 @@ import { createSaleUseCase } from '../../application/use-cases/create-sale'
 import { createFinalizeSaleUseCase } from '../../application/use-cases/finalize-sale'
 import { createRemoveSaleItemUseCase } from '../../application/use-cases/remove-sale-item'
 import { createUpdateSaleItemQuantityUseCase } from '../../application/use-cases/update-sale-item-quantity'
+import { createSaleUseCase } from '../../application/use-cases/create-sale'
+import type { Sale } from '../../domain/sale/sale'
+import { createSaleId } from '../../domain/sale/sale-id'
 
 /**
  * Sale Routes
@@ -23,6 +26,14 @@ import { createUpdateSaleItemQuantityUseCase } from '../../application/use-cases
  * - POST /api/vendas/:id/discount - Apply discount to sale
  * - POST /api/vendas/:id/payments - Add payment to sale
  * - POST /api/vendas/:id/finalize - Finalize sale
+ * REST API endpoints for sale management
+ * Following Hexagonal Architecture - this is the HTTP Adapter
+ *
+ * Endpoints:
+ * - POST /api/vendas - Create sale
+ * - GET /api/vendas - List sales
+ * - GET /api/vendas/:id - Get sale by ID
+ * - DELETE /api/vendas/:id - Delete sale
  */
 
 type SaleRoutesDeps = {
@@ -67,6 +78,13 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
         const error = result.error
         if (error.type === 'VALIDATION_ERROR') {
           return c.json({ error: error.message }, 400)
+        status: body.status,
+        createdAt: body.createdAt,
+      })
+
+      if (!result.ok) {
+        if (result.error.type === 'VALIDATION_ERROR') {
+          return c.json({ error: result.error.message }, 400)
         }
         return c.json({ error: 'Failed to create sale' }, 500)
       }
@@ -83,6 +101,15 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
           payments: result.value.payments,
           status: result.value.status,
           createdAt: result.value.createdAt,
+          items: result.value.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.total,
+          })),
+          total: result.value.total,
+          status: result.value.status,
+          createdAt: result.value.createdAt.toISOString(),
         },
         201
       )
@@ -260,6 +287,56 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
           return c.json({ error: 'Sale not found' }, 404)
         }
         return c.json({ error: 'Failed to apply discount' }, 500)
+   * GET /api/vendas - List sales
+   */
+  app.get('/', async (c) => {
+    try {
+      const result = await deps.repository.findAll()
+
+      if (!result.ok) {
+        return c.json({ error: 'Failed to fetch sales' }, 500)
+      }
+
+      return c.json(
+        result.value.map((sale: Sale) => ({
+          id: sale.id,
+          customerId: sale.customerId,
+          items: sale.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.total,
+          })),
+          total: sale.total,
+          status: sale.status,
+          createdAt: sale.createdAt.toISOString(),
+        }))
+      )
+      /* c8 ignore next 3 */
+    } catch (_error) {
+      return c.json({ error: 'Failed to fetch sales' }, 500)
+    }
+  })
+
+  /**
+   * GET /api/vendas/:id - Get sale by ID
+   */
+  app.get('/:id', async (c) => {
+    try {
+      const id = c.req.param('id')
+
+      const saleIdResult = createSaleId(id)
+      if (!saleIdResult.ok) {
+        return c.json({ error: 'Invalid sale ID' }, 400)
+      }
+
+      const result = await deps.repository.findById(saleIdResult.value)
+
+      if (!result.ok) {
+        if (result.error.type === 'NOT_FOUND') {
+          return c.json({ error: 'Sale not found' }, 404)
+        }
+        return c.json({ error: 'Failed to fetch sale' }, 500)
       }
 
       return c.json({
@@ -340,6 +417,48 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
       /* c8 ignore next 3 */
     } catch (_error) {
       return c.json({ error: 'Failed to finalize sale' }, 500)
+        customerId: result.value.customerId,
+        items: result.value.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.total,
+        })),
+        total: result.value.total,
+        status: result.value.status,
+        createdAt: result.value.createdAt.toISOString(),
+      })
+      /* c8 ignore next 3 */
+    } catch (_error) {
+      return c.json({ error: 'Failed to fetch sale' }, 500)
+    }
+  })
+
+  /**
+   * DELETE /api/vendas/:id - Delete sale
+   */
+  app.delete('/:id', async (c) => {
+    try {
+      const id = c.req.param('id')
+
+      const saleIdResult = createSaleId(id)
+      if (!saleIdResult.ok) {
+        return c.json({ error: 'Invalid sale ID' }, 400)
+      }
+
+      const result = await deps.repository.delete(saleIdResult.value)
+
+      if (!result.ok) {
+        if (result.error.type === 'NOT_FOUND') {
+          return c.json({ error: 'Sale not found' }, 404)
+        }
+        return c.json({ error: 'Failed to delete sale' }, 500)
+      }
+
+      return c.body(null, 204)
+      /* c8 ignore next 3 */
+    } catch (_error) {
+      return c.json({ error: 'Failed to delete sale' }, 500)
     }
   })
 

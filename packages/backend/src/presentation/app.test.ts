@@ -73,4 +73,17 @@ describe('App', () => {
     // Should not return 404 (route exists)
     expect(res.status).not.toBe(404)
   })
+
+  it('should have sale routes mounted', async () => {
+    const app = createApp({
+      productRepository: createMockProductRepository(),
+      inventoryRepository: createMockInventoryRepository(),
+      saleRepository: createMockSaleRepository(),
+    })
+
+    const res = await app.request('/api/vendas', { method: 'GET' })
+
+    // Should not return 404 (route exists)
+    expect(res.status).not.toBe(404)
+  })
 })
