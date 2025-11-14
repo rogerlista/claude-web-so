@@ -2,6 +2,7 @@ import { ResultUtils } from '@pos-nfce/shared'
 import { describe, expect, it } from 'vitest'
 import type { InventoryRepository } from '../application/ports/inventory-repository'
 import type { ProductRepository } from '../application/ports/product-repository'
+import type { SaleRepository } from '../application/ports/sale-repository'
 import { createApp } from './app'
 
 describe('App', () => {
@@ -22,10 +23,20 @@ describe('App', () => {
     findById: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
   })
 
+  const createMockSaleRepository = (): SaleRepository => ({
+    save: async () => ResultUtils.err({ type: 'UNKNOWN', message: 'Not implemented' }),
+    findById: async () => ResultUtils.err({ type: 'NOT_FOUND', id: '' }),
+    findAll: async () => ResultUtils.ok([]),
+    delete: async () => ResultUtils.ok(undefined),
+    findByCustomerId: async () => ResultUtils.ok([]),
+    findByStatus: async () => ResultUtils.ok([]),
+  })
+
   it('should have health check endpoint', async () => {
     const app = createApp({
       productRepository: createMockProductRepository(),
       inventoryRepository: createMockInventoryRepository(),
+      saleRepository: createMockSaleRepository(),
     })
 
     const res = await app.request('/health', { method: 'GET' })
@@ -40,6 +51,7 @@ describe('App', () => {
     const app = createApp({
       productRepository: createMockProductRepository(),
       inventoryRepository: createMockInventoryRepository(),
+      saleRepository: createMockSaleRepository(),
     })
 
     const res = await app.request('/non-existent', { method: 'GET' })
@@ -53,9 +65,23 @@ describe('App', () => {
     const app = createApp({
       productRepository: createMockProductRepository(),
       inventoryRepository: createMockInventoryRepository(),
+      saleRepository: createMockSaleRepository(),
     })
 
     const res = await app.request('/api/produtos', { method: 'GET' })
+
+    // Should not return 404 (route exists)
+    expect(res.status).not.toBe(404)
+  })
+
+  it('should have sale routes mounted', async () => {
+    const app = createApp({
+      productRepository: createMockProductRepository(),
+      inventoryRepository: createMockInventoryRepository(),
+      saleRepository: createMockSaleRepository(),
+    })
+
+    const res = await app.request('/api/vendas', { method: 'GET' })
 
     // Should not return 404 (route exists)
     expect(res.status).not.toBe(404)

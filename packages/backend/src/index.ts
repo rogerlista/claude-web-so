@@ -12,6 +12,7 @@ import { serve } from '@hono/node-server'
 import { createDatabase } from './infrastructure/database/connection'
 import { createInventoryRepositoryDrizzle } from './infrastructure/repositories/inventory-repository-drizzle'
 import { createProductRepositoryDrizzle } from './infrastructure/repositories/product-repository-drizzle'
+import { createSaleRepositoryDrizzle } from './infrastructure/repositories/sale-repository-drizzle'
 import { createApp } from './presentation/app'
 
 /**
@@ -27,11 +28,13 @@ const bootstrap = () => {
   // Create repository adapters
   const productRepository = createProductRepositoryDrizzle(db)
   const inventoryRepository = createInventoryRepositoryDrizzle(db)
+  const saleRepository = createSaleRepositoryDrizzle(db)
 
   // Create app with injected dependencies
   const app = createApp({
     productRepository,
     inventoryRepository,
+    saleRepository,
   })
 
   // Start server
