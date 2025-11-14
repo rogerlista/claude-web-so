@@ -1,6 +1,8 @@
 import type { Result } from "@pos-nfce/shared";
 import { ResultUtils } from "@pos-nfce/shared";
+import type { CPF } from "../customer/cpf";
 import type { CustomerId } from "../customer/customer-id";
+import type { Email } from "../customer/email";
 import type { SaleId } from "./sale-id";
 import type { SaleItem } from "./sale-item";
 import type { SalePayment } from "./sale-payment";
@@ -18,11 +20,14 @@ import type { SaleStatus } from "./sale-status";
  * - Status defaults to PENDING
  * - CreatedAt is set automatically if not provided
  * - Payments are optional (empty array by default)
+ * - Customer CPF and Email are optional
  * - All fields are immutable
  */
 export type Sale = {
 	readonly id: SaleId;
 	readonly customerId: CustomerId;
+	readonly customerCpf?: CPF;
+	readonly customerEmail?: Email;
 	readonly items: readonly SaleItem[];
 	readonly grossTotal: number;
 	readonly discount: number;
@@ -39,6 +44,8 @@ export type Sale = {
 export type CreateSaleInput = {
 	readonly id: SaleId;
 	readonly customerId: CustomerId;
+	readonly customerCpf?: CPF;
+	readonly customerEmail?: Email;
 	readonly items?: readonly SaleItem[];
 	readonly discount?: number;
 	readonly addition?: number;
@@ -112,6 +119,10 @@ export const createSale = (input: CreateSaleInput): Result<Sale, string> => {
 	const sale: Sale = {
 		id: input.id,
 		customerId: input.customerId,
+		...(input.customerCpf !== undefined && { customerCpf: input.customerCpf }),
+		...(input.customerEmail !== undefined && {
+			customerEmail: input.customerEmail,
+		}),
 		items,
 		grossTotal,
 		discount,

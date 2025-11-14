@@ -6,8 +6,12 @@ import type {
 	RepositoryError,
 	SaleRepository,
 } from "../../application/ports/sale-repository";
+import type { CPF } from "../../domain/customer/cpf";
+import { createCPF } from "../../domain/customer/cpf";
 import type { CustomerId } from "../../domain/customer/customer-id";
 import { createCustomerId } from "../../domain/customer/customer-id";
+import type { Email } from "../../domain/customer/email";
+import { createEmail } from "../../domain/customer/email";
 import { createPrice } from "../../domain/product/price";
 import { createProductId } from "../../domain/product/product-id";
 import { createSale, type Sale } from "../../domain/sale/sale";
@@ -49,6 +53,8 @@ const generateSaleItemId = (saleId: string, index: number): string => {
 const saleToRow = (sale: Sale): SaleInsert => ({
 	id: sale.id as string,
 	customerId: sale.customerId as string,
+	cpfCliente: sale.customerCpf as string | undefined,
+	emailCliente: sale.customerEmail as string | undefined,
 	totalBrutoInCents: Math.round(sale.grossTotal * 100),
 	descontoInCents: Math.round(sale.discount * 100),
 	acrescimoInCents: Math.round(sale.addition * 100),
@@ -166,6 +172,30 @@ const rowToSale = (
 	const discount = (saleRow.descontoInCents ?? 0) / 100;
 	const addition = (saleRow.acrescimoInCents ?? 0) / 100;
 
+	// Map customer CPF if present
+	let customerCpf: CPF | undefined;
+	if (saleRow.cpfCliente) {
+		const cpfResult = createCPF(saleRow.cpfCliente);
+		/* c8 ignore start */
+		if (!cpfResult.ok) {
+			return ResultUtils.err(`Invalid CPF in database: ${cpfResult.error}`);
+		}
+		/* c8 ignore stop */
+		customerCpf = cpfResult.value;
+	}
+
+	// Map customer email if present
+	let customerEmail: Email | undefined;
+	if (saleRow.emailCliente) {
+		const emailResult = createEmail(saleRow.emailCliente);
+		/* c8 ignore start */
+		if (!emailResult.ok) {
+			return ResultUtils.err(`Invalid Email in database: ${emailResult.error}`);
+		}
+		/* c8 ignore stop */
+		customerEmail = emailResult.value;
+	}
+
 	// Note: Payments will be loaded separately by repository method
 	// For now, we return empty payments array
 	const payments: readonly SalePayment[] = [];
@@ -174,6 +204,8 @@ const rowToSale = (
 	return createSale({
 		id: saleIdResult.value,
 		customerId: customerIdResult.value,
+		...(customerCpf !== undefined && { customerCpf }),
+		...(customerEmail !== undefined && { customerEmail }),
 		items,
 		discount,
 		addition,
