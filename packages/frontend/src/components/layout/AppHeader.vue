@@ -2,7 +2,7 @@
 /**
  * AppHeader Component
  *
- * Main application header with logo, title, menu toggle, and user section.
+ * Main application header with logo, title, menu toggle, user section, and connection status.
  * Responsive design with mobile-first approach.
  *
  * @example
@@ -16,6 +16,8 @@
  * />
  * ```
  */
+
+import { onMounted, onUnmounted, ref } from "vue";
 
 export interface AppHeaderUser {
 	name: string;
@@ -41,11 +43,27 @@ const emit = defineEmits<{
 	logout: [];
 }>();
 
-const handleMenuToggle = () => {
+const isOnline = ref(navigator.onLine);
+
+const updateOnlineStatus = (): void => {
+	isOnline.value = navigator.onLine;
+};
+
+onMounted(() => {
+	window.addEventListener("online", updateOnlineStatus);
+	window.addEventListener("offline", updateOnlineStatus);
+});
+
+onUnmounted(() => {
+	window.removeEventListener("online", updateOnlineStatus);
+	window.removeEventListener("offline", updateOnlineStatus);
+});
+
+const _handleMenuToggle = () => {
 	emit("toggle-menu");
 };
 
-const handleLogout = () => {
+const _handleLogout = () => {
 	emit("logout");
 };
 </script>
@@ -92,6 +110,12 @@ const handleLogout = () => {
           />
         </svg>
         <h1 class="app-header__title">{{ title }}</h1>
+      </div>
+
+      <!-- Connection Status -->
+      <div class="connection-status" :class="{ offline: !isOnline }">
+        <span class="status-icon">{{ isOnline ? '🟢' : '🔴' }}</span>
+        <span class="status-text">{{ isOnline ? 'Online' : 'Offline' }}</span>
       </div>
 
       <!-- Actions Slot -->
@@ -191,6 +215,33 @@ const handleLogout = () => {
   color: var(--text-on-primary);
 }
 
+/* Connection Status */
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background-color: rgba(34, 197, 94, 0.2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  transition: background-color var(--transition-fast);
+}
+
+.connection-status.offline {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.status-icon {
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+.status-text {
+  display: none;
+  color: var(--text-on-primary);
+}
+
 /* Actions */
 .app-header__actions {
   display: flex;
@@ -244,6 +295,10 @@ const handleLogout = () => {
 
   .app-header__title {
     font-size: var(--text-2xl);
+  }
+
+  .status-text {
+    display: block;
   }
 }
 
