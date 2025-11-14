@@ -9,8 +9,8 @@ import { createSaleUseCase } from "../../application/use-cases/create-sale";
 import { createFinalizeSaleUseCase } from "../../application/use-cases/finalize-sale";
 import { createRemoveSaleItemUseCase } from "../../application/use-cases/remove-sale-item";
 import { createUpdateSaleItemQuantityUseCase } from "../../application/use-cases/update-sale-item-quantity";
-import { createCPF } from "../../domain/customer/cpf";
-import { createEmail } from "../../domain/customer/email";
+import { type CPF, createCPF } from "../../domain/customer/cpf";
+import { createEmail, type Email } from "../../domain/customer/email";
 import type { Sale } from "../../domain/sale/sale";
 import { createSaleId } from "../../domain/sale/sale-id";
 
@@ -56,9 +56,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 	const updateSaleItemQuantity = createUpdateSaleItemQuantityUseCase(
 		deps.saleRepository,
 	);
-	const applySaleDiscount = createApplySaleDiscountUseCase(
-		deps.saleRepository,
-	);
+	const applySaleDiscount = createApplySaleDiscountUseCase(deps.saleRepository);
 	const applySaleSurcharge = createApplySaleSurchargeUseCase(
 		deps.saleRepository,
 	);
@@ -88,6 +86,9 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 				const error = result.error;
 				if (error.type === "VALIDATION_ERROR") {
 					return c.json({ error: error.message }, 400);
+				}
+				if (error.type === "REPOSITORY_ERROR") {
+					return c.json({ error: "Repository error" }, 500);
 				}
 				return c.json({ error: "Failed to create sale" }, 500);
 			}
@@ -386,7 +387,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 			}
 
 			// Validate CPF if provided
-			let customerCpf;
+			let customerCpf: CPF | undefined;
 			if (body.cpf) {
 				const cpfResult = createCPF(body.cpf);
 				if (!cpfResult.ok) {
@@ -396,7 +397,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 			}
 
 			// Validate Email if provided
-			let customerEmail;
+			let customerEmail: Email | undefined;
 			if (body.email) {
 				const emailResult = createEmail(body.email);
 				if (!emailResult.ok) {

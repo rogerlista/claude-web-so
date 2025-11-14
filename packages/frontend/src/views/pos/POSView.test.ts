@@ -6,9 +6,9 @@
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createRouter, createMemoryHistory } from "vue-router";
-import POSView from "./POSView.vue";
+import { createMemoryHistory, createRouter } from "vue-router";
 import { useSalesStore } from "../../stores/sales";
+import POSView from "./POSView.vue";
 
 describe("POSView", () => {
 	let router: ReturnType<typeof createRouter>;
@@ -66,7 +66,9 @@ describe("POSView", () => {
 				},
 			});
 
-			expect(wrapper.find(".pos-header h1").text()).toBe("PDV - Ponto de Venda");
+			expect(wrapper.find(".pos-header h1").text()).toBe(
+				"PDV - Ponto de Venda",
+			);
 		});
 
 		it("should show 'Nenhuma venda iniciada' when no current sale", () => {

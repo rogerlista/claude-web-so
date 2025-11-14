@@ -1,15 +1,16 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import type { Result } from "@pos-nfce/shared";
 import { ResultUtils } from "@pos-nfce/shared";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createCustomerId } from "../../domain/customer/customer-id";
+import { createPrice } from "../../domain/product/price";
+import { createProductId } from "../../domain/product/product-id";
+import type { Sale } from "../../domain/sale/sale";
 import { createSale } from "../../domain/sale/sale";
 import { createSaleId } from "../../domain/sale/sale-id";
-import type { Sale } from "../../domain/sale/sale";
+import { createSaleItem } from "../../domain/sale/sale-item";
 import type { RepositoryError, SaleRepository } from "../ports/sale-repository";
 import {
-	createApplySaleSurchargeUseCase,
 	type ApplySaleSurchargeInput,
-	type ApplySaleSurchargeUseCaseError,
+	createApplySaleSurchargeUseCase,
 } from "./apply-sale-surcharge";
 
 describe("ApplySaleSurchargeUseCase", () => {
@@ -17,21 +18,36 @@ describe("ApplySaleSurchargeUseCase", () => {
 	let applySaleSurcharge: ReturnType<typeof createApplySaleSurchargeUseCase>;
 
 	beforeEach(() => {
+		const saleIdResult = createSaleId("sale-1");
+		const customerIdResult = createCustomerId("customer-1");
+
+		if (!saleIdResult.ok || !customerIdResult.ok) {
+			throw new Error("Failed to create test IDs");
+		}
+
+		const testItem = createSaleItem({
+			productId: createProductId("product-1").value as ProductId,
+			quantity: 10,
+			unitPrice: createPrice(10).value as Price,
+		});
+
+		if (!testItem.ok) {
+			throw new Error("Failed to create test item");
+		}
+
+		const testSale = createSale({
+			id: saleIdResult.value,
+			customerId: customerIdResult.value,
+			items: [testItem.value],
+		});
+
+		if (!testSale.ok) {
+			throw new Error("Failed to create test sale");
+		}
+
 		// Create mock repository
 		repository = {
-			findById: async () =>
-				ResultUtils.ok({
-					id: createSaleId("sale-1").value,
-					customerId: createCustomerId("customer-1").value,
-					items: [],
-					grossTotal: 100,
-					discount: 0,
-					addition: 0,
-					netTotal: 100,
-					payments: [],
-					status: "PENDING",
-					createdAt: new Date(),
-				} as Sale),
+			findById: async () => ResultUtils.ok(testSale.value),
 			save: async (sale: Sale) => ResultUtils.ok(sale),
 		} as SaleRepository;
 
@@ -122,14 +138,41 @@ describe("ApplySaleSurchargeUseCase", () => {
 	});
 
 	it("should preserve existing discount when applying surcharge", async () => {
+		const saleIdResult = createSaleId("sale-1");
+		const customerIdResult = createCustomerId("customer-1");
+
+		if (!saleIdResult.ok || !customerIdResult.ok) {
+			throw new Error("Failed to create test IDs");
+		}
+
+		const testItem = createSaleItem({
+			productId: createProductId("product-1").value as ProductId,
+			quantity: 10,
+			unitPrice: createPrice(10).value as Price,
+		});
+
+		if (!testItem.ok) {
+			throw new Error("Failed to create test item");
+		}
+
 		const saleWithDiscount = createSale({
-			id: createSaleId("sale-1").value,
-			customerId: createCustomerId("customer-1").value,
-			items: [],
+			id: saleIdResult.value,
+			customerId: customerIdResult.value,
+			items: [testItem.value],
 			discount: 5,
 		});
 
-		repository.findById = async () => saleWithDiscount;
+		// Create new repository that returns sale with discount
+		repository = {
+			...repository,
+			findById: async () => {
+				if (!saleWithDiscount.ok) {
+					throw new Error("Failed to create sale for test");
+				}
+				return ResultUtils.ok(saleWithDiscount.value);
+			},
+		};
+		applySaleSurcharge = createApplySaleSurchargeUseCase(repository);
 
 		const input: ApplySaleSurchargeInput = {
 			saleId: "sale-1",
@@ -146,14 +189,41 @@ describe("ApplySaleSurchargeUseCase", () => {
 	});
 
 	it("should replace existing addition with new surcharge", async () => {
+		const saleIdResult = createSaleId("sale-1");
+		const customerIdResult = createCustomerId("customer-1");
+
+		if (!saleIdResult.ok || !customerIdResult.ok) {
+			throw new Error("Failed to create test IDs");
+		}
+
+		const testItem = createSaleItem({
+			productId: createProductId("product-1").value as ProductId,
+			quantity: 10,
+			unitPrice: createPrice(10).value as Price,
+		});
+
+		if (!testItem.ok) {
+			throw new Error("Failed to create test item");
+		}
+
 		const saleWithAddition = createSale({
-			id: createSaleId("sale-1").value,
-			customerId: createCustomerId("customer-1").value,
-			items: [],
+			id: saleIdResult.value,
+			customerId: customerIdResult.value,
+			items: [testItem.value],
 			addition: 5,
 		});
 
-		repository.findById = async () => saleWithAddition;
+		// Create new repository that returns sale with addition
+		repository = {
+			...repository,
+			findById: async () => {
+				if (!saleWithAddition.ok) {
+					throw new Error("Failed to create sale for test");
+				}
+				return ResultUtils.ok(saleWithAddition.value);
+			},
+		};
+		applySaleSurcharge = createApplySaleSurchargeUseCase(repository);
 
 		const input: ApplySaleSurchargeInput = {
 			saleId: "sale-1",

@@ -58,10 +58,7 @@ export const createPromotionalPrice = (
 		return ResultUtils.err("Preço normal é obrigatório");
 	}
 
-	if (
-		input.promotionalPrice === null ||
-		input.promotionalPrice === undefined
-	) {
+	if (input.promotionalPrice === null || input.promotionalPrice === undefined) {
 		return ResultUtils.err("Preço promocional é obrigatório");
 	}
 
@@ -92,9 +89,7 @@ export const createPromotionalPrice = (
 
 	// Validate end date is greater than or equal to start date
 	if (input.endDate < input.startDate) {
-		return ResultUtils.err(
-			"Data final deve ser maior ou igual à data inicial",
-		);
+		return ResultUtils.err("Data final deve ser maior ou igual à data inicial");
 	}
 
 	return ResultUtils.ok({
