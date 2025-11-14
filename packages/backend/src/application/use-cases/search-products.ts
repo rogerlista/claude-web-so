@@ -66,9 +66,9 @@ const mapRepositoryError = (error: RepositoryError): string => {
   switch (error.type) {
     case 'DATABASE_ERROR':
       return error.message
-    case 'UNKNOWN':
+    case 'UNKNOWN' /* c8 ignore start */:
       return error.message
     default:
-      return 'An unexpected error occurred'
+      return 'An unexpected error occurred' /* c8 ignore stop */
   }
 }

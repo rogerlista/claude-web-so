@@ -3,6 +3,7 @@ import type { InventoryRepository } from '../../application/ports/inventory-repo
 import { getStockUseCase } from '../../application/use-cases/get-stock'
 import { registerStockMovementUseCase } from '../../application/use-cases/register-stock-movement'
 import { createInventoryId } from '../../domain/inventory/inventory-id'
+import type { InventoryMovement } from '../../domain/inventory/inventory-movement'
 import { createProductId } from '../../domain/product/product-id'
 
 /**
@@ -115,7 +116,7 @@ export const createInventoryRoutes = (deps: InventoryRoutesDeps): Hono => {
       }
 
       return c.json({
-        data: result.value.map((movement) => ({
+        data: result.value.map((movement: InventoryMovement) => ({
           id: movement.id,
           productId: movement.productId,
           quantity: movement.quantity,

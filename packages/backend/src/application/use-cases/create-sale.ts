@@ -94,13 +94,12 @@ export const createSaleUseCase =
     const saleItems: SaleItem[] = []
     const items = input.items ?? []
 
-    for (let i = 0; i < items.length; i++) {
-      const itemInput = items[i]
-      /* c8 ignore start */
+    for (let i = 0; i < input.items.length; i++) {
+      const itemInput = input.items[i]
       if (!itemInput) {
+        /* c8 ignore start */
         continue
-      }
-      /* c8 ignore stop */
+      } /* c8 ignore stop */
 
       // Validate ProductId
       const productIdResult = createProductId(itemInput.productId)

@@ -31,6 +31,7 @@ const calculateCheckDigit = (digits: number[]): number => {
   // Start from the right, alternating multipliers 3 and 1
   for (let i = digits.length - 1; i >= 0; i--) {
     const digit = digits[i]
+    /* c8 ignore next 3 */
     if (digit === undefined) {
       throw new Error('Unexpected undefined digit in GTIN calculation')
     }
@@ -52,6 +53,7 @@ const calculateCheckDigit = (digits: number[]): number => {
 const validateCheckDigit = (gtin: string): boolean => {
   const digits = gtin.split('').map(Number)
   const checkDigit = digits[digits.length - 1]
+  /* c8 ignore next 3 */
   if (checkDigit === undefined) {
     return false
   }

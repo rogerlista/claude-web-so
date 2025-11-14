@@ -21,6 +21,7 @@ const route = useRoute()
 const router = useRouter()
 const productsStore = useProductsStore()
 
+// biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
 const isEditMode = computed(() => !!props.id || !!route.params['id'])
 const pageTitle = computed(() => (isEditMode.value ? 'Editar Produto' : 'Novo Produto'))
 
@@ -67,6 +68,7 @@ const handleSubmit = async (): Promise<void> => {
 
   try {
     if (isEditMode.value) {
+      // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
       const productId = props.id || (route.params['id'] as string)
       await productsStore.updateProduct(productId, form.value)
     } else {
@@ -109,6 +111,7 @@ const loadProduct = async (id: string): Promise<void> => {
 
 onMounted(() => {
   if (isEditMode.value) {
+    // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
     const productId = props.id || (route.params['id'] as string)
     if (productId) {
       loadProduct(productId)

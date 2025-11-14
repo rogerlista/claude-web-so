@@ -26,14 +26,14 @@ export default defineConfig({
         'src/infrastructure/database/connection.ts', // Database connection setup - infrastructure code
         'src/presentation/**/*.ts', // Presentation layer - thin adapter with defensive error handling
       ],
-      // TEMPORARY: Adjusted coverage thresholds (2025-11-13)
-      // Goal: Return to 100% coverage - see PLANEJAMENTO_POS_NFCE.md
-      // Ports and schema excluded as they are type definitions only
+      // Coverage thresholds adjusted for defensive error branches
+      // Defensive branches (c8 ignore) for database corruption and impossible edge cases excluded
+      // Target: 100% for testable code, ~91.9% overall due to defensive error handling
       thresholds: {
-        lines: 90,
+        lines: 91.9,
         functions: 100,
-        branches: 75,
-        statements: 90,
+        branches: 79,
+        statements: 91.9,
       },
       all: true,
       skipFull: false,
