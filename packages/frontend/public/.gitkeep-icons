@@ -1,0 +1,22 @@
+# Missing Icon Files
+
+The following icon files need to be generated before PWA deployment:
+
+## Required Files:
+- [ ] favicon.ico (16x16, 32x32, 48x48)
+- [ ] apple-touch-icon.png (180x180)
+- [ ] pwa-192x192.png (192x192)
+- [ ] pwa-512x512.png (512x512)
+
+## How to Generate:
+See README.md in this directory for detailed instructions.
+
+## Quick Start:
+1. Visit https://realfavicongenerator.net/
+2. Upload your logo (preferably 512x512 PNG or SVG)
+3. Download generated files
+4. Place them in this directory
+5. Delete this .gitkeep-icons file
+
+## Temporary Development:
+The icon-placeholder.svg can be converted to PNG formats for temporary development use.
