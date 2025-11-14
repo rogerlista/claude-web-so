@@ -52,4 +52,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export const version = '0.0.0'
-export const status = 'Phase 4: Módulo de Produtos - REST API'
+export const status = 'Phase 6: Sales Management System with Payments'

@@ -7,11 +7,12 @@ import type { CustomerId } from '../../domain/customer/customer-id'
 import { createCustomerId } from '../../domain/customer/customer-id'
 import { createPrice } from '../../domain/product/price'
 import { createProductId } from '../../domain/product/product-id'
-import type { Sale } from '../../domain/sale/sale'
+import { type Sale, createSale } from '../../domain/sale/sale'
 import type { SaleId } from '../../domain/sale/sale-id'
 import { createSaleId } from '../../domain/sale/sale-id'
 import type { SaleItem } from '../../domain/sale/sale-item'
 import { createSaleItem } from '../../domain/sale/sale-item'
+import type { SalePayment } from '../../domain/sale/sale-payment'
 import type { SaleStatus } from '../../domain/sale/sale-status'
 import { createSaleStatus } from '../../domain/sale/sale-status'
 import {
@@ -45,7 +46,12 @@ const generateSaleItemId = (saleId: string, index: number): string => {
 const saleToRow = (sale: Sale): SaleInsert => ({
   id: sale.id as string,
   customerId: sale.customerId as string,
-  totalInCents: Math.round(sale.total * 100),
+  totalBrutoInCents: Math.round(sale.grossTotal * 100),
+  descontoInCents: Math.round(sale.discount * 100),
+  acrescimoInCents: Math.round(sale.addition * 100),
+  totalLiquidoInCents: Math.round(sale.netTotal * 100),
+  // Keep totalInCents for compatibility
+  totalInCents: Math.round(sale.netTotal * 100),
   status: sale.status,
   createdAt: sale.createdAt,
 })
@@ -133,14 +139,22 @@ const rowToSale = (saleRow: SaleRow, itemRows: SaleItemRow[]): Result<Sale, stri
     .filter((r): r is { ok: true; value: SaleItem } => r.ok)
     .map((r) => r.value)
 
-  // Use totalInCents if available, fallback to totalLiquidoInCents
-  const totalCents = saleRow.totalInCents ?? saleRow.totalLiquidoInCents ?? 0
+  // Extract discount and addition (defaults to 0)
+  const discount = (saleRow.descontoInCents ?? 0) / 100
+  const addition = (saleRow.acrescimoInCents ?? 0) / 100
 
-  return ResultUtils.ok({
+  // Note: Payments will be loaded separately by repository method
+  // For now, we return empty payments array
+  const payments: readonly SalePayment[] = []
+
+  // Create Sale with new structure
+  return createSale({
     id: saleIdResult.value,
     customerId: customerIdResult.value,
     items,
-    total: totalCents / 100,
+    discount,
+    addition,
+    payments,
     status: statusResult.value,
     createdAt: saleRow.createdAt,
   })
@@ -165,6 +179,10 @@ export const createSaleRepositoryDrizzle = (
           target: sales.id,
           set: {
             customerId: saleRow.customerId,
+            totalBrutoInCents: saleRow.totalBrutoInCents,
+            descontoInCents: saleRow.descontoInCents,
+            acrescimoInCents: saleRow.acrescimoInCents,
+            totalLiquidoInCents: saleRow.totalLiquidoInCents,
             totalInCents: saleRow.totalInCents,
             status: saleRow.status,
             updatedAt: new Date(),

@@ -29,13 +29,15 @@ commit-msg:
     commitlint:
       run: pnpm commitlint --edit {1}
 
-# Pre-push hook: Run tests with 100% coverage requirement
+# Pre-push hook: Run tests with coverage requirement
+# Runs all workspace tests in parallel for optimal performance (~9s vs ~20s sequential)
 pre-push:
   parallel: false
   commands:
-    # 1. Run all tests with coverage
+    # 1. Run all tests with coverage in parallel
     test:
-      run: pnpm test:coverage
+      run: pnpm -r --parallel test:coverage
 
-    # Note: Tests will fail if coverage is below 100%
+    # Note: Tests will fail if coverage is below thresholds (currently 90%/75%)
+    # See PLANEJAMENTO_POS_NFCE.md for current coverage requirements
     # This ensures no code is pushed without proper tests
