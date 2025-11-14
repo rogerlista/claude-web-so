@@ -188,6 +188,9 @@
           },
           "correctness": {
             "noUnusedVariables": "off"
+          },
+          "complexity": {
+            "useLiteralKeys": "off"
           }
         }
       }
