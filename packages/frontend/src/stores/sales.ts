@@ -30,6 +30,8 @@ export interface SaleItem {
 export interface Sale {
 	readonly id: string;
 	readonly customerId: string;
+	readonly customerCpf?: string;
+	readonly customerEmail?: string;
 	readonly items: readonly SaleItem[];
 	readonly grossTotal: number;
 	readonly discount: number;
@@ -358,6 +360,48 @@ export const useSalesStore = defineStore("sales", () => {
 	};
 
 	/**
+	 * Update customer information (CPF and Email)
+	 */
+	const updateCustomerInfo = async (
+		cpf?: string,
+		email?: string,
+	): Promise<boolean> => {
+		if (!currentSale.value) {
+			error.value = "Nenhuma venda ativa";
+			return false;
+		}
+
+		loading.value = true;
+		error.value = null;
+
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/api/vendas/${currentSale.value.id}/customer-info`,
+				{
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ cpf, email }),
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error("Failed to update customer info");
+			}
+
+			const data = (await response.json()) as { data: Sale };
+			currentSale.value = data.data;
+			return true;
+		} catch (_err) {
+			error.value = "Erro ao atualizar dados do cliente";
+			return false;
+		} finally {
+			loading.value = false;
+		}
+	};
+
+	/**
 	 * Finalize sale
 	 */
 	const finalizeSale = async (): Promise<boolean> => {
@@ -451,6 +495,7 @@ export const useSalesStore = defineStore("sales", () => {
 		updateItemQuantity,
 		applyDiscount,
 		addPayment,
+		updateCustomerInfo,
 		finalizeSale,
 		clearSale,
 		getSale,

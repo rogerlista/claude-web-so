@@ -7,6 +7,8 @@ import { createSaleUseCase } from "../../application/use-cases/create-sale";
 import { createFinalizeSaleUseCase } from "../../application/use-cases/finalize-sale";
 import { createRemoveSaleItemUseCase } from "../../application/use-cases/remove-sale-item";
 import { createUpdateSaleItemQuantityUseCase } from "../../application/use-cases/update-sale-item-quantity";
+import { createCPF } from "../../domain/customer/cpf";
+import { createEmail } from "../../domain/customer/email";
 import type { Sale } from "../../domain/sale/sale";
 import { createSaleId } from "../../domain/sale/sale-id";
 
@@ -321,6 +323,65 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 				payments: result.value.payments,
 				netTotal: result.value.netTotal,
 			});
+			/* c8 ignore next 3 */
+		} catch (_error) {
+			return c.json({ error: "Invalid request body" }, 400);
+		}
+	});
+
+	/**
+	 * PATCH /api/vendas/:id/customer-info - Update customer information
+	 */
+	app.patch("/:id/customer-info", async (c) => {
+		try {
+			const saleIdStr = c.req.param("id");
+			const body = await c.req.json();
+
+			const saleIdResult = createSaleId(saleIdStr);
+			if (!saleIdResult.ok) {
+				return c.json({ error: "Invalid sale ID" }, 400);
+			}
+
+			// Validate CPF if provided
+			let customerCpf;
+			if (body.cpf) {
+				const cpfResult = createCPF(body.cpf);
+				if (!cpfResult.ok) {
+					return c.json({ error: `Invalid CPF: ${cpfResult.error}` }, 400);
+				}
+				customerCpf = cpfResult.value;
+			}
+
+			// Validate Email if provided
+			let customerEmail;
+			if (body.email) {
+				const emailResult = createEmail(body.email);
+				if (!emailResult.ok) {
+					return c.json({ error: `Invalid email: ${emailResult.error}` }, 400);
+				}
+				customerEmail = emailResult.value;
+			}
+
+			// Get current sale
+			const saleResult = await deps.repository.findById(saleIdResult.value);
+			if (!saleResult.ok) {
+				return c.json({ error: "Sale not found" }, 404);
+			}
+
+			// Update sale with customer info
+			const updatedSale: Sale = {
+				...saleResult.value,
+				...(customerCpf !== undefined && { customerCpf }),
+				...(customerEmail !== undefined && { customerEmail }),
+			};
+
+			// Save updated sale
+			const saveResult = await deps.repository.save(updatedSale);
+			if (!saveResult.ok) {
+				return c.json({ error: "Failed to update customer info" }, 500);
+			}
+
+			return c.json({ data: saveResult.value });
 			/* c8 ignore next 3 */
 		} catch (_error) {
 			return c.json({ error: "Invalid request body" }, 400);
