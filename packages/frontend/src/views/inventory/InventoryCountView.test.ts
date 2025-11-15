@@ -7,7 +7,6 @@ import { mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
-import { useInventoryStore } from "../../stores/inventory";
 import { useProductsStore } from "../../stores/products";
 import InventoryCountView from "./InventoryCountView.vue";
 
@@ -206,7 +205,6 @@ describe("InventoryCountView", () => {
 
 		it("should display success message when provided", async () => {
 			const productsStore = useProductsStore();
-			const inventoryStore = useInventoryStore();
 
 			productsStore.products = [];
 

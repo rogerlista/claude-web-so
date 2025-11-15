@@ -96,14 +96,14 @@ const emit = defineEmits<{
 
 // Refs
 const password = ref("");
-const _dialogRef = ref<HTMLDivElement | null>(null);
+const dialogRef = ref<HTMLDivElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 
 // Computed
-const _titleId = computed(
+const titleId = computed(
 	() => `password-modal-title-${Math.random().toString(36).substring(2, 9)}`,
 );
-const _inputId = computed(
+const inputId = computed(
 	() => `password-modal-input-${Math.random().toString(36).substring(2, 9)}`,
 );
 
@@ -114,7 +114,7 @@ const handleCancel = (): void => {
 	emit("cancel");
 };
 
-const _handleConfirm = (): void => {
+const handleConfirm = (): void => {
 	if (!password.value.trim() || props.loading) {
 		return;
 	}
@@ -124,7 +124,7 @@ const _handleConfirm = (): void => {
 	emit("update:modelValue", false);
 };
 
-const _handleBackdropClick = (): void => {
+const handleBackdropClick = (): void => {
 	if (!props.loading) {
 		handleCancel();
 	}

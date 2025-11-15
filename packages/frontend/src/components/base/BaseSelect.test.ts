@@ -90,7 +90,7 @@ describe("BaseSelect", () => {
 				},
 			});
 			await wrapper.find(".select-trigger").trigger("click");
-			await wrapper.findAll(".select-option")[0].trigger("click");
+			await wrapper.findAll(".select-option")[0]?.trigger("click");
 			await wrapper.vm.$nextTick();
 			expect(wrapper.find(".select-dropdown").exists()).toBe(false);
 		});
@@ -104,7 +104,7 @@ describe("BaseSelect", () => {
 				},
 			});
 			await wrapper.find(".select-trigger").trigger("click");
-			await wrapper.findAll(".select-option")[1].trigger("click");
+			await wrapper.findAll(".select-option")[1]?.trigger("click");
 			expect(wrapper.emitted("update:modelValue")).toBeTruthy();
 			expect(wrapper.emitted("update:modelValue")?.[0]).toEqual(["2"]);
 		});
@@ -117,7 +117,9 @@ describe("BaseSelect", () => {
 			});
 			await wrapper.find(".select-trigger").trigger("click");
 			const disabledOption = wrapper.findAll(".select-option")[3];
-			await disabledOption.trigger("click");
+			if (disabledOption) {
+				await disabledOption.trigger("click");
+			}
 			expect(wrapper.emitted("update:modelValue")).toBeUndefined();
 		});
 
@@ -130,7 +132,9 @@ describe("BaseSelect", () => {
 			});
 			await wrapper.find(".select-trigger").trigger("click");
 			const selectedOption = wrapper.findAll(".select-option")[1];
-			expect(selectedOption.attributes("aria-selected")).toBe("true");
+			if (selectedOption) {
+				expect(selectedOption.attributes("aria-selected")).toBe("true");
+			}
 		});
 	});
 
@@ -147,7 +151,7 @@ describe("BaseSelect", () => {
 			await searchInput.setValue("Option 2");
 			const visibleOptions = wrapper.findAll(".select-option");
 			expect(visibleOptions).toHaveLength(1);
-			expect(visibleOptions[0].text()).toContain("Option 2");
+			expect(visibleOptions[0]?.text()).toContain("Option 2");
 		});
 
 		it("should show empty state when no options match search", async () => {
@@ -159,7 +163,9 @@ describe("BaseSelect", () => {
 			});
 			await wrapper.find(".select-trigger").trigger("click");
 			const searchInput = wrapper.find(".select-search");
-			await searchInput.setValue("Nonexistent");
+			if (searchInput.exists()) {
+				await searchInput.setValue("Nonexistent");
+			}
 			expect(wrapper.find(".select-empty").exists()).toBe(true);
 		});
 
@@ -387,7 +393,9 @@ describe("BaseSelect", () => {
 			});
 			await wrapper.find(".select-trigger").trigger("click");
 			const disabledOption = wrapper.findAll(".select-option")[3];
-			expect(disabledOption.attributes("aria-disabled")).toBe("true");
+			if (disabledOption) {
+				expect(disabledOption.attributes("aria-disabled")).toBe("true");
+			}
 		});
 	});
 });

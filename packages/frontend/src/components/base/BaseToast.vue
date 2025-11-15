@@ -42,7 +42,7 @@ const emit = defineEmits<{
 
 const visible = ref(true);
 
-const _icon = computed(() => {
+const icon = computed(() => {
 	switch (props.variant) {
 		case "success":
 			return "✓";

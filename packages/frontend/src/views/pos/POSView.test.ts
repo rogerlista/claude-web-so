@@ -1,3 +1,4 @@
+import type { Sale } from "../../stores/sales";
 /**
  * Tests for POSView
  * Phase 6: T036-T037 - Main POS Screen Component
@@ -104,7 +105,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 0,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 
 			await wrapper.vm.$nextTick();
 
@@ -200,7 +201,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 100,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 
 			await wrapper.vm.$nextTick();
 
@@ -224,7 +225,7 @@ describe("POSView", () => {
 				discount: 10,
 				netTotal: 90,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 
 			await wrapper.vm.$nextTick();
 
@@ -250,7 +251,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 100,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 
 			await wrapper.vm.$nextTick();
 
@@ -273,7 +274,7 @@ describe("POSView", () => {
 				discount: 10,
 				netTotal: 90,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 
 			await wrapper.vm.$nextTick();
 
@@ -350,7 +351,7 @@ describe("POSView", () => {
 			salesStore.currentSale = null;
 			const createSaleSpy = vi
 				.spyOn(salesStore, "createSale")
-				.mockResolvedValue();
+				.mockResolvedValue(null);
 
 			await wrapper.vm.$nextTick();
 
@@ -386,7 +387,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 10,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 			Object.defineProperty(salesStore, "hasItems", {
 				get: () => true,
 				configurable: true,
@@ -422,7 +423,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 0,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 			Object.defineProperty(salesStore, "hasItems", {
 				get: () => false,
 				configurable: true,
@@ -465,7 +466,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 10,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 			Object.defineProperty(salesStore, "hasItems", {
 				get: () => true,
 				configurable: true,
@@ -508,7 +509,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 0,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 
 			await wrapper.vm.$nextTick();
 
@@ -546,7 +547,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 0,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 			const clearSaleSpy = vi.spyOn(salesStore, "clearSale");
 
 			await wrapper.vm.$nextTick();
@@ -583,7 +584,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 0,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 			const clearSaleSpy = vi.spyOn(salesStore, "clearSale");
 
 			await wrapper.vm.$nextTick();
@@ -620,7 +621,7 @@ describe("POSView", () => {
 				discount: 0,
 				netTotal: 10,
 				status: "open",
-			} as any;
+			} as unknown as Sale;
 			Object.defineProperty(salesStore, "hasItems", {
 				get: () => true,
 				configurable: true,

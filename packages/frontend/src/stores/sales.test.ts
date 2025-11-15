@@ -17,8 +17,6 @@ describe("Sales Store", () => {
 	const mockSale: Sale = {
 		id: "SALE-123",
 		customerId: "customer-default",
-		customerCpf: undefined,
-		customerEmail: undefined,
 		items: [
 			{
 				productId: "p1",

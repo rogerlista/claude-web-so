@@ -44,7 +44,7 @@ const emit = defineEmits<{
 const dialogRef = ref<HTMLDivElement>();
 
 // Generate unique ID for aria-labelledby
-const _headerId = computed(
+const headerId = computed(
 	() => `dialog-header-${Math.random().toString(36).substr(2, 9)}`,
 );
 
@@ -60,7 +60,7 @@ const close = () => {
 /**
  * Handle backdrop click
  */
-const _handleBackdropClick = () => {
+const handleBackdropClick = () => {
 	if (props.backdropDismiss) {
 		close();
 	}

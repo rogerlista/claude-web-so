@@ -90,7 +90,7 @@ describe("POSItemList", () => {
 		it("should display singular 'item' for single item", () => {
 			const wrapper = mount(POSItemList, {
 				props: {
-					items: [mockItems[0]],
+					items: mockItems[0] ? [mockItems[0]] : [],
 				},
 			});
 
@@ -218,7 +218,7 @@ describe("POSItemList", () => {
 
 			const quantityInput = wrapper.find(".quantity-input");
 			expect(quantityInput.exists()).toBe(true);
-			expect(quantityInput.element.value).toBe("2");
+			expect((quantityInput.element as HTMLInputElement).value).toBe("2");
 		});
 
 		it("should emit update-quantity when increase button is clicked", async () => {

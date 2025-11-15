@@ -2,6 +2,7 @@ import type { Result } from "@pos-nfce/shared";
 import { ResultUtils } from "@pos-nfce/shared";
 import { createInventoryId } from "../../domain/inventory/inventory-id";
 import { createInventoryMovement } from "../../domain/inventory/inventory-movement";
+import { createQuantity } from "../../domain/inventory/quantity";
 import {
 	finalizeSale as finalizeSaleDomain,
 	type Sale,
@@ -98,29 +99,51 @@ export const createFinalizeSaleUseCase =
 			const movementIdResult = createInventoryId(
 				`sale-${finalizedSaleResult.value.id}-${item.productId}`,
 			);
-			const movementResult =
-				movementIdResult.ok &&
-				createInventoryMovement({
-					id: movementIdResult.value,
-					productId: item.productId,
-					quantity: item.quantity,
-					type: "saida",
-					date: new Date(),
-					description: `Venda #${finalizedSaleResult.value.id} finalizada`,
-				});
 
-			if (movementResult?.ok) {
-				const exitResult = await deps.inventoryRepository.saveMovement(
-					movementResult.value,
+			if (!movementIdResult.ok) {
+				console.error(
+					`[FinalizeSale] Failed to create movement ID for product ${item.productId}:`,
+					movementIdResult.error,
 				);
+				continue;
+			}
 
-				if (!exitResult.ok) {
-					// Log error but don't block sale completion
-					console.error(
-						`[FinalizeSale] Failed to decrease stock for product ${item.productId}:`,
-						exitResult.error,
-					);
-				}
+			const quantityResult = createQuantity(item.quantity);
+			if (!quantityResult.ok) {
+				console.error(
+					`[FinalizeSale] Failed to create quantity for product ${item.productId}:`,
+					quantityResult.error,
+				);
+				continue;
+			}
+
+			const movementResult = createInventoryMovement({
+				id: movementIdResult.value,
+				productId: item.productId,
+				quantity: quantityResult.value,
+				type: "saida",
+				date: new Date(),
+				description: `Venda #${finalizedSaleResult.value.id} finalizada`,
+			});
+
+			if (!movementResult.ok) {
+				console.error(
+					`[FinalizeSale] Failed to create movement for product ${item.productId}:`,
+					movementResult.error,
+				);
+				continue;
+			}
+
+			const exitResult = await deps.inventoryRepository.saveMovement(
+				movementResult.value,
+			);
+
+			if (!exitResult.ok) {
+				// Log error but don't block sale completion
+				console.error(
+					`[FinalizeSale] Failed to decrease stock for product ${item.productId}:`,
+					exitResult.error,
+				);
 			}
 		}
 

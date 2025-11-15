@@ -1,3 +1,4 @@
+import type { Sale } from "../../stores/sales";
 /**
  * Tests for POSCheckoutView
  * Phase 6: T041-T042 - Checkout/Payment View
@@ -81,7 +82,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			expect(wrapper.find(".pos-checkout-view").exists()).toBe(true);
@@ -200,7 +201,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			expect(wrapper.text()).toContain("Itens (2)");
@@ -217,7 +218,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const items = wrapper.findAll(".summary-item");
@@ -237,7 +238,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			expect(wrapper.text()).toContain("Subtotal:");
@@ -255,7 +256,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const discountLine = wrapper.find(".total-line.discount");
@@ -278,7 +279,7 @@ describe("POSCheckoutView", () => {
 			salesStore.currentSale = {
 				...mockSale,
 				discount: 0,
-			} as any;
+			} as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			expect(wrapper.find(".total-line.discount").exists()).toBe(false);
@@ -295,7 +296,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const totalLine = wrapper.find(".total-line.total");
@@ -317,7 +318,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const cpfInput = wrapper.find("#cpf");
@@ -335,7 +336,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const emailInput = wrapper.find("#email");
@@ -353,7 +354,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const cpfInput = wrapper.find("#cpf");
@@ -361,7 +362,9 @@ describe("POSCheckoutView", () => {
 			await cpfInput.trigger("input");
 			await wrapper.vm.$nextTick();
 
-			expect(cpfInput.element.value).toBe("123.456.789-01");
+			expect((cpfInput.element as HTMLInputElement).value).toBe(
+				"123.456.789-01",
+			);
 		});
 
 		it("should validate invalid CPF", async () => {
@@ -375,7 +378,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const cpfInput = wrapper.find("#cpf");
@@ -399,7 +402,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const cpfInput = wrapper.find("#cpf");
@@ -423,7 +426,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const emailInput = wrapper.find("#email");
@@ -446,7 +449,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const emailInput = wrapper.find("#email");
@@ -474,7 +477,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			expect(wrapper.find(".pos-payment-panel").exists()).toBe(true);
@@ -495,7 +498,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			const backButton = wrapper.find(".back-button");
@@ -517,7 +520,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			await wrapper.vm.$nextTick();
 
 			expect(wrapper.find(".success-modal").exists()).toBe(false);
@@ -541,7 +544,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			vi.spyOn(salesStore, "finalizeSale").mockResolvedValue(true);
 			await wrapper.vm.$nextTick();
 
@@ -570,7 +573,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			vi.spyOn(salesStore, "finalizeSale").mockResolvedValue(true);
 			await wrapper.vm.$nextTick();
 
@@ -608,7 +611,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			vi.spyOn(salesStore, "finalizeSale").mockResolvedValue(true);
 			await wrapper.vm.$nextTick();
 
@@ -648,7 +651,7 @@ describe("POSCheckoutView", () => {
 			});
 
 			const salesStore = useSalesStore();
-			salesStore.currentSale = mockSale as any;
+			salesStore.currentSale = mockSale as unknown as Sale;
 			vi.spyOn(salesStore, "finalizeSale").mockResolvedValue(true);
 			const clearSaleSpy = vi.spyOn(salesStore, "clearSale");
 			await wrapper.vm.$nextTick();

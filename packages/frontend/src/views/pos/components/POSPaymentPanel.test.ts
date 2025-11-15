@@ -311,7 +311,7 @@ describe("POSPaymentPanel", () => {
 			await wrapper.vm.$nextTick();
 
 			const input = wrapper.find("#payment-amount");
-			expect(input.element.value).toBe("70");
+			expect((input.element as HTMLInputElement).value).toBe("70");
 		});
 
 		it("should disable form when fully paid", () => {
@@ -461,8 +461,8 @@ describe("POSPaymentPanel", () => {
 			await addButton?.trigger("click");
 			await wrapper.vm.$nextTick();
 
-			expect(select.element.value).toBe("");
-			expect(input.element.value).toBe("0");
+			expect((select.element as HTMLSelectElement).value).toBe("");
+			expect((input.element as HTMLInputElement).value).toBe("0");
 		});
 
 		it("should trigger add payment on Enter key", async () => {

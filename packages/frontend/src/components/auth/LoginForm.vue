@@ -23,7 +23,7 @@ const emit = defineEmits<{
 const username = ref("");
 const password = ref("");
 
-const _handleSubmit = (e: Event) => {
+const handleSubmit = (e: Event) => {
 	e.preventDefault();
 	emit("submit", {
 		username: username.value,
