@@ -131,10 +131,18 @@ const formatRepositoryError = (error: RepositoryError): string => {
 		/* c8 ignore stop */
 		case "DUPLICATE":
 			return `Product already exists: ${error.id}`;
+		case "DUPLICATE_SKU":
+			return `Duplicate SKU: ${error.message}`;
+		case "DUPLICATE_GTIN":
+			return `Duplicate GTIN: ${error.message}`;
 		case "DATABASE_ERROR":
 			return `Database error: ${error.message}`;
 		/* c8 ignore next 2 */
 		case "UNKNOWN":
 			return `Unknown error: ${error.message}`;
+		default: {
+			const _exhaustive: never = error;
+			return _exhaustive;
+		}
 	}
 };

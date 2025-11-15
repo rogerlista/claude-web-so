@@ -222,7 +222,7 @@ const emailError = ref("");
 const discountInput = ref<number>(0);
 const surchargeInput = ref<number>(0);
 
-const _formatCurrency = (value: number): string => {
+const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
@@ -230,7 +230,7 @@ const _formatCurrency = (value: number): string => {
 };
 
 // CPF formatting and validation
-const _formatCpf = (): void => {
+const formatCpf = (): void => {
 	// Remove non-digits
 	let cpf = customerCpf.value.replace(/\D/g, "");
 
@@ -286,7 +286,7 @@ const validateEmail = (): void => {
 };
 
 // Save customer information
-const _handleSaveCustomerInfo = async (): Promise<void> => {
+const handleSaveCustomerInfo = async (): Promise<void> => {
 	validateCpf();
 	validateEmail();
 
@@ -307,22 +307,22 @@ const _handleSaveCustomerInfo = async (): Promise<void> => {
 	}
 };
 
-const _handleBack = (): void => {
+const handleBack = (): void => {
 	router.push("/pos");
 };
 
-const _handleAddPayment = async (
+const handleAddPayment = async (
 	paymentMethodCode: string,
 	amount: number,
 ): Promise<void> => {
 	await salesStore.addPayment(paymentMethodCode, amount);
 };
 
-const _handleRemovePayment = async (index: number): Promise<void> => {
+const handleRemovePayment = async (index: number): Promise<void> => {
 	await salesStore.removePayment(index);
 };
 
-const _handleApplyDiscount = async (): Promise<void> => {
+const handleApplyDiscount = async (): Promise<void> => {
 	if (discountInput.value > 0) {
 		const success = await salesStore.applyDiscount(discountInput.value);
 		if (success) {
@@ -331,7 +331,7 @@ const _handleApplyDiscount = async (): Promise<void> => {
 	}
 };
 
-const _handleApplySurcharge = async (): Promise<void> => {
+const handleApplySurcharge = async (): Promise<void> => {
 	if (surchargeInput.value > 0) {
 		const success = await salesStore.applySurcharge(surchargeInput.value);
 		if (success) {
@@ -340,19 +340,19 @@ const _handleApplySurcharge = async (): Promise<void> => {
 	}
 };
 
-const _handleComplete = async (): Promise<void> => {
+const handleComplete = async (): Promise<void> => {
 	const success = await salesStore.finalizeSale();
 	if (success) {
 		showSuccessModal.value = true;
 	}
 };
 
-const _handlePrintReceipt = (): void => {
+const handlePrintReceipt = (): void => {
 	// TODO: Implement receipt printing
 	window.print();
 };
 
-const _handleNewSale = async (): Promise<void> => {
+const handleNewSale = async (): Promise<void> => {
 	salesStore.clearSale();
 	await router.push("/pos");
 };

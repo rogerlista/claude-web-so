@@ -22,11 +22,11 @@ const toast = useToast();
 
 // biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket notation for index signatures
 const isEditMode = computed(() => !!props.id || !!route.params["id"]);
-const _pageTitle = computed(() =>
+const pageTitle = computed(() =>
 	isEditMode.value ? "Editar Produto" : "Novo Produto",
 );
 
-const _origemTributariaOptions = [
+const origemTributariaOptions = [
 	{ value: "0", label: "0 - Nacional" },
 	{ value: "1", label: "1 - Estrangeira - Importação direta" },
 	{ value: "2", label: "2 - Estrangeira - Adquirida no mercado interno" },
@@ -150,7 +150,7 @@ const validateForm = (): boolean => {
 	return Object.keys(errors.value).length === 0;
 };
 
-const _handleSubmit = async (): Promise<void> => {
+const handleSubmit = async (): Promise<void> => {
 	if (!validateForm()) {
 		toast.error("Por favor, corrija os erros no formulário");
 		return;
@@ -187,7 +187,7 @@ const _handleSubmit = async (): Promise<void> => {
 	}
 };
 
-const _handleCancel = (): void => {
+const handleCancel = (): void => {
 	router.back();
 };
 

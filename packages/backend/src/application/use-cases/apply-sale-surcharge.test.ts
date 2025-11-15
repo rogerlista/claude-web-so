@@ -25,10 +25,17 @@ describe("ApplySaleSurchargeUseCase", () => {
 			throw new Error("Failed to create test IDs");
 		}
 
+		const productIdResult = createProductId("product-1");
+		const priceResult = createPrice(10);
+
+		if (!productIdResult.ok || !priceResult.ok) {
+			throw new Error("Failed to create test product data");
+		}
+
 		const testItem = createSaleItem({
-			productId: createProductId("product-1").value as ProductId,
+			productId: productIdResult.value,
 			quantity: 10,
-			unitPrice: createPrice(10).value as Price,
+			unitPrice: priceResult.value,
 		});
 
 		if (!testItem.ok) {
@@ -49,7 +56,7 @@ describe("ApplySaleSurchargeUseCase", () => {
 		repository = {
 			findById: async () => ResultUtils.ok(testSale.value),
 			save: async (sale: Sale) => ResultUtils.ok(sale),
-		} as SaleRepository;
+		} as unknown as SaleRepository;
 
 		applySaleSurcharge = createApplySaleSurchargeUseCase(repository);
 	});
@@ -98,18 +105,24 @@ describe("ApplySaleSurchargeUseCase", () => {
 	});
 
 	it("should return error when sale not found", async () => {
-		repository.findById = async () =>
-			ResultUtils.err({
-				type: "NOT_FOUND",
-				message: "Sale not found",
-			} as RepositoryError);
+		// Create new use case instance with mock that returns NOT_FOUND
+		const mockRepository = {
+			findById: async () =>
+				ResultUtils.err({
+					type: "NOT_FOUND",
+					id: "sale-999",
+				} as RepositoryError),
+			save: async (sale: Sale) => ResultUtils.ok(sale),
+		} as unknown as SaleRepository;
+
+		const testUseCase = createApplySaleSurchargeUseCase(mockRepository);
 
 		const input: ApplySaleSurchargeInput = {
 			saleId: "sale-999",
 			surcharge: 10,
 		};
 
-		const result = await applySaleSurcharge(input);
+		const result = await testUseCase(input);
 
 		expect(result.ok).toBe(false);
 		if (!result.ok) {
@@ -118,18 +131,58 @@ describe("ApplySaleSurchargeUseCase", () => {
 	});
 
 	it("should return repository error when save fails", async () => {
-		repository.save = async () =>
-			ResultUtils.err({
-				type: "INTERNAL_ERROR",
-				message: "Database error",
-			} as RepositoryError);
+		// Create new use case instance with mock that returns error on save
+		const saleIdResult = createSaleId("sale-1");
+		const customerIdResult = createCustomerId("customer-1");
+
+		if (!saleIdResult.ok || !customerIdResult.ok) {
+			throw new Error("Failed to create test IDs");
+		}
+
+		const productIdResult = createProductId("product-1");
+		const priceResult = createPrice(10);
+
+		if (!productIdResult.ok || !priceResult.ok) {
+			throw new Error("Failed to create test product data");
+		}
+
+		const testItem = createSaleItem({
+			productId: productIdResult.value,
+			quantity: 10,
+			unitPrice: priceResult.value,
+		});
+
+		if (!testItem.ok) {
+			throw new Error("Failed to create test item");
+		}
+
+		const testSale = createSale({
+			id: saleIdResult.value,
+			customerId: customerIdResult.value,
+			items: [testItem.value],
+		});
+
+		if (!testSale.ok) {
+			throw new Error("Failed to create test sale");
+		}
+
+		const mockRepository = {
+			findById: async () => ResultUtils.ok(testSale.value),
+			save: async () =>
+				ResultUtils.err({
+					type: "UNKNOWN",
+					message: "Database error",
+				} as RepositoryError),
+		} as unknown as SaleRepository;
+
+		const testUseCase = createApplySaleSurchargeUseCase(mockRepository);
 
 		const input: ApplySaleSurchargeInput = {
 			saleId: "sale-1",
 			surcharge: 10,
 		};
 
-		const result = await applySaleSurcharge(input);
+		const result = await testUseCase(input);
 
 		expect(result.ok).toBe(false);
 		if (!result.ok) {
@@ -145,10 +198,17 @@ describe("ApplySaleSurchargeUseCase", () => {
 			throw new Error("Failed to create test IDs");
 		}
 
+		const productIdResult = createProductId("product-1");
+		const priceResult = createPrice(10);
+
+		if (!productIdResult.ok || !priceResult.ok) {
+			throw new Error("Failed to create test product data");
+		}
+
 		const testItem = createSaleItem({
-			productId: createProductId("product-1").value as ProductId,
+			productId: productIdResult.value,
 			quantity: 10,
-			unitPrice: createPrice(10).value as Price,
+			unitPrice: priceResult.value,
 		});
 
 		if (!testItem.ok) {
@@ -196,10 +256,17 @@ describe("ApplySaleSurchargeUseCase", () => {
 			throw new Error("Failed to create test IDs");
 		}
 
+		const productIdResult = createProductId("product-1");
+		const priceResult = createPrice(10);
+
+		if (!productIdResult.ok || !priceResult.ok) {
+			throw new Error("Failed to create test product data");
+		}
+
 		const testItem = createSaleItem({
-			productId: createProductId("product-1").value as ProductId,
+			productId: productIdResult.value,
 			quantity: 10,
-			unitPrice: createPrice(10).value as Price,
+			unitPrice: priceResult.value,
 		});
 
 		if (!testItem.ok) {

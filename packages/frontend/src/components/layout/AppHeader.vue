@@ -59,11 +59,11 @@ onUnmounted(() => {
 	window.removeEventListener("offline", updateOnlineStatus);
 });
 
-const _handleMenuToggle = () => {
+const handleMenuToggle = () => {
 	emit("toggle-menu");
 };
 
-const _handleLogout = () => {
+const handleLogout = () => {
 	emit("logout");
 };
 </script>

@@ -89,7 +89,7 @@ const selectedOption = computed(() => {
 /**
  * Display text (selected label or placeholder)
  */
-const _displayText = computed(() => {
+const displayText = computed(() => {
 	return selectedOption.value?.label || props.placeholder;
 });
 
@@ -101,14 +101,14 @@ const canInteract = computed(() => !props.disabled && !props.loading);
 /**
  * Generate unique ID for ARIA
  */
-const _selectId = computed(
+const selectId = computed(
 	() => `select-${Math.random().toString(36).substr(2, 9)}`,
 );
 
 /**
  * Toggle dropdown open/close
  */
-const _toggle = () => {
+const toggle = () => {
 	if (!canInteract.value) return;
 	isOpen.value = !isOpen.value;
 };
@@ -146,7 +146,7 @@ const selectOption = (option: SelectOption) => {
 /**
  * Clear selection
  */
-const _clear = (event: Event) => {
+const clear = (event: Event) => {
 	event.stopPropagation();
 	emit("update:modelValue", null);
 	emit("change", null);
@@ -155,7 +155,7 @@ const _clear = (event: Event) => {
 /**
  * Handle keyboard navigation
  */
-const _handleKeyDown = (event: KeyboardEvent) => {
+const handleKeyDown = (event: KeyboardEvent) => {
 	if (!canInteract.value) return;
 
 	switch (event.key) {
@@ -167,7 +167,9 @@ const _handleKeyDown = (event: KeyboardEvent) => {
 					highlightedIndex.value < filteredOptions.value.length
 				) {
 					const option = filteredOptions.value[highlightedIndex.value];
-					selectOption(option);
+					if (option) {
+						selectOption(option);
+					}
 				}
 			} else {
 				open();

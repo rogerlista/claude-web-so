@@ -121,10 +121,10 @@ export const createAddSaleItemUseCase =
 					productId: input.productId,
 				});
 			}
-			// Other repository errors
+			// Other repository errors - convert to validation error
 			return ResultUtils.err({
-				type: "REPOSITORY_ERROR",
-				repositoryError: stockResult.error,
+				type: "VALIDATION_ERROR",
+				message: `Failed to check stock: ${stockResult.error.type === "UNKNOWN" ? stockResult.error.message : "Unknown error"}`,
 			});
 		}
 

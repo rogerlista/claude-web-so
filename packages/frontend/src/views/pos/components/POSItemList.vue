@@ -17,6 +17,17 @@
       <p class="empty-hint">Use F1 para buscar produtos</p>
     </div>
 
+    <!-- Password Modal for Remove Item -->
+    <PasswordModal
+      v-model="showPasswordModal"
+      title="Cancelar Item"
+      message="Digite sua senha para cancelar este item da venda"
+      :loading="isValidatingPassword"
+      :error="passwordError"
+      @confirm="handlePasswordConfirm"
+      @cancel="handlePasswordCancel"
+    />
+
     <div v-else class="items-container">
       <div
         v-for="(item, index) in items"
@@ -85,6 +96,8 @@
  * Phase 6: T038 - Lista de itens no PDV
  */
 
+import { ref } from "vue";
+import { useAuthStore } from "../../../stores/auth";
 import type { SaleItem } from "../../../stores/sales";
 
 interface Props {
@@ -101,6 +114,14 @@ const emit = defineEmits<{
 	"update-quantity": [productId: string, quantity: number];
 	"remove-item": [productId: string];
 }>();
+
+// Password Modal State
+const showPasswordModal = ref(false);
+const isValidatingPassword = ref(false);
+const passwordError = ref("");
+const pendingRemoveItem = ref<SaleItem | null>(null);
+
+const authStore = useAuthStore();
 
 const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
@@ -132,9 +153,39 @@ const handleQuantityChange = (item: SaleItem, event: Event): void => {
 };
 
 const handleRemove = (item: SaleItem): void => {
-	if (confirm(`Remover "${item.productName || item.productId}" da venda?`)) {
-		emit("remove-item", item.productId);
+	pendingRemoveItem.value = item;
+	showPasswordModal.value = true;
+};
+
+const handlePasswordConfirm = async (password: string): Promise<void> => {
+	if (!pendingRemoveItem.value) {
+		return;
 	}
+
+	isValidatingPassword.value = true;
+	passwordError.value = "";
+
+	try {
+		// Validate password with user's password
+		const isValid = await authStore.validatePassword(password);
+
+		if (isValid && pendingRemoveItem.value) {
+			emit("remove-item", pendingRemoveItem.value.productId);
+			showPasswordModal.value = false;
+			pendingRemoveItem.value = null;
+		} else {
+			passwordError.value = "Senha incorreta";
+		}
+	} catch (_error) {
+		passwordError.value = "Erro ao validar senha";
+	} finally {
+		isValidatingPassword.value = false;
+	}
+};
+
+const handlePasswordCancel = (): void => {
+	pendingRemoveItem.value = null;
+	passwordError.value = "";
 };
 </script>
 

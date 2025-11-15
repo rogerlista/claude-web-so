@@ -20,7 +20,7 @@ const statusFilter = ref<"todos" | "ativo" | "inativo">("todos");
 const currentPage = ref(1);
 const itemsPerPage = ref(20);
 
-const _columns: readonly Column[] = [
+const columns: readonly Column[] = [
 	{ key: "sku", label: "SKU" },
 	{ key: "descricao", label: "Descrição" },
 	{ key: "preco_unitario", label: "Preço" },
@@ -42,25 +42,25 @@ const totalPages = computed(() => {
 	return Math.ceil(filteredProducts.value.length / itemsPerPage.value);
 });
 
-const _paginatedProducts = computed(() => {
+const paginatedProducts = computed(() => {
 	const start = (currentPage.value - 1) * itemsPerPage.value;
 	const end = start + itemsPerPage.value;
 	return filteredProducts.value.slice(start, end);
 });
 
-const _goToPage = (page: number): void => {
+const goToPage = (page: number): void => {
 	if (page >= 1 && page <= totalPages.value) {
 		currentPage.value = page;
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	}
 };
 
-const _handleRowClick = (row: Record<string, unknown>): void => {
+const handleRowClick = (row: Record<string, unknown>): void => {
 	const product = row as unknown as Product;
 	router.push(`/products/${product.id}/edit`);
 };
 
-const _handleCreateProduct = (): void => {
+const handleCreateProduct = (): void => {
 	router.push("/products/create");
 };
 
@@ -89,7 +89,7 @@ watch([searchQuery, statusFilter], () => {
 	currentPage.value = 1;
 });
 
-const _setStatusFilter = (status: "todos" | "ativo" | "inativo"): void => {
+const setStatusFilter = (status: "todos" | "ativo" | "inativo"): void => {
 	statusFilter.value = status;
 };
 

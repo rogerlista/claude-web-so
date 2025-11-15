@@ -387,9 +387,8 @@ describe("FinalizeSale Use Case", () => {
 				...createMockInventoryRepository(),
 				saveMovement: async () =>
 					ResultUtils.err({
-						type: "INSUFFICIENT_STOCK",
-						available: 0,
-						requested: 1,
+						type: "UNKNOWN",
+						message: "Insufficient stock: available 0, requested 1",
 					}),
 			};
 

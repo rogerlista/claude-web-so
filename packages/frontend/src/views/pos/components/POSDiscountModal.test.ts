@@ -168,7 +168,7 @@ describe("POSDiscountModal", () => {
 			await input.setValue("20");
 			await wrapper.vm.$nextTick();
 
-			expect(input.element.value).toBe("20");
+			expect((input.element as HTMLInputElement).value).toBe("20");
 		});
 	});
 
