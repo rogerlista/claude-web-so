@@ -32,6 +32,7 @@ const bootstrap = () => {
 
 	// Create app with injected dependencies
 	const app = createApp({
+		db,
 		productRepository,
 		inventoryRepository,
 		saleRepository,

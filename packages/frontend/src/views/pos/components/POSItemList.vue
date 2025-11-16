@@ -17,16 +17,6 @@
       <p class="empty-hint">Use F1 para buscar produtos</p>
     </div>
 
-    <!-- Password Modal for Remove Item -->
-    <PasswordModal
-      v-model="showPasswordModal"
-      title="Cancelar Item"
-      message="Digite sua senha para cancelar este item da venda"
-      :loading="isValidatingPassword"
-      :error="passwordError"
-      @confirm="handlePasswordConfirm"
-      @cancel="handlePasswordCancel"
-    />
 
     <div v-else class="items-container">
       <div
@@ -87,6 +77,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Password Modal for Remove Item -->
+    <PasswordModal
+      v-model="showPasswordModal"
+      title="Cancelar Item"
+      message="Digite sua senha para cancelar este item da venda"
+      :loading="isValidatingPassword"
+      :error="passwordError"
+      @confirm="handlePasswordConfirm"
+      @cancel="handlePasswordCancel"
+    />
   </div>
 </template>
 
@@ -123,6 +124,7 @@ const pendingRemoveItem = ref<SaleItem | null>(null);
 
 const authStore = useAuthStore();
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
@@ -130,16 +132,19 @@ const formatCurrency = (value: number): string => {
 	}).format(value);
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleIncreaseQuantity = (item: SaleItem): void => {
 	emit("update-quantity", item.productId, item.quantity + 1);
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleDecreaseQuantity = (item: SaleItem): void => {
 	if (item.quantity > 1) {
 		emit("update-quantity", item.productId, item.quantity - 1);
 	}
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleQuantityChange = (item: SaleItem, event: Event): void => {
 	const target = event.target as HTMLInputElement;
 	const newQuantity = Number.parseInt(target.value, 10);
@@ -152,11 +157,13 @@ const handleQuantityChange = (item: SaleItem, event: Event): void => {
 	}
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleRemove = (item: SaleItem): void => {
 	pendingRemoveItem.value = item;
 	showPasswordModal.value = true;
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handlePasswordConfirm = async (password: string): Promise<void> => {
 	if (!pendingRemoveItem.value) {
 		return;
@@ -183,6 +190,7 @@ const handlePasswordConfirm = async (password: string): Promise<void> => {
 	}
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handlePasswordCancel = (): void => {
 	pendingRemoveItem.value = null;
 	passwordError.value = "";

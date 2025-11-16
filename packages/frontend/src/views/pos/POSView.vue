@@ -108,6 +108,17 @@
       @apply="handleDiscountApply"
       @close="showDiscountModal = false"
     />
+
+    <!-- Password Modal for Cancel Sale -->
+    <PasswordModal
+      v-model="showPasswordModal"
+      title="Autenticação Necessária"
+      message="Digite sua senha para cancelar a venda"
+      :loading="isValidatingPassword"
+      :error="passwordError"
+      @confirm="handlePasswordConfirm"
+      @cancel="handlePasswordCancel"
+    />
   </div>
 </template>
 
@@ -119,12 +130,20 @@
 
 import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { useSalesStore } from "../../stores/sales";
 
 const router = useRouter();
 const salesStore = useSalesStore();
+const authStore = useAuthStore();
 const showDiscountModal = ref(false);
 
+// Password Modal State
+const showPasswordModal = ref(false);
+const isValidatingPassword = ref(false);
+const passwordError = ref("");
+
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
@@ -136,6 +155,7 @@ const handleNewSale = async (): Promise<void> => {
 	await salesStore.createSale();
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleAddProduct = async (product: {
 	id: string;
 	price: number;
@@ -148,6 +168,7 @@ const handleAddProduct = async (product: {
 	});
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleUpdateQuantity = async (
 	productId: string,
 	quantity: number,
@@ -155,6 +176,7 @@ const handleUpdateQuantity = async (
 	await salesStore.updateItemQuantity(productId, quantity);
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleRemoveItem = async (productId: string): Promise<void> => {
 	await salesStore.removeItem(productId);
 };
@@ -163,6 +185,7 @@ const handleApplyDiscount = (): void => {
 	showDiscountModal.value = true;
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleDiscountApply = async (discount: number): Promise<void> => {
 	const success = await salesStore.applyDiscount(discount);
 	if (success) {
@@ -176,10 +199,33 @@ const handleCheckout = (): void => {
 	}
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const handleCancelSale = (): void => {
-	if (confirm("Tem certeza que deseja cancelar esta venda?")) {
+	passwordError.value = "";
+	showPasswordModal.value = true;
+};
+
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handlePasswordConfirm = async (password: string): Promise<void> => {
+	isValidatingPassword.value = true;
+	passwordError.value = "";
+
+	const isValid = await authStore.validatePassword(password);
+
+	if (isValid) {
+		showPasswordModal.value = false;
 		salesStore.clearSale();
+	} else {
+		passwordError.value = "Senha incorreta";
 	}
+
+	isValidatingPassword.value = false;
+};
+
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handlePasswordCancel = (): void => {
+	showPasswordModal.value = false;
+	passwordError.value = "";
 };
 
 // Keyboard shortcuts

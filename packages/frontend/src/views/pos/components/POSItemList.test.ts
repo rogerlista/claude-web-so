@@ -4,10 +4,21 @@
  */
 
 import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useAuthStore } from "../../../stores/auth";
 import POSItemList from "./POSItemList.vue";
 
 describe("POSItemList", () => {
+	beforeEach(() => {
+		const pinia = createPinia();
+		setActivePinia(pinia);
+
+		// Mock authStore validatePassword
+		const authStore = useAuthStore();
+		vi.spyOn(authStore, "validatePassword").mockResolvedValue(true);
+	});
+
 	describe("Render - Empty State", () => {
 		it("should render empty state when no items", () => {
 			const wrapper = mount(POSItemList, {
@@ -361,70 +372,87 @@ describe("POSItemList", () => {
 			expect(removeButton.text()).toBe("🗑️");
 		});
 
-		it("should show confirmation dialog when remove is clicked", async () => {
-			const confirmSpy = vi.spyOn(window, "confirm");
-
+		it("should show password modal when remove is clicked", async () => {
 			const wrapper = mount(POSItemList, {
 				props: {
 					items: [mockItem],
 				},
+				global: {
+					stubs: {
+						PasswordModal: {
+							template: '<div v-if="modelValue" class="password-modal"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
+						},
+					},
+				},
 			});
+
+			// Initially modal should be hidden
+			expect(wrapper.find(".password-modal").exists()).toBe(false);
 
 			const removeButton = wrapper.find(".remove-button");
 			await removeButton.trigger("click");
+			await wrapper.vm.$nextTick();
 
-			expect(confirmSpy).toHaveBeenCalledWith('Remover "Product 1" da venda?');
+			// Modal should be visible
+			expect(wrapper.find(".password-modal").exists()).toBe(true);
 		});
 
-		it("should emit remove-item when confirmed", async () => {
-			global.confirm = vi.fn(() => true);
-
+		it("should emit remove-item when password confirmed", async () => {
 			const wrapper = mount(POSItemList, {
 				props: {
 					items: [mockItem],
+				},
+				global: {
+					stubs: {
+						PasswordModal: {
+							template:
+								'<div v-if="modelValue" class="password-modal" @click="$emit(\'confirm\', \'test-password\')"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
+						},
+					},
 				},
 			});
 
 			const removeButton = wrapper.find(".remove-button");
 			await removeButton.trigger("click");
+			await wrapper.vm.$nextTick();
+
+			// Confirm password
+			const modal = wrapper.find(".password-modal");
+			await modal.trigger("click");
+			await wrapper.vm.$nextTick();
 
 			expect(wrapper.emitted("remove-item")).toBeTruthy();
 			expect(wrapper.emitted("remove-item")?.[0]).toEqual(["prod-1"]);
 		});
 
-		it("should not emit remove-item when cancelled", async () => {
-			global.confirm = vi.fn(() => false);
-
+		it("should not emit remove-item when password cancelled", async () => {
 			const wrapper = mount(POSItemList, {
 				props: {
 					items: [mockItem],
 				},
-			});
-
-			const removeButton = wrapper.find(".remove-button");
-			await removeButton.trigger("click");
-
-			expect(wrapper.emitted("remove-item")).toBeFalsy();
-		});
-
-		it("should use productId in confirmation when productName is empty", async () => {
-			const confirmSpy = vi.spyOn(window, "confirm");
-
-			const wrapper = mount(POSItemList, {
-				props: {
-					items: [
-						{
-							...mockItem,
-							productName: "",
+				global: {
+					stubs: {
+						PasswordModal: {
+							template:
+								'<div v-if="modelValue" class="password-modal" @click="$emit(\'cancel\')"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
 						},
-					],
+					},
 				},
 			});
 
 			const removeButton = wrapper.find(".remove-button");
 			await removeButton.trigger("click");
+			await wrapper.vm.$nextTick();
 
-			expect(confirmSpy).toHaveBeenCalledWith('Remover "prod-1" da venda?');
+			// Cancel password modal
+			const modal = wrapper.find(".password-modal");
+			await modal.trigger("click");
+			await wrapper.vm.$nextTick();
+
+			expect(wrapper.emitted("remove-item")).toBeFalsy();
 		});
 	});
 
