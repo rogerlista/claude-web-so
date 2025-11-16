@@ -273,6 +273,8 @@ export const inventory = sqliteTable("inventory", {
 		.references(() => products.id),
 	quantity: integer("quantity").notNull(), // Stored as integer with 4 decimal precision (value * 10000)
 	movementType: text("movement_type").notNull(), // 'entrada', 'saida', 'ajuste'
+	userId: text("user_id").references(() => users.id), // User responsible for movement
+	adjustmentReason: text("adjustment_reason"), // Reason for adjustment (required for 'ajuste' type)
 	description: text("description"), // Optional description
 	movementDate: integer("movement_date", { mode: "timestamp" }).notNull(), // Date of movement
 	createdAt: integer("created_at", { mode: "timestamp" })

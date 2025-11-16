@@ -8,6 +8,20 @@
 			"when": 1762374014500,
 			"tag": "0000_whole_triathlon",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1763305200000,
+			"tag": "0001_add_product_search_indices",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1763305300000,
+			"tag": "0002_add_inventory_user_adjustment",
+			"breakpoints": true
 		}
 	]
 }

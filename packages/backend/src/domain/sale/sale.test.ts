@@ -16,6 +16,7 @@ import {
 	getRemainingAmount,
 	isSaleFullyPaid,
 	removeItemFromSale,
+	removePaymentFromSale,
 	type Sale,
 	updateItemQuantity,
 } from "./sale";
@@ -724,6 +725,232 @@ describe("Sale Entity", () => {
 			if (result.ok) {
 				expect(result.value.payments).toHaveLength(1);
 				expect(result.value.payments[0]?.amount).toBe(100.0);
+			}
+		});
+	});
+
+	describe("removePaymentFromSale", () => {
+		it("should remove payment from sale by index", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const productIdResult = createProductId("prod-123");
+			const priceResult = createPrice(100.0);
+			const paymentMethodResult = createPaymentMethod("01");
+
+			if (
+				!saleIdResult.ok ||
+				!customerIdResult.ok ||
+				!productIdResult.ok ||
+				!priceResult.ok ||
+				!paymentMethodResult.ok
+			) {
+				throw new Error("Test setup failed");
+			}
+
+			const itemResult = createSaleItem({
+				productId: productIdResult.value,
+				quantity: 1,
+				unitPrice: priceResult.value,
+			});
+
+			if (!itemResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			// Create sale with two payments
+			const payment1Result = createSalePayment({
+				paymentMethod: paymentMethodResult.value,
+				amount: 60.0,
+			});
+
+			const payment2Result = createSalePayment({
+				paymentMethod: paymentMethodResult.value,
+				amount: 40.0,
+			});
+
+			if (!payment1Result.ok || !payment2Result.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const saleResult = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				items: [itemResult.value],
+				payments: [payment1Result.value, payment2Result.value],
+			});
+
+			if (!saleResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			// Remove first payment (index 0)
+			const result = removePaymentFromSale(saleResult.value, 0);
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.payments).toHaveLength(1);
+				expect(result.value.payments[0]?.amount).toBe(40.0);
+			}
+		});
+
+		it("should remove last payment from sale", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const productIdResult = createProductId("prod-123");
+			const priceResult = createPrice(100.0);
+			const paymentMethodResult = createPaymentMethod("01");
+
+			if (
+				!saleIdResult.ok ||
+				!customerIdResult.ok ||
+				!productIdResult.ok ||
+				!priceResult.ok ||
+				!paymentMethodResult.ok
+			) {
+				throw new Error("Test setup failed");
+			}
+
+			const itemResult = createSaleItem({
+				productId: productIdResult.value,
+				quantity: 1,
+				unitPrice: priceResult.value,
+			});
+
+			if (!itemResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const payment1Result = createSalePayment({
+				paymentMethod: paymentMethodResult.value,
+				amount: 60.0,
+			});
+
+			const payment2Result = createSalePayment({
+				paymentMethod: paymentMethodResult.value,
+				amount: 40.0,
+			});
+
+			if (!payment1Result.ok || !payment2Result.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const saleResult = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				items: [itemResult.value],
+				payments: [payment1Result.value, payment2Result.value],
+			});
+
+			if (!saleResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			// Remove last payment (index 1)
+			const result = removePaymentFromSale(saleResult.value, 1);
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.payments).toHaveLength(1);
+				expect(result.value.payments[0]?.amount).toBe(60.0);
+			}
+		});
+
+		it("should return error for negative index", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+
+			if (!saleIdResult.ok || !customerIdResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const saleResult = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+			});
+
+			if (!saleResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const result = removePaymentFromSale(saleResult.value, -1);
+
+			expect(result.ok).toBe(false);
+			if (!result.ok) {
+				expect(result.error).toContain("Invalid payment index");
+			}
+		});
+
+		it("should return error for out of bounds index", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const paymentMethodResult = createPaymentMethod("01");
+
+			if (!saleIdResult.ok || !customerIdResult.ok || !paymentMethodResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const paymentResult = createSalePayment({
+				paymentMethod: paymentMethodResult.value,
+				amount: 50.0,
+			});
+
+			if (!paymentResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const saleResult = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				payments: [paymentResult.value],
+			});
+
+			if (!saleResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			// Try to remove payment at index 1 (only has index 0)
+			const result = removePaymentFromSale(saleResult.value, 1);
+
+			expect(result.ok).toBe(false);
+			if (!result.ok) {
+				expect(result.error).toContain("Invalid payment index");
+				expect(result.error).toContain("has 1 payments");
+			}
+		});
+
+		it("should handle removing only payment", () => {
+			const saleIdResult = createSaleId("sale-123");
+			const customerIdResult = createCustomerId("customer-123");
+			const paymentMethodResult = createPaymentMethod("01");
+
+			if (!saleIdResult.ok || !customerIdResult.ok || !paymentMethodResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const paymentResult = createSalePayment({
+				paymentMethod: paymentMethodResult.value,
+				amount: 100.0,
+			});
+
+			if (!paymentResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const saleResult = createSale({
+				id: saleIdResult.value,
+				customerId: customerIdResult.value,
+				payments: [paymentResult.value],
+			});
+
+			if (!saleResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const result = removePaymentFromSale(saleResult.value, 0);
+
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.payments).toHaveLength(0);
 			}
 		});
 	});

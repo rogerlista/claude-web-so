@@ -13,6 +13,8 @@ import type { Quantity } from "./quantity";
  * Domain invariants:
  * - Must have id, productId, quantity, type, and date
  * - Description is optional
+ * - userId is optional (tracks who made the movement)
+ * - adjustmentReason is optional (required for 'ajuste' type movements)
  * - All fields are immutable (readonly)
  */
 export type InventoryMovement = {
@@ -21,6 +23,8 @@ export type InventoryMovement = {
 	readonly quantity: Quantity;
 	readonly type: InventoryMovementType;
 	readonly date: Date;
+	readonly userId?: string;
+	readonly adjustmentReason?: string;
 	readonly description?: string;
 };
 
@@ -33,6 +37,8 @@ export type CreateInventoryMovementInput = {
 	readonly quantity: Quantity;
 	readonly type: InventoryMovementType;
 	readonly date: Date;
+	readonly userId?: string;
+	readonly adjustmentReason?: string;
 	readonly description?: string;
 };
 
@@ -52,6 +58,13 @@ export const createInventoryMovement = (
 			? trimmedDescription
 			: undefined;
 
+	// Process adjustmentReason: trim and treat empty as undefined
+	const trimmedAdjustmentReason = input.adjustmentReason?.trim();
+	const adjustmentReason =
+		trimmedAdjustmentReason && trimmedAdjustmentReason.length > 0
+			? trimmedAdjustmentReason
+			: undefined;
+
 	// Create immutable inventory movement
 	const movement: InventoryMovement = {
 		id: input.id,
@@ -59,6 +72,8 @@ export const createInventoryMovement = (
 		quantity: input.quantity,
 		type: input.type,
 		date: input.date,
+		...(input.userId && { userId: input.userId }),
+		...(adjustmentReason !== undefined && { adjustmentReason }),
 		...(description !== undefined && { description }),
 	};
 

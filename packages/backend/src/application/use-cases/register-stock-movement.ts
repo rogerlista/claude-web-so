@@ -20,6 +20,8 @@ export type RegisterStockMovementInput = {
 	readonly quantity: number;
 	readonly type: InventoryMovementType;
 	readonly date: Date;
+	readonly userId?: string;
+	readonly adjustmentReason?: string;
 	readonly description?: string;
 };
 
@@ -85,6 +87,8 @@ export const registerStockMovementUseCase =
 			quantity: quantityResult.value,
 			type: input.type,
 			date: input.date,
+			...(input.userId && { userId: input.userId }),
+			...(input.adjustmentReason && { adjustmentReason: input.adjustmentReason }),
 			...(input.description && { description: input.description }),
 		});
 

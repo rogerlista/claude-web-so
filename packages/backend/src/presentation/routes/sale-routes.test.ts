@@ -5,9 +5,11 @@ import type { SaleRepository } from "../../application/ports/sale-repository";
 import { createCustomerId } from "../../domain/customer/customer-id";
 import { createPrice } from "../../domain/product/price";
 import { createProductId } from "../../domain/product/product-id";
+import { createPaymentMethod } from "../../domain/sale/payment-method";
 import { createSale } from "../../domain/sale/sale";
 import { createSaleId } from "../../domain/sale/sale-id";
 import { createSaleItem } from "../../domain/sale/sale-item";
+import { createSalePayment } from "../../domain/sale/sale-payment";
 import { createSaleRoutes } from "./sale-routes";
 
 describe("Sale Routes", () => {
@@ -247,6 +249,95 @@ describe("Sale Routes", () => {
 			});
 
 			const res = await app.request("/non-existent", { method: "DELETE" });
+
+			expect(res.status).toBe(404);
+		});
+	});
+
+	describe("DELETE /:id/payments/:paymentIndex", () => {
+		it("should remove payment from sale", async () => {
+			const saleId = createSaleId("sale-123");
+			const customerId = createCustomerId("customer-123");
+			const paymentMethod = createPaymentMethod("01");
+
+			if (!saleId.ok || !customerId.ok || !paymentMethod.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const payment = createSalePayment({
+				paymentMethod: paymentMethod.value,
+				amount: 100.0,
+			});
+
+			if (!payment.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const saleResult = createSale({
+				id: saleId.value,
+				customerId: customerId.value,
+				payments: [payment.value],
+			});
+
+			if (!saleResult.ok) {
+				throw new Error("Test setup failed");
+			}
+
+			const mockRepo: SaleRepository = {
+				...createMockRepository(),
+				findById: async () => ResultUtils.ok(saleResult.value),
+				save: async (sale) => ResultUtils.ok(sale),
+			};
+
+			const app = createSaleRoutes({
+				saleRepository: mockRepo,
+				inventoryRepository: createMockInventoryRepository(),
+			});
+
+			const res = await app.request("/sale-123/payments/0", {
+				method: "DELETE",
+			});
+
+			expect(res.status).toBe(200);
+			const data = (await res.json()) as {
+				id: string;
+				payments: unknown[];
+				netTotal: number;
+			};
+			expect(data.payments).toHaveLength(0);
+		});
+
+		it("should return 400 for invalid payment index", async () => {
+			const mockRepo = createMockRepository();
+
+			const app = createSaleRoutes({
+				saleRepository: mockRepo,
+				inventoryRepository: createMockInventoryRepository(),
+			});
+
+			const res = await app.request("/sale-123/payments/invalid", {
+				method: "DELETE",
+			});
+
+			expect(res.status).toBe(400);
+			const data = (await res.json()) as { error: string };
+			expect(data.error).toContain("Invalid payment index");
+		});
+
+		it("should return 404 when sale not found", async () => {
+			const mockRepo: SaleRepository = {
+				...createMockRepository(),
+				findById: async () => ResultUtils.err({ type: "NOT_FOUND", id: "non-existent" }),
+			};
+
+			const app = createSaleRoutes({
+				saleRepository: mockRepo,
+				inventoryRepository: createMockInventoryRepository(),
+			});
+
+			const res = await app.request("/non-existent/payments/0", {
+				method: "DELETE",
+			});
 
 			expect(res.status).toBe(404);
 		});
