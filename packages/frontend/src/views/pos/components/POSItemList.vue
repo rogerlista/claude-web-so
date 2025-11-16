@@ -124,24 +124,28 @@ const pendingRemoveItem = ref<SaleItem | null>(null);
 
 const authStore = useAuthStore();
 
-const _formatCurrency = (value: number): string => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
 	}).format(value);
 };
 
-const _handleIncreaseQuantity = (item: SaleItem): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleIncreaseQuantity = (item: SaleItem): void => {
 	emit("update-quantity", item.productId, item.quantity + 1);
 };
 
-const _handleDecreaseQuantity = (item: SaleItem): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleDecreaseQuantity = (item: SaleItem): void => {
 	if (item.quantity > 1) {
 		emit("update-quantity", item.productId, item.quantity - 1);
 	}
 };
 
-const _handleQuantityChange = (item: SaleItem, event: Event): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleQuantityChange = (item: SaleItem, event: Event): void => {
 	const target = event.target as HTMLInputElement;
 	const newQuantity = Number.parseInt(target.value, 10);
 
@@ -153,12 +157,14 @@ const _handleQuantityChange = (item: SaleItem, event: Event): void => {
 	}
 };
 
-const _handleRemove = (item: SaleItem): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleRemove = (item: SaleItem): void => {
 	pendingRemoveItem.value = item;
 	showPasswordModal.value = true;
 };
 
-const _handlePasswordConfirm = async (password: string): Promise<void> => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handlePasswordConfirm = async (password: string): Promise<void> => {
 	if (!pendingRemoveItem.value) {
 		return;
 	}
@@ -184,7 +190,8 @@ const _handlePasswordConfirm = async (password: string): Promise<void> => {
 	}
 };
 
-const _handlePasswordCancel = (): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handlePasswordCancel = (): void => {
 	pendingRemoveItem.value = null;
 	passwordError.value = "";
 };

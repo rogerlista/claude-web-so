@@ -143,7 +143,8 @@ const showPasswordModal = ref(false);
 const isValidatingPassword = ref(false);
 const passwordError = ref("");
 
-const _formatCurrency = (value: number): string => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
@@ -154,7 +155,8 @@ const handleNewSale = async (): Promise<void> => {
 	await salesStore.createSale();
 };
 
-const _handleAddProduct = async (product: {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleAddProduct = async (product: {
 	id: string;
 	price: number;
 	quantity: number;
@@ -166,14 +168,16 @@ const _handleAddProduct = async (product: {
 	});
 };
 
-const _handleUpdateQuantity = async (
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleUpdateQuantity = async (
 	productId: string,
 	quantity: number,
 ): Promise<void> => {
 	await salesStore.updateItemQuantity(productId, quantity);
 };
 
-const _handleRemoveItem = async (productId: string): Promise<void> => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleRemoveItem = async (productId: string): Promise<void> => {
 	await salesStore.removeItem(productId);
 };
 
@@ -181,7 +185,8 @@ const handleApplyDiscount = (): void => {
 	showDiscountModal.value = true;
 };
 
-const _handleDiscountApply = async (discount: number): Promise<void> => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleDiscountApply = async (discount: number): Promise<void> => {
 	const success = await salesStore.applyDiscount(discount);
 	if (success) {
 		showDiscountModal.value = false;
@@ -194,12 +199,14 @@ const handleCheckout = (): void => {
 	}
 };
 
-const _handleCancelSale = (): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handleCancelSale = (): void => {
 	passwordError.value = "";
 	showPasswordModal.value = true;
 };
 
-const _handlePasswordConfirm = async (password: string): Promise<void> => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handlePasswordConfirm = async (password: string): Promise<void> => {
 	isValidatingPassword.value = true;
 	passwordError.value = "";
 
@@ -215,7 +222,8 @@ const _handlePasswordConfirm = async (password: string): Promise<void> => {
 	isValidatingPassword.value = false;
 };
 
-const _handlePasswordCancel = (): void => {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const handlePasswordCancel = (): void => {
 	showPasswordModal.value = false;
 	passwordError.value = "";
 };

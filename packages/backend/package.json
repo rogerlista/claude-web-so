@@ -33,11 +33,13 @@
 	"dependencies": {
 		"@hono/node-server": "1.19.6",
 		"@pos-nfce/shared": "workspace:*",
+		"bcryptjs": "3.0.3",
 		"better-sqlite3": "12.4.1",
 		"drizzle-orm": "0.44.7",
 		"hono": "4.10.5"
 	},
 	"devDependencies": {
+		"@types/bcryptjs": "3.0.0",
 		"@types/better-sqlite3": "7.6.13",
 		"@types/node": "24.10.1",
 		"@vitest/coverage-v8": "4.0.9",

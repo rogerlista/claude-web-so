@@ -41,6 +41,9 @@ importers:
       '@pos-nfce/shared':
         specifier: workspace:*
         version: link:../shared
+      bcryptjs:
+        specifier: 3.0.3
+        version: 3.0.3
       better-sqlite3:
         specifier: 12.4.1
         version: 12.4.1
@@ -51,6 +54,9 @@ importers:
         specifier: 4.10.5
         version: 4.10.5
     devDependencies:
+      '@types/bcryptjs':
+        specifier: 3.0.0
+        version: 3.0.0
       '@types/better-sqlite3':
         specifier: 7.6.13
         version: 7.6.13
@@ -1380,6 +1386,10 @@ packages:
   '@tauri-apps/plugin-shell@2.3.3':
     resolution: {integrity: sha512-Xod+pRcFxmOWFWEnqH5yZcA7qwAMuaaDkMR1Sply+F8VfBj++CGnj2xf5UoialmjZ2Cvd8qrvSCbU+7GgNVsKQ==}
 
+  '@types/bcryptjs@3.0.0':
+    resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
+    deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
+
   '@types/better-sqlite3@7.6.13':
     resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
 
@@ -1632,6 +1642,10 @@ packages:
 
   baseline-browser-mapping@2.8.28:
     resolution: {integrity: sha512-gYjt7OIqdM0PcttNYP2aVrr2G0bMALkBaoehD4BuRGjAOtipg0b6wHg1yNL+s5zSnLZZrGHOw4IrND8CD+3oIQ==}
+    hasBin: true
+
+  bcryptjs@3.0.3:
+    resolution: {integrity: sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==}
     hasBin: true
 
   better-sqlite3@12.4.1:
@@ -4811,6 +4825,10 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.9.0
 
+  '@types/bcryptjs@3.0.0':
+    dependencies:
+      bcryptjs: 3.0.3
+
   '@types/better-sqlite3@7.6.13':
     dependencies:
       '@types/node': 24.10.1
@@ -5129,6 +5147,8 @@ snapshots:
   base64-js@1.5.1: {}
 
   baseline-browser-mapping@2.8.28: {}
+
+  bcryptjs@3.0.3: {}
 
   better-sqlite3@12.4.1:
     dependencies:

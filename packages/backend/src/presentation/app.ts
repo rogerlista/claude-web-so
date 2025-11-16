@@ -1,9 +1,12 @@
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import type { InventoryRepository } from "../application/ports/inventory-repository";
 import type { ProductRepository } from "../application/ports/product-repository";
 import type { SaleRepository } from "../application/ports/sale-repository";
+import type * as schema from "../infrastructure/database/schema";
+import { createAuthRoutes } from "./routes/auth-routes";
 import { createInventoryRoutes } from "./routes/inventory-routes";
 import { createProductRoutes } from "./routes/product-routes";
 import { createSaleRoutes } from "./routes/sale-routes";
@@ -18,6 +21,7 @@ import { createSaleRoutes } from "./routes/sale-routes";
  */
 
 type AppDeps = {
+	readonly db: BetterSQLite3Database<typeof schema>;
 	readonly productRepository: ProductRepository;
 	readonly inventoryRepository: InventoryRepository;
 	readonly saleRepository: SaleRepository;
@@ -55,6 +59,7 @@ export const createApp = (deps: AppDeps): Hono => {
 	});
 
 	// API Routes
+	app.route("/api/auth", createAuthRoutes({ db: deps.db }));
 	app.route(
 		"/api/produtos",
 		createProductRoutes({ repository: deps.productRepository }),

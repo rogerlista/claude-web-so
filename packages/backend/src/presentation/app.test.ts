@@ -35,8 +35,23 @@ describe("App", () => {
 		findByStatus: async () => ResultUtils.ok([]),
 	});
 
+	// Create minimal mock database for testing
+	// Auth routes only need db with schema access
+	const mockDb = {
+		select: () => ({
+			from: () => ({
+				where: () => ({
+					limit: () => [],
+				}),
+			}),
+		}),
+	} as unknown as import("drizzle-orm/better-sqlite3").BetterSQLite3Database<
+		typeof import("../infrastructure/database/schema")
+	>;
+
 	it("should have health check endpoint", async () => {
 		const app = createApp({
+			db: mockDb,
 			productRepository: createMockProductRepository(),
 			inventoryRepository: createMockInventoryRepository(),
 			saleRepository: createMockSaleRepository(),
@@ -56,6 +71,7 @@ describe("App", () => {
 
 	it("should return 404 for non-existent routes", async () => {
 		const app = createApp({
+			db: mockDb,
 			productRepository: createMockProductRepository(),
 			inventoryRepository: createMockInventoryRepository(),
 			saleRepository: createMockSaleRepository(),
@@ -70,6 +86,7 @@ describe("App", () => {
 
 	it("should have product routes mounted", async () => {
 		const app = createApp({
+			db: mockDb,
 			productRepository: createMockProductRepository(),
 			inventoryRepository: createMockInventoryRepository(),
 			saleRepository: createMockSaleRepository(),
@@ -83,6 +100,7 @@ describe("App", () => {
 
 	it("should have sale routes mounted", async () => {
 		const app = createApp({
+			db: mockDb,
 			productRepository: createMockProductRepository(),
 			inventoryRepository: createMockInventoryRepository(),
 			saleRepository: createMockSaleRepository(),
