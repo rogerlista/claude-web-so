@@ -111,6 +111,47 @@ describe("ValidatePassword Use Case", () => {
 				expect(result.value).toBe(false);
 			}
 		});
+
+		it("should return UNKNOWN error when repository throws Error", async () => {
+			const mockRepo: MockUserRepository = {
+				findById: async () => {
+					throw new Error("Database connection failed");
+				},
+			};
+
+			const result: Result<boolean, ValidatePasswordError> =
+				await validatePassword(mockRepo, {
+					userId: "admin-001",
+					password: "admin123",
+				});
+
+			expect(result.ok).toBe(false);
+			if (!result.ok) {
+				expect(result.error.type).toBe("UNKNOWN");
+				expect(result.error.message).toBe("Database connection failed");
+			}
+		});
+
+		it("should return UNKNOWN error when repository throws non-Error", async () => {
+			const mockRepo: MockUserRepository = {
+				findById: async () => {
+					// biome-ignore lint/suspicious/noExplicitAny: testing error handling
+					throw "Unexpected error" as any;
+				},
+			};
+
+			const result: Result<boolean, ValidatePasswordError> =
+				await validatePassword(mockRepo, {
+					userId: "admin-001",
+					password: "admin123",
+				});
+
+			expect(result.ok).toBe(false);
+			if (!result.ok) {
+				expect(result.error.type).toBe("UNKNOWN");
+				expect(result.error.message).toBe("Unknown error occurred");
+			}
+		});
 	});
 
 	describe("Security", () => {
