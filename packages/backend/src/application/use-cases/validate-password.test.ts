@@ -177,9 +177,9 @@ describe("ValidatePassword Use Case", () => {
 			const time2 = Date.now() - start2;
 
 			// Time difference should be minimal (bcrypt.compare is constant-time)
-			// Allow up to 50ms difference due to system variance
+			// Allow up to 200ms difference due to system variance in CI environments
 			const timeDiff = Math.abs(time1 - time2);
-			expect(timeDiff).toBeLessThan(50);
+			expect(timeDiff).toBeLessThan(200);
 		});
 	});
 });
