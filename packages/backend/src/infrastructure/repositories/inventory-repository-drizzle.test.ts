@@ -37,11 +37,26 @@ describe("InventoryRepositoryDrizzle", () => {
     `);
 
 		sqlite.exec(`
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        login TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+      )
+    `);
+
+		sqlite.exec(`
       CREATE TABLE inventory (
         id TEXT PRIMARY KEY NOT NULL,
         product_id TEXT NOT NULL REFERENCES products(id),
         quantity INTEGER NOT NULL,
         movement_type TEXT NOT NULL,
+        user_id TEXT REFERENCES users(id),
+        adjustment_reason TEXT,
         description TEXT,
         movement_date INTEGER NOT NULL,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())

@@ -132,6 +132,61 @@ describe("RegisterStockMovement Use Case", () => {
 		expect(result.ok).toBe(true);
 	});
 
+	it("should register movement with userId", async () => {
+		const mockRepo = createMockRepository(
+			ResultUtils.ok(
+				createMockMovement({
+					id: "inv-004",
+					productId: "prod-001",
+					quantity: 10,
+				}),
+			),
+		);
+
+		const useCase = registerStockMovementUseCase(mockRepo);
+
+		const input: RegisterStockMovementInput = {
+			id: "inv-004",
+			productId: "prod-001",
+			quantity: 10,
+			type: "entrada",
+			date: new Date(),
+			userId: "user-001",
+		};
+
+		const result = await useCase(input);
+
+		expect(result.ok).toBe(true);
+	});
+
+	it("should register ajuste movement with adjustmentReason", async () => {
+		const mockRepo = createMockRepository(
+			ResultUtils.ok(
+				createMockMovement({
+					id: "inv-005",
+					productId: "prod-001",
+					quantity: 20,
+				}),
+			),
+		);
+
+		const useCase = registerStockMovementUseCase(mockRepo);
+
+		const input: RegisterStockMovementInput = {
+			id: "inv-005",
+			productId: "prod-001",
+			quantity: 20,
+			type: "ajuste",
+			date: new Date(),
+			adjustmentReason: "Diferença no inventário físico",
+			userId: "user-001",
+		};
+
+		const result = await useCase(input);
+
+		expect(result.ok).toBe(true);
+	});
+
 	it("should reject invalid product id", async () => {
 		const mockRepo = createMockRepository(
 			ResultUtils.ok(
