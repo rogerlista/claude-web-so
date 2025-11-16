@@ -8,6 +8,7 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { useSalesStore } from "../../stores/sales";
 import POSView from "./POSView.vue";
 
@@ -484,10 +485,8 @@ describe("POSView", () => {
 		});
 	});
 
-	describe("Cancel Sale", () => {
-		it("should show confirmation when Cancelar Venda clicked", async () => {
-			const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-
+	describe("Cancel Sale with Password", () => {
+		it("should show password modal when Cancelar Venda clicked", async () => {
 			const wrapper = mount(POSView, {
 				global: {
 					plugins: [router],
@@ -496,6 +495,10 @@ describe("POSView", () => {
 						BaseButton: {
 							template: '<button v-bind="$attrs"><slot></slot></button>',
 							props: ["variant", "size", "loading", "disabled"],
+						},
+						PasswordModal: {
+							template: '<div v-if="modelValue" class="password-modal"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
 						},
 					},
 				},
@@ -513,19 +516,21 @@ describe("POSView", () => {
 
 			await wrapper.vm.$nextTick();
 
+			// Initially modal should be hidden
+			expect(wrapper.find(".password-modal").exists()).toBe(false);
+
+			// Click cancel button
 			const cancelButton = wrapper
 				.findAll(".pos-actions button")
 				.find((btn) => btn.text().includes("Cancelar Venda"));
 			await cancelButton?.trigger("click");
+			await wrapper.vm.$nextTick();
 
-			expect(confirmSpy).toHaveBeenCalledWith(
-				"Tem certeza que deseja cancelar esta venda?",
-			);
+			// Modal should be visible
+			expect(wrapper.find(".password-modal").exists()).toBe(true);
 		});
 
-		it("should call clearSale when confirmed", async () => {
-			global.confirm = vi.fn(() => true);
-
+		it("should call clearSale when password confirmed", async () => {
 			const wrapper = mount(POSView, {
 				global: {
 					plugins: [router],
@@ -535,11 +540,21 @@ describe("POSView", () => {
 							template: '<button v-bind="$attrs"><slot></slot></button>',
 							props: ["variant", "size", "loading", "disabled"],
 						},
+						PasswordModal: {
+							template:
+								'<div v-if="modelValue" class="password-modal" @click="$emit(\'confirm\', \'test-password\')"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
+						},
 					},
 				},
 			});
 
 			const salesStore = useSalesStore();
+			const authStore = useAuthStore();
+
+			// Mock validatePassword to return true
+			vi.spyOn(authStore, "validatePassword").mockResolvedValue(true);
+
 			salesStore.currentSale = {
 				id: "SALE-123",
 				items: [],
@@ -552,17 +567,23 @@ describe("POSView", () => {
 
 			await wrapper.vm.$nextTick();
 
+			// Click cancel button
 			const cancelButton = wrapper
 				.findAll(".pos-actions button")
 				.find((btn) => btn.text().includes("Cancelar Venda"));
 			await cancelButton?.trigger("click");
+			await wrapper.vm.$nextTick();
 
+			// Trigger password confirm
+			const modal = wrapper.find(".password-modal");
+			await modal.trigger("click");
+			await wrapper.vm.$nextTick();
+
+			// Should call clearSale
 			expect(clearSaleSpy).toHaveBeenCalled();
 		});
 
-		it("should not call clearSale when cancelled", async () => {
-			global.confirm = vi.fn(() => false);
-
+		it("should not call clearSale when password modal cancelled", async () => {
 			const wrapper = mount(POSView, {
 				global: {
 					plugins: [router],
@@ -571,6 +592,11 @@ describe("POSView", () => {
 						BaseButton: {
 							template: '<button v-bind="$attrs"><slot></slot></button>',
 							props: ["variant", "size", "loading", "disabled"],
+						},
+						PasswordModal: {
+							template:
+								'<div v-if="modelValue" class="password-modal" @click="$emit(\'cancel\')"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
 						},
 					},
 				},
@@ -589,12 +615,71 @@ describe("POSView", () => {
 
 			await wrapper.vm.$nextTick();
 
+			// Click cancel button
 			const cancelButton = wrapper
 				.findAll(".pos-actions button")
 				.find((btn) => btn.text().includes("Cancelar Venda"));
 			await cancelButton?.trigger("click");
+			await wrapper.vm.$nextTick();
 
+			// Cancel password modal
+			const modal = wrapper.find(".password-modal");
+			await modal.trigger("click");
+			await wrapper.vm.$nextTick();
+
+			// Should NOT call clearSale
 			expect(clearSaleSpy).not.toHaveBeenCalled();
+		});
+
+		it("should hide modal after password confirmed", async () => {
+			const wrapper = mount(POSView, {
+				global: {
+					plugins: [router],
+					stubs: {
+						...createDefaultStubs(),
+						BaseButton: {
+							template: '<button v-bind="$attrs"><slot></slot></button>',
+							props: ["variant", "size", "loading", "disabled"],
+						},
+						PasswordModal: {
+							template:
+								'<div v-if="modelValue" class="password-modal" @click="$emit(\'confirm\', \'test-password\')"></div>',
+							props: ["modelValue", "title", "message", "loading", "error"],
+						},
+					},
+				},
+			});
+
+			const authStore = useAuthStore();
+			vi.spyOn(authStore, "validatePassword").mockResolvedValue(true);
+			const salesStore = useSalesStore();
+			salesStore.currentSale = {
+				id: "SALE-123",
+				items: [],
+				grossTotal: 0,
+				discount: 0,
+				netTotal: 0,
+				status: "open",
+			} as unknown as Sale;
+
+			await wrapper.vm.$nextTick();
+
+			// Click cancel button to show modal
+			const cancelButton = wrapper
+				.findAll(".pos-actions button")
+				.find((btn) => btn.text().includes("Cancelar Venda"));
+			await cancelButton?.trigger("click");
+			await wrapper.vm.$nextTick();
+
+			expect(wrapper.find(".password-modal").exists()).toBe(true);
+
+			// Confirm password
+			const modal = wrapper.find(".password-modal");
+			await modal.trigger("click");
+			await wrapper.vm.$nextTick();
+
+			// Modal should be hidden
+			expect(wrapper.find(".password-modal").exists()).toBe(false);
 		});
 	});
 

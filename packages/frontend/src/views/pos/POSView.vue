@@ -108,6 +108,17 @@
       @apply="handleDiscountApply"
       @close="showDiscountModal = false"
     />
+
+    <!-- Password Modal for Cancel Sale -->
+    <PasswordModal
+      v-model="showPasswordModal"
+      title="Autenticação Necessária"
+      message="Digite sua senha para cancelar a venda"
+      :loading="isValidatingPassword"
+      :error="passwordError"
+      @confirm="handlePasswordConfirm"
+      @cancel="handlePasswordCancel"
+    />
   </div>
 </template>
 
@@ -119,13 +130,20 @@
 
 import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
 import { useSalesStore } from "../../stores/sales";
 
 const router = useRouter();
 const salesStore = useSalesStore();
+const authStore = useAuthStore();
 const showDiscountModal = ref(false);
 
-const formatCurrency = (value: number): string => {
+// Password Modal State
+const showPasswordModal = ref(false);
+const isValidatingPassword = ref(false);
+const passwordError = ref("");
+
+const _formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
@@ -136,7 +154,7 @@ const handleNewSale = async (): Promise<void> => {
 	await salesStore.createSale();
 };
 
-const handleAddProduct = async (product: {
+const _handleAddProduct = async (product: {
 	id: string;
 	price: number;
 	quantity: number;
@@ -148,14 +166,14 @@ const handleAddProduct = async (product: {
 	});
 };
 
-const handleUpdateQuantity = async (
+const _handleUpdateQuantity = async (
 	productId: string,
 	quantity: number,
 ): Promise<void> => {
 	await salesStore.updateItemQuantity(productId, quantity);
 };
 
-const handleRemoveItem = async (productId: string): Promise<void> => {
+const _handleRemoveItem = async (productId: string): Promise<void> => {
 	await salesStore.removeItem(productId);
 };
 
@@ -163,7 +181,7 @@ const handleApplyDiscount = (): void => {
 	showDiscountModal.value = true;
 };
 
-const handleDiscountApply = async (discount: number): Promise<void> => {
+const _handleDiscountApply = async (discount: number): Promise<void> => {
 	const success = await salesStore.applyDiscount(discount);
 	if (success) {
 		showDiscountModal.value = false;
@@ -176,10 +194,30 @@ const handleCheckout = (): void => {
 	}
 };
 
-const handleCancelSale = (): void => {
-	if (confirm("Tem certeza que deseja cancelar esta venda?")) {
+const _handleCancelSale = (): void => {
+	passwordError.value = "";
+	showPasswordModal.value = true;
+};
+
+const _handlePasswordConfirm = async (password: string): Promise<void> => {
+	isValidatingPassword.value = true;
+	passwordError.value = "";
+
+	const isValid = await authStore.validatePassword(password);
+
+	if (isValid) {
+		showPasswordModal.value = false;
 		salesStore.clearSale();
+	} else {
+		passwordError.value = "Senha incorreta";
 	}
+
+	isValidatingPassword.value = false;
+};
+
+const _handlePasswordCancel = (): void => {
+	showPasswordModal.value = false;
+	passwordError.value = "";
 };
 
 // Keyboard shortcuts

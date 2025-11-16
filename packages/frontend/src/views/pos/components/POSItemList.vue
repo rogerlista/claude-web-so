@@ -17,16 +17,6 @@
       <p class="empty-hint">Use F1 para buscar produtos</p>
     </div>
 
-    <!-- Password Modal for Remove Item -->
-    <PasswordModal
-      v-model="showPasswordModal"
-      title="Cancelar Item"
-      message="Digite sua senha para cancelar este item da venda"
-      :loading="isValidatingPassword"
-      :error="passwordError"
-      @confirm="handlePasswordConfirm"
-      @cancel="handlePasswordCancel"
-    />
 
     <div v-else class="items-container">
       <div
@@ -87,6 +77,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Password Modal for Remove Item -->
+    <PasswordModal
+      v-model="showPasswordModal"
+      title="Cancelar Item"
+      message="Digite sua senha para cancelar este item da venda"
+      :loading="isValidatingPassword"
+      :error="passwordError"
+      @confirm="handlePasswordConfirm"
+      @cancel="handlePasswordCancel"
+    />
   </div>
 </template>
 
@@ -123,24 +124,24 @@ const pendingRemoveItem = ref<SaleItem | null>(null);
 
 const authStore = useAuthStore();
 
-const formatCurrency = (value: number): string => {
+const _formatCurrency = (value: number): string => {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
 		currency: "BRL",
 	}).format(value);
 };
 
-const handleIncreaseQuantity = (item: SaleItem): void => {
+const _handleIncreaseQuantity = (item: SaleItem): void => {
 	emit("update-quantity", item.productId, item.quantity + 1);
 };
 
-const handleDecreaseQuantity = (item: SaleItem): void => {
+const _handleDecreaseQuantity = (item: SaleItem): void => {
 	if (item.quantity > 1) {
 		emit("update-quantity", item.productId, item.quantity - 1);
 	}
 };
 
-const handleQuantityChange = (item: SaleItem, event: Event): void => {
+const _handleQuantityChange = (item: SaleItem, event: Event): void => {
 	const target = event.target as HTMLInputElement;
 	const newQuantity = Number.parseInt(target.value, 10);
 
@@ -152,12 +153,12 @@ const handleQuantityChange = (item: SaleItem, event: Event): void => {
 	}
 };
 
-const handleRemove = (item: SaleItem): void => {
+const _handleRemove = (item: SaleItem): void => {
 	pendingRemoveItem.value = item;
 	showPasswordModal.value = true;
 };
 
-const handlePasswordConfirm = async (password: string): Promise<void> => {
+const _handlePasswordConfirm = async (password: string): Promise<void> => {
 	if (!pendingRemoveItem.value) {
 		return;
 	}
@@ -183,7 +184,7 @@ const handlePasswordConfirm = async (password: string): Promise<void> => {
 	}
 };
 
-const handlePasswordCancel = (): void => {
+const _handlePasswordCancel = (): void => {
 	pendingRemoveItem.value = null;
 	passwordError.value = "";
 };
