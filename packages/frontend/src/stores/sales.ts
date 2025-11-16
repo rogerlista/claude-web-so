@@ -426,13 +426,43 @@ export const useSalesStore = defineStore("sales", () => {
 			return false;
 		}
 
-		// For now, update locally. TODO: Implement DELETE endpoint in backend
-		currentSale.value = {
-			...currentSale.value,
-			payments: currentSale.value.payments.filter((_, i) => i !== index),
-		};
+		loading.value = true;
+		error.value = null;
 
-		return true;
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/api/vendas/${currentSale.value.id}/payments/${index}`,
+				{
+					method: "DELETE",
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error("Failed to remove payment");
+			}
+
+			const data = (await response.json()) as {
+				id: string;
+				payments: readonly SalePayment[];
+				netTotal: number;
+			};
+
+			// Update current sale with updated payments
+			if (currentSale.value) {
+				currentSale.value = {
+					...currentSale.value,
+					payments: data.payments,
+					netTotal: data.netTotal,
+				};
+			}
+
+			return true;
+		} catch (_err) {
+			error.value = "Erro ao remover pagamento";
+			return false;
+		} finally {
+			loading.value = false;
+		}
 	};
 
 	/**
