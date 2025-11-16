@@ -8,6 +8,7 @@ import { createApplySaleSurchargeUseCase } from "../../application/use-cases/app
 import { createSaleUseCase } from "../../application/use-cases/create-sale";
 import { createFinalizeSaleUseCase } from "../../application/use-cases/finalize-sale";
 import { createRemoveSaleItemUseCase } from "../../application/use-cases/remove-sale-item";
+import { createRemoveSalePaymentUseCase } from "../../application/use-cases/remove-sale-payment";
 import { createUpdateSaleItemQuantityUseCase } from "../../application/use-cases/update-sale-item-quantity";
 import { type CPF, createCPF } from "../../domain/customer/cpf";
 import { createEmail, type Email } from "../../domain/customer/email";
@@ -29,6 +30,7 @@ import { createSaleId } from "../../domain/sale/sale-id";
  * - POST /api/vendas/:id/discount - Apply discount to sale
  * - POST /api/vendas/:id/surcharge - Apply surcharge to sale
  * - POST /api/vendas/:id/payments - Add payment to sale
+ * - DELETE /api/vendas/:id/payments/:paymentIndex - Remove payment from sale
  * - POST /api/vendas/:id/finalize - Finalize sale
  */
 
@@ -61,6 +63,7 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 		deps.saleRepository,
 	);
 	const addSalePayment = createAddSalePaymentUseCase(deps.saleRepository);
+	const removeSalePayment = createRemoveSalePaymentUseCase(deps.saleRepository);
 	const finalizeSale = createFinalizeSaleUseCase({
 		saleRepository: deps.saleRepository,
 		inventoryRepository: deps.inventoryRepository,
@@ -370,6 +373,46 @@ export const createSaleRoutes = (deps: SaleRoutesDeps): Hono => {
 			/* c8 ignore next 3 */
 		} catch (_error) {
 			return c.json({ error: "Invalid request body" }, 400);
+		}
+	});
+
+	/**
+	 * DELETE /api/vendas/:id/payments/:paymentIndex - Remove payment from sale
+	 */
+	app.delete("/:id/payments/:paymentIndex", async (c) => {
+		try {
+			const saleId = c.req.param("id");
+			const paymentIndexStr = c.req.param("paymentIndex");
+			const paymentIndex = Number.parseInt(paymentIndexStr, 10);
+
+			if (Number.isNaN(paymentIndex)) {
+				return c.json({ error: "Invalid payment index" }, 400);
+			}
+
+			const result = await removeSalePayment({
+				saleId,
+				paymentIndex,
+			});
+
+			if (!result.ok) {
+				const error = result.error;
+				if (error.type === "VALIDATION_ERROR") {
+					return c.json({ error: error.message }, 400);
+				}
+				if (error.type === "SALE_NOT_FOUND") {
+					return c.json({ error: "Sale not found" }, 404);
+				}
+				return c.json({ error: "Failed to remove payment" }, 500);
+			}
+
+			return c.json({
+				id: result.value.id,
+				payments: result.value.payments,
+				netTotal: result.value.netTotal,
+			});
+			/* c8 ignore next 3 */
+		} catch (_error) {
+			return c.json({ error: "Failed to remove payment" }, 500);
 		}
 	});
 

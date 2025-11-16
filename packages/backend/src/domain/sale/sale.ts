@@ -319,6 +319,43 @@ export const addPaymentToSale = (
 };
 
 /**
+ * Remove a payment from sale by index
+ *
+ * @param sale - Current sale
+ * @param paymentIndex - Index of payment to remove (0-based)
+ * @returns Result with updated sale or error message
+ */
+export const removePaymentFromSale = (
+	sale: Sale,
+	paymentIndex: number,
+): Result<Sale, string> => {
+	// Validate payment index
+	if (paymentIndex < 0 || paymentIndex >= sale.payments.length) {
+		return ResultUtils.err(
+			`Invalid payment index: ${paymentIndex}. Sale has ${sale.payments.length} payments.`,
+		);
+	}
+
+	// Remove payment at index
+	const updatedPayments = sale.payments.filter(
+		(_, index) => index !== paymentIndex,
+	);
+
+	return createSale({
+		id: sale.id,
+		customerId: sale.customerId,
+		...(sale.customerCpf && { customerCpf: sale.customerCpf }),
+		...(sale.customerEmail && { customerEmail: sale.customerEmail }),
+		items: sale.items,
+		discount: sale.discount,
+		addition: sale.addition,
+		payments: updatedPayments,
+		status: sale.status,
+		createdAt: sale.createdAt,
+	});
+};
+
+/**
  * Check if sale is fully paid
  *
  * @param sale - Sale to check
