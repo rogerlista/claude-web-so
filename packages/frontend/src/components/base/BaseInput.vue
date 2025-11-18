@@ -24,7 +24,7 @@ export interface BaseInputProps {
 	/** Input label text */
 	label?: string;
 	/** Input type */
-	type?: "text" | "email" | "password" | "number" | "tel" | "url" | "search";
+	type?: "text" | "email" | "password" | "number" | "tel" | "url" | "search" | "date";
 	/** Placeholder text */
 	placeholder?: string;
 	/** Disabled state */
