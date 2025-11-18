@@ -126,8 +126,8 @@
  */
 
 import { computed, ref } from "vue";
-import type { SalePayment } from "../../../stores/sales";
 import BaseButton from "../../../components/base/BaseButton.vue";
+import type { SalePayment } from "../../../stores/sales";
 
 interface Props {
 	payments: readonly SalePayment[];

@@ -5,8 +5,8 @@
  * Main application layout integrating Header, Sidebar, Footer and main content area.
  */
 
-import AppHeader from "./AppHeader.vue";
 import AppFooter from "./AppFooter.vue";
+import AppHeader from "./AppHeader.vue";
 </script>
 
 <template>
