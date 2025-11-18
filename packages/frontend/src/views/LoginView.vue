@@ -4,6 +4,7 @@
  */
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import LoginForm from "../components/auth/LoginForm.vue";
 
 const router = useRouter();
 const isLoading = ref(false);

@@ -90,6 +90,7 @@
  */
 
 import { computed, ref } from "vue";
+import BaseButton from "../../../components/base/BaseButton.vue";
 
 interface Props {
 	currentDiscount: number;

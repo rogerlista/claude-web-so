@@ -8,6 +8,9 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useInventoryStore } from "../../stores/inventory";
 import { useProductsStore } from "../../stores/products";
+import BaseCard from "../../components/base/BaseCard.vue";
+import BaseButton from "../../components/base/BaseButton.vue";
+import BaseInput from "../../components/base/BaseInput.vue";
 
 const router = useRouter();
 const inventoryStore = useInventoryStore();

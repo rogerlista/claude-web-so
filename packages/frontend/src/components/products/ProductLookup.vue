@@ -7,6 +7,8 @@
 
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import type { Product } from "../../stores/products";
+import BaseInput from "../base/BaseInput.vue";
+import BaseLoading from "../base/BaseLoading.vue";
 
 interface Props {
 	readonly placeholder?: string;

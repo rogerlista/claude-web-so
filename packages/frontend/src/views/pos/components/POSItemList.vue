@@ -100,6 +100,7 @@
 import { ref } from "vue";
 import { useAuthStore } from "../../../stores/auth";
 import type { SaleItem } from "../../../stores/sales";
+import PasswordModal from "../../../components/auth/PasswordModal.vue";
 
 interface Props {
 	items: readonly SaleItem[];
