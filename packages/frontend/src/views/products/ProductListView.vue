@@ -6,13 +6,13 @@
 
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import BaseButton from "../../components/base/BaseButton.vue";
+import BaseCard from "../../components/base/BaseCard.vue";
 import type { Column } from "../../components/base/BaseDataTable.vue";
+import BaseDataTable from "../../components/base/BaseDataTable.vue";
+import BaseInput from "../../components/base/BaseInput.vue";
 import type { Product } from "../../stores/products";
 import { useProductsStore } from "../../stores/products";
-import BaseButton from "../../components/base/BaseButton.vue";
-import BaseInput from "../../components/base/BaseInput.vue";
-import BaseCard from "../../components/base/BaseCard.vue";
-import BaseDataTable from "../../components/base/BaseDataTable.vue";
 
 const router = useRouter();
 const productsStore = useProductsStore();

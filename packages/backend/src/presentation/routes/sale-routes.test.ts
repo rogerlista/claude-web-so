@@ -327,7 +327,8 @@ describe("Sale Routes", () => {
 		it("should return 404 when sale not found", async () => {
 			const mockRepo: SaleRepository = {
 				...createMockRepository(),
-				findById: async () => ResultUtils.err({ type: "NOT_FOUND", id: "non-existent" }),
+				findById: async () =>
+					ResultUtils.err({ type: "NOT_FOUND", id: "non-existent" }),
 			};
 
 			const app = createSaleRoutes({

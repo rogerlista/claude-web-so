@@ -88,7 +88,9 @@ export const registerStockMovementUseCase =
 			type: input.type,
 			date: input.date,
 			...(input.userId && { userId: input.userId }),
-			...(input.adjustmentReason && { adjustmentReason: input.adjustmentReason }),
+			...(input.adjustmentReason && {
+				adjustmentReason: input.adjustmentReason,
+			}),
 			...(input.description && { description: input.description }),
 		});
 

@@ -6,12 +6,12 @@
 
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import BaseButton from "../../components/base/BaseButton.vue";
+import BaseCard from "../../components/base/BaseCard.vue";
+import BaseInput from "../../components/base/BaseInput.vue";
 import { useToast } from "../../presentation/composables/useToast";
 import type { CreateProductInput } from "../../stores/products";
 import { useProductsStore } from "../../stores/products";
-import BaseCard from "../../components/base/BaseCard.vue";
-import BaseInput from "../../components/base/BaseInput.vue";
-import BaseButton from "../../components/base/BaseButton.vue";
 
 interface Props {
 	readonly id?: string;

@@ -66,11 +66,7 @@ describe("RemoveSalePayment Use Case", () => {
 			const customerIdResult = createCustomerId("customer-123");
 			const paymentMethodResult = createPaymentMethod("01");
 
-			if (
-				!saleIdResult.ok ||
-				!customerIdResult.ok ||
-				!paymentMethodResult.ok
-			) {
+			if (!saleIdResult.ok || !customerIdResult.ok || !paymentMethodResult.ok) {
 				throw new Error("Test setup failed");
 			}
 
@@ -128,11 +124,7 @@ describe("RemoveSalePayment Use Case", () => {
 			const customerIdResult = createCustomerId("customer-123");
 			const paymentMethodResult = createPaymentMethod("01");
 
-			if (
-				!saleIdResult.ok ||
-				!customerIdResult.ok ||
-				!paymentMethodResult.ok
-			) {
+			if (!saleIdResult.ok || !customerIdResult.ok || !paymentMethodResult.ok) {
 				throw new Error("Test setup failed");
 			}
 
@@ -245,11 +237,7 @@ describe("RemoveSalePayment Use Case", () => {
 			const customerIdResult = createCustomerId("customer-123");
 			const paymentMethodResult = createPaymentMethod("01");
 
-			if (
-				!saleIdResult.ok ||
-				!customerIdResult.ok ||
-				!paymentMethodResult.ok
-			) {
+			if (!saleIdResult.ok || !customerIdResult.ok || !paymentMethodResult.ok) {
 				throw new Error("Test setup failed");
 			}
 
@@ -344,11 +332,7 @@ describe("RemoveSalePayment Use Case", () => {
 			const customerIdResult = createCustomerId("customer-123");
 			const paymentMethodResult = createPaymentMethod("01");
 
-			if (
-				!saleIdResult.ok ||
-				!customerIdResult.ok ||
-				!paymentMethodResult.ok
-			) {
+			if (!saleIdResult.ok || !customerIdResult.ok || !paymentMethodResult.ok) {
 				throw new Error("Test setup failed");
 			}
 

@@ -103,10 +103,10 @@
  */
 
 import { onMounted, onUnmounted, ref } from "vue";
+import BaseButton from "../../../components/base/BaseButton.vue";
+import BaseInput from "../../../components/base/BaseInput.vue";
 import type { Product } from "../../../stores/products";
 import { useProductsStore } from "../../../stores/products";
-import BaseInput from "../../../components/base/BaseInput.vue";
-import BaseButton from "../../../components/base/BaseButton.vue";
 
 interface ProductAddEvent {
 	id: string;
