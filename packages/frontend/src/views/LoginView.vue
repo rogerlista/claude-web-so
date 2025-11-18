@@ -29,6 +29,12 @@ const handleLogin = async (credentials: {
 
 	isLoading.value = false;
 };
+
+// Expose for testing
+defineExpose({
+	isLoading,
+	loginError,
+});
 </script>
 
 <template>

@@ -171,7 +171,7 @@
 	},
 	"overrides": [
 		{
-			"includes": ["**/packages/frontend/**/*.vue"],
+			"includes": ["**/*.vue", "src/**/*.vue", "packages/**/*.vue"],
 			"linter": {
 				"rules": {
 					"style": {

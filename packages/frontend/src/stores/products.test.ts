@@ -190,4 +190,81 @@ describe("useProductsStore", () => {
 			}),
 		);
 	});
+
+	it("should handle create product error", async () => {
+		const store = useProductsStore();
+
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 400,
+		});
+
+		const result = await store.createProduct({
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: 10.0,
+			status: "ativo",
+		});
+
+		expect(result).toBeNull();
+		expect(store.error).toBe("Erro ao criar produto");
+	});
+
+	it("should handle update product error", async () => {
+		const store = useProductsStore();
+
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 404,
+		});
+
+		const result = await store.updateProduct("1", {
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: 10.0,
+			status: "ativo",
+		});
+
+		expect(result).toBeNull();
+		expect(store.error).toBe("Erro ao atualizar produto");
+	});
+
+	it("should handle delete product error", async () => {
+		const store = useProductsStore();
+
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 404,
+		});
+
+		const result = await store.deleteProduct("1");
+
+		expect(result).toBe(false);
+		expect(store.error).toBe("Erro ao deletar produto");
+	});
+
+	it("should handle search products error", async () => {
+		const store = useProductsStore();
+
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 500,
+		});
+
+		await store.searchProducts("test");
+
+		expect(store.error).toBe("Erro ao buscar produtos");
+		expect(store.products).toEqual([]);
+	});
+
+	it("should handle network error in fetchProducts", async () => {
+		const store = useProductsStore();
+
+		global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+
+		await store.fetchProducts();
+
+		expect(store.loading).toBe(false);
+		expect(store.error).toBe("Erro ao carregar produtos");
+	});
 });

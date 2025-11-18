@@ -29,16 +29,19 @@ commit-msg:
     commitlint:
       run: pnpm commitlint --edit {1}
 
-# Pre-push hook: Run tests with coverage requirement
-# Runs all workspace tests in parallel for optimal performance (~9s vs ~20s sequential)
-# Frontend tests temporarily disabled - 5 tests still failing (improved from 33)
+# Pre-push hook: Run all tests with coverage requirement
+# Runs all workspace tests for quality assurance
+# Backend: ~609 tests, ~89.8% coverage (89% threshold)
+# Frontend: ~805 tests, ~86.7% coverage (86% threshold)
+# Shared: 120 tests, 100% coverage
 pre-push:
   parallel: false
   commands:
-    # 1. Run backend and shared tests only
+    # 1. Run all tests with coverage validation
     test:
-      run: pnpm --filter @pos-nfce/backend --filter @pos-nfce/shared test:coverage
+      run: pnpm --filter @pos-nfce/shared --filter @pos-nfce/backend --filter @pos-nfce/frontend test:coverage
 
-    # Note: Tests will fail if coverage is below thresholds (currently 90%/75%)
-    # See PLANEJAMENTO_POS_NFCE.md for current coverage requirements
-    # Frontend will be re-enabled after fixing remaining 5 test failures
+    # Note: Tests will fail if coverage is below configured thresholds
+    # Backend: 89% statements/lines, 79% branches, 100% functions
+    # Frontend: 86% statements/lines, 79% branches, 81% functions
+    # Shared: 100% all metrics

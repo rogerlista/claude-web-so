@@ -135,6 +135,15 @@ const handleCancel = (): void => {
 onMounted(() => {
 	loadProducts();
 });
+
+// Expose for testing
+defineExpose({
+	productCounts,
+	updateDifference,
+	processAdjustments,
+	successMessage,
+	handleCancel,
+});
 </script>
 
 <template>

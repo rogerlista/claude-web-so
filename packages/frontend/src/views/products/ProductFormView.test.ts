@@ -30,6 +30,8 @@ describe("ProductFormView - T027", () => {
 	beforeEach(() => {
 		setActivePinia(createPinia());
 		vi.clearAllMocks();
+		// Mock fetch globally for all tests
+		global.fetch = vi.fn();
 	});
 
 	it("should render component", () => {
@@ -262,6 +264,184 @@ describe("ProductFormView - T027", () => {
 
 		expect(global.fetch).toHaveBeenCalledWith(
 			expect.stringContaining("/api/produtos/123"),
+		);
+	});
+
+	it("should handle load product error", async () => {
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 404,
+		});
+
+		await mockRouter.push("/products/123/edit");
+
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+			props: {
+				id: "123",
+			},
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		await wrapper.vm.$nextTick();
+
+		expect(global.fetch).toHaveBeenCalled();
+	});
+
+	it("should handle submit error", async () => {
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 500,
+		});
+
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+		});
+
+		// Fill form with valid data
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).form = {
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: 10.0,
+			status: "ativo",
+		};
+
+		const submitButton = wrapper.find('[data-testid="submit-button"]');
+		if (submitButton.exists()) {
+			await submitButton.trigger("click");
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+
+		expect(global.fetch).toHaveBeenCalled();
+	});
+
+	it("should validate price fields", async () => {
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+		});
+
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).form = {
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: -10.0, // Invalid negative price
+			status: "ativo",
+		};
+
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		const isValid = (wrapper.vm as any).validateForm();
+		expect(isValid).toBe(false);
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		expect((wrapper.vm as any).errors.preco_unitario).toBeDefined();
+	});
+
+	it("should validate promotional price dates", async () => {
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+		});
+
+		const today = new Date();
+		const yesterday = new Date(today);
+		yesterday.setDate(yesterday.getDate() - 1);
+
+		// Type assertion for exposed properties
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).form = {
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: 10.0,
+			status: "ativo",
+			preco_promocional: 8.0,
+			preco_promocional_inicio: today.toISOString().split("T")[0],
+			preco_promocional_fim: yesterday.toISOString().split("T")[0], // End before start
+		};
+
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		const isValid = (wrapper.vm as any).validateForm();
+		expect(isValid).toBe(false);
+	});
+
+	it("should handle optional fields", async () => {
+		global.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({ data: { id: "1" } }),
+		});
+
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+		});
+
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).form = {
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: 10.0,
+			status: "ativo",
+			gtin: "1234567890123",
+			ncm: "12345678",
+		};
+
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		const isValid = (wrapper.vm as any).validateForm();
+		expect(isValid).toBe(true);
+	});
+
+	it("should clear errors on valid input", async () => {
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+		});
+
+		// First set invalid data
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).form = {
+			sku: "",
+			descricao: "",
+			preco_unitario: 0,
+			status: "ativo",
+		};
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).validateForm();
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		expect(Object.keys((wrapper.vm as any).errors).length).toBeGreaterThan(0);
+
+		// Then set valid data
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).form = {
+			sku: "TEST001",
+			descricao: "Test Product",
+			preco_unitario: 10.0,
+			status: "ativo",
+		};
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		(wrapper.vm as any).validateForm();
+		// Errors should be minimal or none
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		expect((wrapper.vm as any).errors.sku).toBeUndefined();
+	});
+
+	it("should show origem tributaria options", () => {
+		const wrapper = mount(ProductFormView, {
+			global: {
+				plugins: [mockRouter],
+			},
+		});
+
+		// biome-ignore lint/suspicious/noExplicitAny: test helper
+		expect((wrapper.vm as any).origemTributariaOptions.length).toBeGreaterThan(
+			0,
 		);
 	});
 });

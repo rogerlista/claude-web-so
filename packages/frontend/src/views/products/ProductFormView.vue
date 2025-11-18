@@ -246,6 +246,14 @@ onMounted(() => {
 		}
 	}
 });
+
+// Expose for testing
+defineExpose({
+	form,
+	validateForm,
+	errors,
+	origemTributariaOptions,
+});
 </script>
 
 <template>

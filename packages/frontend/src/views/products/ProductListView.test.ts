@@ -155,6 +155,10 @@ describe("ProductListView - T026", () => {
 
 		const button = wrapper.find('[data-testid="create-button"]');
 		await button.trigger("click");
+
+		// Wait for navigation to complete
+		await wrapper.vm.$nextTick();
+		await new Promise((resolve) => setTimeout(resolve, 50));
 		await mockRouter.isReady();
 
 		expect(mockRouter.currentRoute.value.path).toBe("/products/create");

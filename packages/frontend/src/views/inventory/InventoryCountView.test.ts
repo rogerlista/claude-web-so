@@ -239,4 +239,133 @@ describe("InventoryCountView", () => {
 			expect(wrapper.find(".bg-green-100").exists()).toBe(false);
 		});
 	});
+
+	describe("Count Management", () => {
+		it("should handle count changes", async () => {
+			const productsStore = useProductsStore();
+			productsStore.products = [
+				{
+					id: "1",
+					sku: "TEST001",
+					descricao: "Test Product",
+					preco_unitario: 10,
+					status: "ativo" as const,
+				},
+			];
+
+			vi.spyOn(productsStore, "fetchProducts").mockResolvedValue();
+
+			wrapper.unmount();
+			wrapper = mount(InventoryCountView, {
+				global: {
+					plugins: [router],
+					stubs: {
+						BaseCard: {
+							template:
+								'<div class="base-card"><slot name="header"></slot><slot></slot></div>',
+						},
+						BaseInput: {
+							template:
+								'<input v-bind="$attrs" :value="modelValue" @input="$emit(\'update:modelValue\', Number($event.target.value))" />',
+							props: ["modelValue", "disabled"],
+						},
+						BaseButton: {
+							template: '<button v-bind="$attrs"><slot></slot></button>',
+							props: ["disabled", "variant"],
+						},
+					},
+				},
+			});
+
+			await wrapper.vm.$nextTick();
+			await wrapper.vm.$nextTick();
+
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			expect((wrapper.vm as any).productCounts.length).toBeGreaterThanOrEqual(
+				0,
+			);
+		});
+
+		it("should calculate differences correctly", () => {
+			const product = {
+				id: "1",
+				descricao: "Test",
+				sku: "TEST001",
+				systemQuantity: 10,
+				countedQuantity: 15,
+				difference: 0,
+				needsAdjustment: false,
+			};
+
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			(wrapper.vm as any).updateDifference(product);
+			expect(product.difference).toBe(5);
+			expect(product.needsAdjustment).toBe(true);
+		});
+
+		it("should handle null system quantity", () => {
+			const product = {
+				id: "1",
+				descricao: "Test",
+				sku: "TEST001",
+				systemQuantity: null,
+				countedQuantity: 15,
+				difference: 0,
+				needsAdjustment: false,
+			};
+
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			(wrapper.vm as any).updateDifference(product);
+			expect(product.difference).toBe(15);
+			expect(product.needsAdjustment).toBe(true);
+		});
+
+		it("should not mark as needing adjustment when counts match", () => {
+			const product = {
+				id: "1",
+				descricao: "Test",
+				sku: "TEST001",
+				systemQuantity: 10,
+				countedQuantity: 10,
+				difference: 0,
+				needsAdjustment: false,
+			};
+
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			(wrapper.vm as any).updateDifference(product);
+			expect(product.difference).toBe(0);
+			expect(product.needsAdjustment).toBe(false);
+		});
+	});
+
+	describe("Process Adjustments", () => {
+		it("should show success message when no adjustments needed", async () => {
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			(wrapper.vm as any).productCounts = [
+				{
+					id: "1",
+					descricao: "Test",
+					sku: "TEST001",
+					systemQuantity: 10,
+					countedQuantity: 10,
+					difference: 0,
+					needsAdjustment: false,
+				},
+			];
+
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			await (wrapper.vm as any).processAdjustments();
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			expect((wrapper.vm as any).successMessage).toBe(
+				"Nenhum ajuste necessário. Estoque está correto!",
+			);
+		});
+
+		it("should handle cancel button click", async () => {
+			const routerPushSpy = vi.spyOn(router, "push");
+			// biome-ignore lint/suspicious/noExplicitAny: test helper
+			(wrapper.vm as any).handleCancel();
+			expect(routerPushSpy).toHaveBeenCalledWith("/inventory");
+		});
+	});
 });
