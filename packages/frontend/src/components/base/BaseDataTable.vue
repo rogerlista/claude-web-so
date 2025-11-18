@@ -4,6 +4,8 @@
  * TDD Phase: GREEN - Implementation to pass tests
  */
 
+import BaseLoading from "./BaseLoading.vue";
+
 export interface Column {
 	readonly key: string;
 	readonly label: string;

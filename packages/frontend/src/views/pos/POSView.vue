@@ -132,6 +132,11 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import { useSalesStore } from "../../stores/sales";
+import BaseButton from "../../components/base/BaseButton.vue";
+import POSProductSearch from "./components/POSProductSearch.vue";
+import POSItemList from "./components/POSItemList.vue";
+import POSDiscountModal from "./components/POSDiscountModal.vue";
+import PasswordModal from "../../components/auth/PasswordModal.vue";
 
 const router = useRouter();
 const salesStore = useSalesStore();

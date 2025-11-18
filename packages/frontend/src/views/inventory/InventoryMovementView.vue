@@ -9,6 +9,9 @@ import { useRouter } from "vue-router";
 import type { RegisterMovementInput } from "../../stores/inventory";
 import { useInventoryStore } from "../../stores/inventory";
 import { useProductsStore } from "../../stores/products";
+import BaseCard from "../../components/base/BaseCard.vue";
+import BaseInput from "../../components/base/BaseInput.vue";
+import BaseButton from "../../components/base/BaseButton.vue";
 
 const router = useRouter();
 const inventoryStore = useInventoryStore();

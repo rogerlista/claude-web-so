@@ -6,6 +6,9 @@
  */
 
 import { ref } from "vue";
+import BaseAlert from "../base/BaseAlert.vue";
+import BaseButton from "../base/BaseButton.vue";
+import BaseInput from "../base/BaseInput.vue";
 
 export interface LoginFormProps {
 	loading?: boolean;

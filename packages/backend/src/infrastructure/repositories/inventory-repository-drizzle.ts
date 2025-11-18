@@ -65,6 +65,8 @@ const rowToMovement = (
 		quantity: quantityResult.value,
 		type: row.movementType as InventoryMovementType,
 		date: row.movementDate,
+		...(row.userId && { userId: row.userId }),
+		...(row.adjustmentReason && { adjustmentReason: row.adjustmentReason }),
 		...(row.description && { description: row.description }),
 	});
 };
@@ -90,6 +92,8 @@ export const createInventoryRepositoryDrizzle = (
 					quantity: quantityToDb(movement.quantity),
 					movementType: movement.type,
 					movementDate: movement.date,
+					userId: movement.userId,
+					adjustmentReason: movement.adjustmentReason,
 					description: movement.description,
 				};
 

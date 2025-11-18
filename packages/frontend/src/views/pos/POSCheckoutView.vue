@@ -203,6 +203,8 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useSalesStore } from "../../stores/sales";
+import BaseButton from "../../components/base/BaseButton.vue";
+import POSPaymentPanel from "./components/POSPaymentPanel.vue";
 
 const route = useRoute();
 const router = useRouter();
